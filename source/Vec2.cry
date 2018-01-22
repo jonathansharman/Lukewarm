@@ -1,0 +1,49 @@
+// A simple 2D vector type.
+class Vec2 {
+	field x;
+	field y;
+
+	static function zero() { return new Vec2(0.0, 0.0); }
+
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	function plus(that) {
+		return new Vec2(this.x + that.x, this.y + that.y);
+	}
+
+	function minus(that) {
+		return new Vec2(this.x - that.x, this.y - that.y);
+	}
+
+	function times(k) {
+		return new Vec2(this.x * k, this.y * k);
+	}
+
+	function dividedBy(k) {
+		return new Vec2(this.x / k, this.y / k);
+	}
+
+	function lengthSquared() {
+		return this.x ** 2 + this.y ** 2;
+	}
+
+	function length() {
+		return sqrt(this.lengthSquared());
+	}
+
+	function normalize()
+	{
+		if (this.x != 0.0 || this.y != 0.0) {
+			l = this.length();
+			this.x /= l;
+			this.y /= l;
+		}
+	}
+
+	function equals(that) {
+		return this.x == that.x && this.y == that.y;
+	}
+}

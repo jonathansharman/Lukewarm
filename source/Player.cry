@@ -1,0 +1,4 @@
+// Interface for a human-controlled Reversi player.
+class Human : Agent {
+	constructor() : base() {}
+}

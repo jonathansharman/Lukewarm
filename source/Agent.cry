@@ -1,0 +1,11 @@
+// Interface for an agent, which controls a character.
+class Agent {
+	// Makes a move for the game's current player.
+	function makeMove(game) {
+		throw new Exception("Abstract method not overridden!");
+	}
+
+	function toString() {
+		throw new Exception("Abstract method not overridden!");
+	}
+}

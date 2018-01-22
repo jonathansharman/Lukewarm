@@ -1,0 +1,29 @@
+// Implementation of Set using a built-in dictionary.
+class Set {
+	field keys = {};
+
+	constructor(keys = {}) {
+		this.keys = keys;
+	}
+
+	// Removes all elements from the set.
+	function clear() {
+		this.keys.clear();
+	}
+	// Returns a one-level-deep copy of the set.
+	function clone() {
+		return new Set(this.keys.clone());
+	}
+	// Returns whether this set contains the given key.
+	function contains(key) {
+		return this.keys.contains(key);
+	}
+	// Adds the given key to the set.
+	function add(key) {
+		this.keys[key] = null; // Value unused.
+	}
+	// Removes the given key from the set, if present.
+	function remove(key) {
+		this.keys.remove(key);
+	}
+}

@@ -1,0 +1,19 @@
+// Represents an RGBA color.
+class Color {
+	field r; // red
+	field g; // green
+	field b; // blue
+	field a; // alpha
+
+	constructor(r, g, b, a = 255) {
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.a = a;
+	}
+
+	static function black(a = 255) { return new Color(0, 0, 0, a); }
+	static function gray(a = 255) { return new Color(128, 128, 128, a); }
+	static function silver(a = 255) { return new Color(192, 192, 192, a); }
+	static function white(a = 255) { return new Color(255, 255, 255, a); }
+}

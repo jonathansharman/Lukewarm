@@ -1,0 +1,58 @@
+import Game;
+
+// Represents input events since the last call to window.pumpEvents().
+class Input {
+	static field keysDown = new Set();
+	static field keysPressed = new Set();
+	static field keysReleased = new Set();
+	static field leftClick = false;
+	static field rightClick = false;
+	static field mouseX = 0;
+	static field mouseY = 0;
+
+	// Processes relevant input events and removes them from the event list.
+	static function update(eventList) {
+		Input.keysPressed = new Set();
+		Input.keysReleased = new Set();
+		Input.leftClick = false;
+		Input.rightClick = false;
+
+		for (i = 0; i < eventList.length;) {
+			event = eventList[i];
+			if (event.type == Game.EventType.KEY_DOWN) {
+				Input.keysDown.add(event.key);
+				Input.keysPressed.add(event.key);
+				eventList.remove(i);
+			} else if (event.type == Game.EventType.KEY_UP) {
+				Input.keysDown.remove(event.key);
+				Input.keysReleased.add(event.key);
+				eventList.remove(i);
+			} else if (event.type == Game.EventType.MOUSE_LEFT_DOWN) {
+				Input.leftClick = true;
+				eventList.remove(i);
+			} else if (event.type == Game.EventType.MOUSE_RIGHT_DOWN) {
+				Input.rightClick = true;
+				eventList.remove(i);
+			} else if (event.type == Game.EventType.MOUSE_MOVE) {
+				Input.mouseX = event.x;
+				Input.mouseY = event.y;
+				eventList.remove(i);
+			} else {
+				++i;
+			}
+		}
+	}
+
+	static function pressed(key) {
+		return Input.keysPressed.contains(key);
+	}
+	static function released(key) {
+		return Input.keysReleased.contains(key);
+	}
+	static function down(key) {
+		return Input.keysDown.contains(key);
+	}
+	static function up(key) {
+		return !Input.keysDown.contains(key);
+	}
+}

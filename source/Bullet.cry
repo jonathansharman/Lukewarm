@@ -1,0 +1,36 @@
+import Graphics2D;
+import Math;
+
+// A deadly projectile.
+class Bullet {
+	field pos;
+	field vel;
+
+	constructor(pos, vel) {
+		this.pos = pos;
+		this.vel = vel;
+	}
+
+	function update(timeStep) {
+		this.pos = this.pos.plus(this.vel.times(timeStep));
+	}
+
+	function draw() {
+		trail = this.pos.minus(this.vel.times(BULLET_TRAIL_FACTOR));
+		Graphics2D.Draw.line
+			( Math.floor(this.pos.x + 0.5)
+			, Math.floor(this.pos.y + 0.5)
+			, Math.floor(trail.x + 0.5)
+			, Math.floor(trail.y + 0.5)
+			, 2 * BULLET_RADIUS + 1
+			, 255, 0, 0
+			);
+		Graphics2D.Draw.ellipse
+			( Math.floor(this.pos.x - BULLET_RADIUS + 0.5)
+			, Math.floor(this.pos.y - BULLET_RADIUS + 0.5)
+			, 2 * BULLET_RADIUS + 1
+			, 2 * BULLET_RADIUS + 1
+			, 0, 0, 0
+			);
+	}
+}

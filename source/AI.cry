@@ -1,0 +1,4 @@
+// A computer-controlled agent.
+class AI : Agent {
+	constructor() : base() {}
+}

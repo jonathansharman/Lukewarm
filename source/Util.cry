@@ -1,0 +1,14 @@
+import Random;
+
+// Utility functions that don't fit anywhere else.
+class Util {
+	// Fisher-Yates shuffle a list.
+	static function shuffle(list) {
+		for (i = 0; i < list.length - 1; ++i) {
+			j = Random.randomInt(i, list.length);
+			t = list[i];
+			list[i] = list[j];
+			list[j] = t;
+		}
+	}
+}

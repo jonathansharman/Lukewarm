@@ -1,0 +1,26 @@
+import Graphics2D;
+import Math;
+
+// A computer- or human-controlled game character.
+class Character {
+	field pos;
+	field vel = Vec2.zero();
+
+	constructor(pos) {
+		this.pos = pos;
+	}
+
+	function update(timeStep) {
+		this.pos = this.pos.plus(this.vel.times(timeStep));
+	}
+
+	function draw() {
+		Graphics2D.Draw.ellipse
+			( Math.floor(this.pos.x - CHARACTER_RADIUS + 0.5)
+			, Math.floor(this.pos.y - CHARACTER_RADIUS + 0.5)
+			, 2 * CHARACTER_RADIUS + 1
+			, 2 * CHARACTER_RADIUS + 1
+			, 0, 0, 0
+			);
+	}
+}

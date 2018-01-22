@@ -1,0 +1,130 @@
+﻿import Game;
+import Graphics2D;
+import Math;
+import Random;
+
+const FPS = 60;
+const X_RES = 800;
+const Y_RES = 600;
+
+const CHARACTER_RADIUS = 15.0;
+const CHARACTER_SPEED = 5.0;
+
+const BULLET_RADIUS = 3.0;
+const BULLET_SPEED = 15.0;
+const BULLET_TRAIL_FACTOR = 5.0;
+
+const MIN_TIME_STEP = 0.05;
+const MAX_TIME_STEP = 1.0;
+const TIME_STEP_STEP = 0.05;
+
+enum GameState { PLAYING }
+
+// Adapted from http://www.cs.wustl.edu/~kjg/CS101_SP97/Notes/SquareRoot/sqrt.html until Math.sqrt() is fixed.
+class RootFinder {
+    field n; // int
+    constructor(n) {
+        this.n = n;
+    }
+    function f(w, g) {
+        return (g ** this.n - w);
+    }
+    function fPrime(g) {
+        return (this.n * g ** (this.n - 1));
+    }
+    function closeEnough(a, b) {
+        return (Math.abs(a - b) < Math.abs(0.0001 * b));
+    }
+    function findRoot(w, g) {
+        newGuess = g - this.f(w,g) / this.fPrime(g);
+        return this.closeEnough(newGuess, g) ? newGuess : this.findRoot(w, newGuess);
+    }
+    function root(w) {
+        return this.findRoot(w,1);
+    }
+}
+function sqrt(n) {
+	return new RootFinder(2).root(n);
+}
+
+function main() {
+	window = new Game.GameWindow("LUKEWARM", FPS, X_RES, Y_RES);
+
+	gameState = GameState.PLAYING;
+	character = new Character(new Vec2(X_RES / 2, Y_RES / 2));
+	bullets = [];
+
+	timeStep = MIN_TIME_STEP;
+
+	programRunning = true;
+	while (programRunning) {
+		eventList = window.pumpEvents();
+		Input.update(eventList);
+		for (i = 0; i < eventList.length; i++) {
+			event = eventList[i];
+			if (event.type == Game.EventType.QUIT) {
+				programRunning = false;
+			}
+		}
+
+		if (Input.pressed(Game.KeyboardKey.F2)) {
+			// Restart game and reset stats.
+			gameState = GameState.PLAYING;
+			// TODO: Reset state.
+		}
+
+		if (gameState == GameState.PLAYING) {
+			Graphics2D.Draw.fill(255, 255, 255);
+
+			if (Random.randomInt(0, 50) == 0) {
+				bulletVel = character.pos.minus(Vec2.zero());
+				bulletVel.normalize();
+				bulletVel = bulletVel.times(BULLET_SPEED);
+				bullets.add(new Bullet(Vec2.zero(), bulletVel));
+			}
+
+			mousePos = new Vec2(Input.mouseX, Input.mouseY);
+			if (Input.leftClick && !mousePos.equals(character.pos)) {
+				bulletVel = mousePos.minus(character.pos);
+				bulletVel.normalize();
+				bulletVel = bulletVel.times(BULLET_SPEED);
+				bullets.add(new Bullet(character.pos, bulletVel));
+			}
+			character.vel = Vec2.zero();
+			if (Input.down(Game.KeyboardKey.A)) {
+				--character.vel.x;
+			}
+			if (Input.down(Game.KeyboardKey.D)) {
+				++character.vel.x;
+			}
+			if (Input.down(Game.KeyboardKey.W)) {
+				--character.vel.y;
+			}
+			if (Input.down(Game.KeyboardKey.S)) {
+				++character.vel.y;
+			}
+			if (character.vel.equals(Vec2.zero())) {
+				timeStep = MIN_TIME_STEP;
+			} else {
+				character.vel.normalize();
+				character.vel = character.vel.times(CHARACTER_SPEED);
+
+				// Speed up time the longer the player has been moving, up to real time.
+				timeStep += TIME_STEP_STEP;
+				if (timeStep > MAX_TIME_STEP) {
+					timeStep = MAX_TIME_STEP;
+				}
+			}
+
+			for (i = 0; i < bullets.length; ++i) {
+				bullets[i].update(timeStep);
+				bullets[i].draw();
+			}
+
+			character.update(timeStep);
+			character.draw();
+		}
+
+		window.clockTick();
+	}
+}

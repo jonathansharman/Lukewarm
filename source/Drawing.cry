@@ -1,0 +1,71 @@
+import Graphics2D;
+import Math;
+
+// Helper class for slightly more advanced/flexible image drawing.
+class Drawing {
+	field x = 0;
+	field y = 0;
+	field hAlign = 0.0;
+	field vAlign = 0.0;
+	field bgColor = null;
+	field image = null;
+
+	function setPos(x, y) {
+		this.x = x;
+		this.y = y;
+		return this;
+	}
+
+	function alignLeft() {
+		this.hAlign = 0.0;
+		return this;
+	}
+	function alignCenter() {
+		this.hAlign = 0.5;
+		return this;
+	}
+	function alignRight() {
+		this.hAlign = 1.0;
+		return this;
+	}
+
+	function alignTop() {
+		this.vAlign = 0.0;
+		return this;
+	}
+	function alignMiddle() {
+		this.vAlign = 0.5;
+		return this;
+	}
+	function alignBottom() {
+		this.vAlign = 1.0;
+		return this;
+	}
+
+	function setBgColor(color) {
+		this.bgColor = color;
+		return this;
+	}
+
+	function setImage(image) {
+		this.image = image;
+		return this;
+	}
+
+	function draw() {
+		left = this.x - Math.floor(this.image.width * this.hAlign);
+		top = this.y - Math.floor(this.image.height * this.vAlign);
+		if (this.bgColor != null) {
+			Graphics2D.Draw.rectangle
+				( left
+				, top
+				, this.image.width
+				, this.image.height
+				, this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a
+				);
+		}
+		if (this.image != null) {
+			this.image.draw(left, top);
+		}
+	}
+}
