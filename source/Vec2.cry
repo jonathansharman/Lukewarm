@@ -10,6 +10,10 @@ class Vec2 {
 		this.y = y;
 	}
 
+	function clone() {
+		return new Vec2(this.x, this.y);
+	}
+
 	function plus(that) {
 		return new Vec2(this.x + that.x, this.y + that.y);
 	}
@@ -31,7 +35,7 @@ class Vec2 {
 	}
 
 	function length() {
-		return sqrt(this.lengthSquared());
+		return this.lengthSquared() ** 0.5;
 	}
 
 	function normalize()

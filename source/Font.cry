@@ -5,5 +5,8 @@ class Font {
 	static field title = FontResource.fromResource('fonts/Lato-Bold.ttf').getRenderer().setColor(255, 255, 255).setSize(48);
 	static field white = FontResource.fromResource('fonts/Lato-Bold.ttf').getRenderer().setColor(255, 255, 255).setSize(16);
 	static field black = FontResource.fromResource('fonts/Lato-Bold.ttf').getRenderer().setColor(0, 0, 0).setSize(16);
+	static field red = FontResource.fromResource('fonts/Lato-Bold.ttf').getRenderer().setColor(255, 0, 0).setSize(16);
+	static field lime = FontResource.fromResource('fonts/Lato-Bold.ttf').getRenderer().setColor(0, 255, 0).setSize(16);
 	static field yellow = FontResource.fromResource('fonts/Lato-Bold.ttf').getRenderer().setColor(255, 255, 0).setSize(16);
+	static field green = FontResource.fromResource('fonts/Lato-Bold.ttf').getRenderer().setColor(0, 128, 0).setSize(16);
 }

@@ -8,11 +8,14 @@ const X_RES = 800;
 const Y_RES = 600;
 
 const CHARACTER_RADIUS = 15.0;
+const CHARACTER_DIAMETER = 2 * CHARACTER_RADIUS;
 const CHARACTER_SPEED = 5.0;
 
 const BULLET_RADIUS = 3.0;
+const BULLET_DIAMETER = 2 * BULLET_RADIUS;
 const BULLET_SPEED = 15.0;
 const BULLET_TRAIL_FACTOR = 5.0;
+const BULLET_SPAWN_DISTANCE = CHARACTER_RADIUS + BULLET_RADIUS;
 
 const MIN_TIME_STEP = 0.05;
 const MAX_TIME_STEP = 1.0;
@@ -20,31 +23,48 @@ const TIME_STEP_STEP = 0.05;
 
 enum GameState { PLAYING }
 
-// Adapted from http://www.cs.wustl.edu/~kjg/CS101_SP97/Notes/SquareRoot/sqrt.html until Math.sqrt() is fixed.
-class RootFinder {
-    field n; // int
-    constructor(n) {
-        this.n = n;
-    }
-    function f(w, g) {
-        return (g ** this.n - w);
-    }
-    function fPrime(g) {
-        return (this.n * g ** (this.n - 1));
-    }
-    function closeEnough(a, b) {
-        return (Math.abs(a - b) < Math.abs(0.0001 * b));
-    }
-    function findRoot(w, g) {
-        newGuess = g - this.f(w,g) / this.fPrime(g);
-        return this.closeEnough(newGuess, g) ? newGuess : this.findRoot(w, newGuess);
-    }
-    function root(w) {
-        return this.findRoot(w,1);
-    }
+// A body with position, velocity, and radius.
+class CircularBody {
+	field pos;
+	field vel;
+	field radius;
 }
-function sqrt(n) {
-	return new RootFinder(2).root(n);
+
+// Returns whether the given circular bodies collide over the given time step.
+// p1: First body's position.
+// v1: First body's velocity.
+// r1: First body's radius.
+// p2: Second body's position.
+// v2: Second body's velocity.
+// r2: Second body's radius.
+// timeStep: The upper bound of the time interval to check. (Lower bound is 0.0.)
+function collide(p1, v1, r1, p2, v2, r2, timeStep) {
+	// Use relative velocity to simplify the math.
+	v = v2.minus(v1);
+	//print("p1: " + [p1.x, p1.y]);
+	//print("p2: " + [p2.x, p2.y]);
+	//print("v:  " + [v.x, v.y]);
+	//throw new Exception("Whatever");
+	if (v.equals(Vec2.zero())) {
+		return false;
+	}
+
+	collisionRadiusSquared = (r1 + r2) ** 2;
+
+	// Quadratic coefficients to solve for the time when the distance between the bodies is equal to the collision radius.
+	a = v.x ** 2 + v.y ** 2;
+	b = 2 * (p1.x * v.x - v.x * p2.x + p1.y * v.y - v.y * p2.y);
+	c = p1.x ** 2 + p2.x ** 2 - 2 * p1.x * p2.x + p1.y ** 2 + p2.y ** 2 - 2 * p1.y * p2.y - collisionRadiusSquared;
+
+	// Valid collision if a root occurs within the time interval.
+	roots = Util.getQuadraticRoots(a, b, c);
+	if (roots.length == 0) {
+		return false;
+	} else if (roots.length == 1) {
+		return 0.0 <= roots[0] && roots[0] <= timeStep;
+	} else {
+		return (0.0 <= roots[0] && roots[0] <= timeStep) || (0.0 <= roots[1] && roots[1] <= timeStep);
+	}
 }
 
 function main() {
@@ -53,7 +73,8 @@ function main() {
 	gameState = GameState.PLAYING;
 	character = new Character(new Vec2(X_RES / 2, Y_RES / 2));
 	bullets = [];
-
+	totalTime = 0.0;
+	score = 0;
 	timeStep = MIN_TIME_STEP;
 
 	programRunning = true;
@@ -70,59 +91,140 @@ function main() {
 		if (Input.pressed(Game.KeyboardKey.F2)) {
 			// Restart game and reset stats.
 			gameState = GameState.PLAYING;
-			// TODO: Reset state.
+			character = new Character(new Vec2(X_RES / 2, Y_RES / 2));
+			bullets.clear();
+			totalTime = 0.0;
+			score = 0.0;
 		}
 
 		if (gameState == GameState.PLAYING) {
 			Graphics2D.Draw.fill(255, 255, 255);
 
+			target = character.health > 0 ? character.pos : new Vec2(Random.randomInt(0, X_RES), Random.randomInt(0, Y_RES));
 			if (Random.randomInt(0, 50) == 0) {
-				bulletVel = character.pos.minus(Vec2.zero());
+				bulletPos = Vec2.zero();
+				bulletVel = target.minus(bulletPos);
 				bulletVel.normalize();
 				bulletVel = bulletVel.times(BULLET_SPEED);
-				bullets.add(new Bullet(Vec2.zero(), bulletVel));
+				bullets.add(new Bullet(null, bulletPos, bulletVel));
 			}
-
-			mousePos = new Vec2(Input.mouseX, Input.mouseY);
-			if (Input.leftClick && !mousePos.equals(character.pos)) {
-				bulletVel = mousePos.minus(character.pos);
+			if (Random.randomInt(0, 50) == 0) {
+				bulletPos = new Vec2(X_RES, 0);
+				bulletVel = target.minus(bulletPos);
 				bulletVel.normalize();
 				bulletVel = bulletVel.times(BULLET_SPEED);
-				bullets.add(new Bullet(character.pos, bulletVel));
+				bullets.add(new Bullet(null, bulletPos, bulletVel));
 			}
-			character.vel = Vec2.zero();
-			if (Input.down(Game.KeyboardKey.A)) {
-				--character.vel.x;
+			if (Random.randomInt(0, 50) == 0) {
+				bulletPos = new Vec2(0, Y_RES);
+				bulletVel = target.minus(bulletPos);
+				bulletVel.normalize();
+				bulletVel = bulletVel.times(BULLET_SPEED);
+				bullets.add(new Bullet(null, bulletPos, bulletVel));
 			}
-			if (Input.down(Game.KeyboardKey.D)) {
-				++character.vel.x;
+			if (Random.randomInt(0, 50) == 0) {
+				bulletPos = new Vec2(X_RES, Y_RES);
+				bulletVel = target.minus(bulletPos);
+				bulletVel.normalize();
+				bulletVel = bulletVel.times(BULLET_SPEED);
+				bullets.add(new Bullet(null, bulletPos, bulletVel));
 			}
-			if (Input.down(Game.KeyboardKey.W)) {
-				--character.vel.y;
-			}
-			if (Input.down(Game.KeyboardKey.S)) {
-				++character.vel.y;
-			}
-			if (character.vel.equals(Vec2.zero())) {
-				timeStep = MIN_TIME_STEP;
-			} else {
-				character.vel.normalize();
-				character.vel = character.vel.times(CHARACTER_SPEED);
 
-				// Speed up time the longer the player has been moving, up to real time.
-				timeStep += TIME_STEP_STEP;
-				if (timeStep > MAX_TIME_STEP) {
-					timeStep = MAX_TIME_STEP;
+			if (character.health > 0) {
+				if (Input.leftClick && !Input.mousePos.equals(character.pos)) {
+					bulletPos = Input.mousePos.minus(character.pos);
+					bulletPos.normalize();
+					bulletVel = bulletPos.clone();
+
+					bulletPos = character.pos.plus(bulletPos.times(BULLET_SPAWN_DISTANCE));
+					bulletVel = bulletVel.times(BULLET_SPEED);
+					
+					bullets.add(new Bullet(character, bulletPos, bulletVel));
 				}
+				character.vel = Vec2.zero();
+				if (Input.down(Game.KeyboardKey.A)) {
+					--character.vel.x;
+				}
+				if (Input.down(Game.KeyboardKey.D)) {
+					++character.vel.x;
+				}
+				if (Input.down(Game.KeyboardKey.W)) {
+					--character.vel.y;
+				}
+				if (Input.down(Game.KeyboardKey.S)) {
+					++character.vel.y;
+				}
+				if (character.vel.equals(Vec2.zero())) {
+					timeStep = MIN_TIME_STEP;
+				} else {
+					character.vel.normalize();
+					character.vel = character.vel.times(CHARACTER_SPEED);
+
+					// Speed up time the longer the player has been moving, up to real time.
+					timeStep += TIME_STEP_STEP;
+					if (timeStep > MAX_TIME_STEP) {
+						timeStep = MAX_TIME_STEP;
+					}
+				}
+			} else {
+				timeStep = MAX_TIME_STEP;
 			}
+			totalTime += timeStep;
 
 			for (i = 0; i < bullets.length; ++i) {
 				bullets[i].update(timeStep);
+
+				outOfBounds = bullets[i].pos.x < -BULLET_DIAMETER || bullets[i].pos.x > X_RES + BULLET_DIAMETER || bullets[i].pos.y < -BULLET_DIAMETER || bullets[i].pos.y > Y_RES + BULLET_DIAMETER;
+				if (outOfBounds) {
+					if (bullets[i].source != character && character.health > 0) {
+						++score;
+					}
+					bullets.remove(i);
+					--i;
+					continue;
+				}
+				characterCollision = character.health > 0 && collide
+					( bullets[i].pos, bullets[i].vel, BULLET_RADIUS
+					, character.pos, character.vel, CHARACTER_RADIUS
+					, timeStep
+					);
+				if (characterCollision) {
+					bullets.remove(i);
+					--i;
+					--character.health;
+					continue;
+				}
 				bullets[i].draw();
 			}
 
-			character.update(timeStep);
-			character.draw();
+			if (character.health > 0) {
+				character.update(timeStep);
+				character.draw();
+			}
+
+			// Draw timer.
+			timeImage = Font.white.render("Time: " + Math.floor(totalTime));
+			new Drawing()
+				.setImage(timeImage)
+				.setPos(0, 0)
+				.setBgColor(Color.black(128))
+				.draw();
+
+			// Draw score.
+			scoreImage = Font.lime.render("Score: " + score);
+			new Drawing()
+				.setImage(scoreImage)
+				.setPos(0, timeImage.height)
+				.setBgColor(Color.black(128))
+				.draw();
+
+			// Draw health.
+			healthImage = Font.red.render("Health: " + character.health);
+			new Drawing()
+				.setImage(healthImage)
+				.setPos(0, timeImage.height + scoreImage.height)
+				.setBgColor(Color.black(128))
+				.draw();
 		}
 
 		window.clockTick();

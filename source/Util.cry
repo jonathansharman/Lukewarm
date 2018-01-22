@@ -11,4 +11,22 @@ class Util {
 			list[j] = t;
 		}
 	}
+
+	// Solves ax^2 + bx + c = 0 and returns the list of real roots. The a coefficient must not be zero.
+	static function getQuadraticRoots(a, b, c) {
+		determinant = b ** 2 + 4 * a * c;
+		if (determinant < 0.0) {
+			// No roots.
+			return [];
+		} else if (determinant > 0.0) {
+			// Two roots.
+			return
+				[ (-b - determinant ** 0.5) / (2.0 * a)
+				, (-b + determinant ** 0.5) / (2.0 * a)
+				];
+		} else {
+			// One root.
+			return [-b / (2.0 * a)];
+		}
+	}
 }

@@ -5,6 +5,7 @@ import Math;
 class Character {
 	field pos;
 	field vel = Vec2.zero();
+	field health = 5;
 
 	constructor(pos) {
 		this.pos = pos;
@@ -12,14 +13,26 @@ class Character {
 
 	function update(timeStep) {
 		this.pos = this.pos.plus(this.vel.times(timeStep));
+
+		// Clamp character to boundaries.
+		if (this.pos.x < CHARACTER_RADIUS) {
+			this.pos.x = CHARACTER_RADIUS;
+		} else if (this.pos.x > X_RES - CHARACTER_RADIUS) {
+			this.pos.x = X_RES - CHARACTER_RADIUS;
+		}
+		if (this.pos.y < CHARACTER_RADIUS) {
+			this.pos.y = CHARACTER_RADIUS;
+		} else if (this.pos.y > Y_RES - CHARACTER_RADIUS) {
+			this.pos.y = Y_RES - CHARACTER_RADIUS;
+		}
 	}
 
 	function draw() {
 		Graphics2D.Draw.ellipse
 			( Math.floor(this.pos.x - CHARACTER_RADIUS + 0.5)
 			, Math.floor(this.pos.y - CHARACTER_RADIUS + 0.5)
-			, 2 * CHARACTER_RADIUS + 1
-			, 2 * CHARACTER_RADIUS + 1
+			, CHARACTER_DIAMETER
+			, CHARACTER_DIAMETER
 			, 0, 0, 0
 			);
 	}

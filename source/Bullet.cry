@@ -3,12 +3,16 @@ import Math;
 
 // A deadly projectile.
 class Bullet {
+	field source;
 	field pos;
 	field vel;
+	field initialPos;
 
-	constructor(pos, vel) {
+	constructor(source, pos, vel) {
+		this.source = source;
 		this.pos = pos;
 		this.vel = vel;
+		this.initialPos = pos.clone();
 	}
 
 	function update(timeStep) {
@@ -17,19 +21,22 @@ class Bullet {
 
 	function draw() {
 		trail = this.pos.minus(this.vel.times(BULLET_TRAIL_FACTOR));
+		if (this.pos.minus(this.initialPos).lengthSquared() < this.pos.minus(trail).lengthSquared()) {
+			trail = this.initialPos;
+		}
 		Graphics2D.Draw.line
 			( Math.floor(this.pos.x + 0.5)
 			, Math.floor(this.pos.y + 0.5)
 			, Math.floor(trail.x + 0.5)
 			, Math.floor(trail.y + 0.5)
-			, 2 * BULLET_RADIUS + 1
+			, BULLET_DIAMETER
 			, 255, 0, 0
 			);
 		Graphics2D.Draw.ellipse
 			( Math.floor(this.pos.x - BULLET_RADIUS + 0.5)
 			, Math.floor(this.pos.y - BULLET_RADIUS + 0.5)
-			, 2 * BULLET_RADIUS + 1
-			, 2 * BULLET_RADIUS + 1
+			, BULLET_DIAMETER
+			, BULLET_DIAMETER
 			, 0, 0, 0
 			);
 	}

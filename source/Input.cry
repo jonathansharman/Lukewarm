@@ -7,8 +7,7 @@ class Input {
 	static field keysReleased = new Set();
 	static field leftClick = false;
 	static field rightClick = false;
-	static field mouseX = 0;
-	static field mouseY = 0;
+	static field mousePos = Vec2.zero();
 
 	// Processes relevant input events and removes them from the event list.
 	static function update(eventList) {
@@ -34,8 +33,8 @@ class Input {
 				Input.rightClick = true;
 				eventList.remove(i);
 			} else if (event.type == Game.EventType.MOUSE_MOVE) {
-				Input.mouseX = event.x;
-				Input.mouseY = event.y;
+				Input.mousePos.x = event.x;
+				Input.mousePos.y = event.y;
 				eventList.remove(i);
 			} else {
 				++i;
