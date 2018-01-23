@@ -7,14 +7,14 @@ const AI_SHOOT_CHANCE = 0.02;
 
 // A computer-controlled agent.
 class AI : Agent {
-	field direction = 360.0 * Random.randomFloat();
+	field direction = 2.0 * Math.PI * Random.randomFloat();
 	field speed = CHARACTER_SPEED;
 
 	constructor(env) : base(env) {}
 
 	function control(character) {
 		if (Random.randomFloat() < AI_TURN_CHANCE) {
-			this.direction = 360.0 * Random.randomFloat();
+			this.direction = 2.0 * Math.PI * Random.randomFloat();
 		}
 		if (Random.randomFloat() < AI_TOGGLE_MOVE_CHANCE) {
 			this.speed = this.speed > 0.0 ? 0.0 : CHARACTER_SPEED;
