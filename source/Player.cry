@@ -1,4 +1,33 @@
-// Interface for a human-controlled Reversi player.
-class Human : Agent {
-	constructor() : base() {}
+import Game;
+
+// Interface for an agent, which controls a character.
+class Player : Agent {
+	constructor(env) : base(env) {}
+
+	function control(character) {
+		if (Input.leftClick && !Input.mousePos.equals(character.pos)) {
+			bulletHeading = Input.mousePos.minus(character.pos).normalize();
+			bulletPos = character.pos.plus(bulletHeading.times(BULLET_SPAWN_DISTANCE));
+			bulletVel = bulletHeading.times(BULLET_SPEED);
+			
+			this.env.bullets.add(new Bullet(character, bulletPos, bulletVel));
+		}
+		character.vel = Vec2.zero();
+		if (Input.down(Game.KeyboardKey.A)) {
+			--character.vel.x;
+		}
+		if (Input.down(Game.KeyboardKey.D)) {
+			++character.vel.x;
+		}
+		if (Input.down(Game.KeyboardKey.W)) {
+			--character.vel.y;
+		}
+		if (Input.down(Game.KeyboardKey.S)) {
+			++character.vel.y;
+		}
+		character.vel.normalize();
+		character.vel = character.vel.times(CHARACTER_SPEED);
+	}
+
+	function controlsTime() { return true; }
 }

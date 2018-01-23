@@ -1,0 +1,42 @@
+// Represents a circular body that can interact with other bodies.
+class Body {
+	field pos;
+	field vel;
+	field radius;
+
+	constructor(pos, vel, radius) {
+		this.pos = pos;
+		this.vel = vel;
+		this.radius = radius;
+	}
+
+	// Tests for collision between this and that over the given time step.
+	// that: Another Body object.
+	// timeStep: The upper bound of the time interval to check. (Lower bound is 0.0.)
+	function collidesWith(that, timeStep) {
+		// Use relative velocity to simplify the math.
+		v = that.vel.minus(this.vel);
+		if (v.isZero()) {
+			return false;
+		}
+
+		collisionRadiusSquared = (this.radius + that.radius) ** 2;
+
+		// Quadratic coefficients to solve for the time when the distance between the bodies is equal to the collision radius.
+		p1 = this.pos;
+		p2 = that.pos;
+		a = v.x ** 2 + v.y ** 2;
+		b = 2 * (p1.x * v.x - v.x * p2.x + p1.y * v.y - v.y * p2.y);
+		c = p1.x ** 2 + p2.x ** 2 - 2 * p1.x * p2.x + p1.y ** 2 + p2.y ** 2 - 2 * p1.y * p2.y - collisionRadiusSquared;
+
+		// Valid collision if a root occurs within the time interval.
+		roots = Util.getQuadraticRoots(a, b, c);
+		if (roots.length == 0) {
+			return false;
+		} else if (roots.length == 1) {
+			return 0.0 <= roots[0] && roots[0] <= timeStep;
+		} else {
+			return (0.0 <= roots[0] && roots[0] <= timeStep) || (0.0 <= roots[1] && roots[1] <= timeStep);
+		}
+	}
+}

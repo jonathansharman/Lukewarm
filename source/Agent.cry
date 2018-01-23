@@ -1,11 +1,18 @@
 // Interface for an agent, which controls a character.
 class Agent {
-	// Makes a move for the game's current player.
-	function makeMove(game) {
+	field env;
+
+	constructor(env) {
+		this.env = env;
+	}
+
+	// Exerts control over the given character.
+	function control(character) {
 		throw new Exception("Abstract method not overridden!");
 	}
 
-	function toString() {
+	// Whether this agent controls the time step.
+	function controlsTime() {
 		throw new Exception("Abstract method not overridden!");
 	}
 }

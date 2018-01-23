@@ -1,17 +1,19 @@
 import Graphics2D;
 import Math;
 
+const BULLET_RADIUS = 3.0;
+const BULLET_DIAMETER = 2 * BULLET_RADIUS;
+const BULLET_SPEED = 15.0;
+const BULLET_TRAIL_FACTOR = 5.0;
+const BULLET_SPAWN_DISTANCE = CHARACTER_RADIUS + BULLET_RADIUS;
+
 // A deadly projectile.
-class Bullet {
+class Bullet : Body {
 	field source;
-	field pos;
-	field vel;
 	field initialPos;
 
-	constructor(source, pos, vel) {
+	constructor(source, pos, vel) : base(pos, vel, BULLET_RADIUS) {
 		this.source = source;
-		this.pos = pos;
-		this.vel = vel;
 		this.initialPos = pos.clone();
 	}
 
@@ -33,10 +35,10 @@ class Bullet {
 			, 255, 0, 0
 			);
 		Graphics2D.Draw.ellipse
-			( Math.floor(this.pos.x - BULLET_RADIUS + 0.5)
-			, Math.floor(this.pos.y - BULLET_RADIUS + 0.5)
-			, BULLET_DIAMETER
-			, BULLET_DIAMETER
+			( Math.floor(this.pos.x - this.radius + 0.5)
+			, Math.floor(this.pos.y - this.radius + 0.5)
+			, 2.0 * this.radius
+			, 2.0 * this.radius
 			, 0, 0, 0
 			);
 	}

@@ -7,75 +7,18 @@ const FPS = 60;
 const X_RES = 800;
 const Y_RES = 600;
 
-const CHARACTER_RADIUS = 15.0;
-const CHARACTER_DIAMETER = 2 * CHARACTER_RADIUS;
-const CHARACTER_SPEED = 5.0;
+const DIE_DOG_SHOOT_CHANCE = 0.02;
 
-const BULLET_RADIUS = 3.0;
-const BULLET_DIAMETER = 2 * BULLET_RADIUS;
-const BULLET_SPEED = 15.0;
-const BULLET_TRAIL_FACTOR = 5.0;
-const BULLET_SPAWN_DISTANCE = CHARACTER_RADIUS + BULLET_RADIUS;
-
-const MIN_TIME_STEP = 0.05;
-const MAX_TIME_STEP = 1.0;
-const TIME_STEP_STEP = 0.05;
-
-enum GameState { PLAYING }
-
-// A body with position, velocity, and radius.
-class CircularBody {
-	field pos;
-	field vel;
-	field radius;
-}
-
-// Returns whether the given circular bodies collide over the given time step.
-// p1: First body's position.
-// v1: First body's velocity.
-// r1: First body's radius.
-// p2: Second body's position.
-// v2: Second body's velocity.
-// r2: Second body's radius.
-// timeStep: The upper bound of the time interval to check. (Lower bound is 0.0.)
-function collide(p1, v1, r1, p2, v2, r2, timeStep) {
-	// Use relative velocity to simplify the math.
-	v = v2.minus(v1);
-	//print("p1: " + [p1.x, p1.y]);
-	//print("p2: " + [p2.x, p2.y]);
-	//print("v:  " + [v.x, v.y]);
-	//throw new Exception("Whatever");
-	if (v.equals(Vec2.zero())) {
-		return false;
-	}
-
-	collisionRadiusSquared = (r1 + r2) ** 2;
-
-	// Quadratic coefficients to solve for the time when the distance between the bodies is equal to the collision radius.
-	a = v.x ** 2 + v.y ** 2;
-	b = 2 * (p1.x * v.x - v.x * p2.x + p1.y * v.y - v.y * p2.y);
-	c = p1.x ** 2 + p2.x ** 2 - 2 * p1.x * p2.x + p1.y ** 2 + p2.y ** 2 - 2 * p1.y * p2.y - collisionRadiusSquared;
-
-	// Valid collision if a root occurs within the time interval.
-	roots = Util.getQuadraticRoots(a, b, c);
-	if (roots.length == 0) {
-		return false;
-	} else if (roots.length == 1) {
-		return 0.0 <= roots[0] && roots[0] <= timeStep;
-	} else {
-		return (0.0 <= roots[0] && roots[0] <= timeStep) || (0.0 <= roots[1] && roots[1] <= timeStep);
-	}
-}
+enum GameState { MENU, CAMPAIGN, DANCE_DOG }
 
 function main() {
 	window = new Game.GameWindow("LUKEWARM", FPS, X_RES, Y_RES);
 
-	gameState = GameState.PLAYING;
-	character = new Character(new Vec2(X_RES / 2, Y_RES / 2));
-	bullets = [];
-	totalTime = 0.0;
-	score = 0;
-	timeStep = MIN_TIME_STEP;
+	gameState = GameState.MENU;
+	titleImage = Font.title.render("L U K E W A R M");
+	campaignImage = Font.black.render("Campaign");
+	danceDogImage = Font.black.render("Dance, Dog");
+	menuChoice = 0;
 
 	programRunning = true;
 	while (programRunning) {
@@ -89,142 +32,165 @@ function main() {
 		}
 
 		if (Input.pressed(Game.KeyboardKey.F2)) {
-			// Restart game and reset stats.
-			gameState = GameState.PLAYING;
-			character = new Character(new Vec2(X_RES / 2, Y_RES / 2));
-			bullets.clear();
-			totalTime = 0.0;
-			score = 0.0;
+			// Restart game.
+			gameState = GameState.MENU;
 		}
 
-		if (gameState == GameState.PLAYING) {
-			Graphics2D.Draw.fill(255, 255, 255);
+		switch (gameState) {
+			case GameState.MENU:
+				if (Input.pressed(Game.KeyboardKey.UP) || Input.pressed(Game.KeyboardKey.W)) {
+					--menuChoice;
+				}
+				if (Input.pressed(Game.KeyboardKey.DOWN) || Input.pressed(Game.KeyboardKey.S)) {
+					++menuChoice;
+				}
+				menuChoice %= 2;
 
-			target = character.health > 0 ? character.pos : new Vec2(Random.randomInt(0, X_RES), Random.randomInt(0, Y_RES));
-			if (Random.randomInt(0, 50) == 0) {
-				bulletPos = Vec2.zero();
-				bulletVel = target.minus(bulletPos);
-				bulletVel.normalize();
-				bulletVel = bulletVel.times(BULLET_SPEED);
-				bullets.add(new Bullet(null, bulletPos, bulletVel));
-			}
-			if (Random.randomInt(0, 50) == 0) {
-				bulletPos = new Vec2(X_RES, 0);
-				bulletVel = target.minus(bulletPos);
-				bulletVel.normalize();
-				bulletVel = bulletVel.times(BULLET_SPEED);
-				bullets.add(new Bullet(null, bulletPos, bulletVel));
-			}
-			if (Random.randomInt(0, 50) == 0) {
-				bulletPos = new Vec2(0, Y_RES);
-				bulletVel = target.minus(bulletPos);
-				bulletVel.normalize();
-				bulletVel = bulletVel.times(BULLET_SPEED);
-				bullets.add(new Bullet(null, bulletPos, bulletVel));
-			}
-			if (Random.randomInt(0, 50) == 0) {
-				bulletPos = new Vec2(X_RES, Y_RES);
-				bulletVel = target.minus(bulletPos);
-				bulletVel.normalize();
-				bulletVel = bulletVel.times(BULLET_SPEED);
-				bullets.add(new Bullet(null, bulletPos, bulletVel));
-			}
-
-			if (character.health > 0) {
-				if (Input.leftClick && !Input.mousePos.equals(character.pos)) {
-					bulletPos = Input.mousePos.minus(character.pos);
-					bulletPos.normalize();
-					bulletVel = bulletPos.clone();
-
-					bulletPos = character.pos.plus(bulletPos.times(BULLET_SPAWN_DISTANCE));
-					bulletVel = bulletVel.times(BULLET_SPEED);
-					
-					bullets.add(new Bullet(character, bulletPos, bulletVel));
-				}
-				character.vel = Vec2.zero();
-				if (Input.down(Game.KeyboardKey.A)) {
-					--character.vel.x;
-				}
-				if (Input.down(Game.KeyboardKey.D)) {
-					++character.vel.x;
-				}
-				if (Input.down(Game.KeyboardKey.W)) {
-					--character.vel.y;
-				}
-				if (Input.down(Game.KeyboardKey.S)) {
-					++character.vel.y;
-				}
-				if (character.vel.equals(Vec2.zero())) {
-					timeStep = MIN_TIME_STEP;
-				} else {
-					character.vel.normalize();
-					character.vel = character.vel.times(CHARACTER_SPEED);
-
-					// Speed up time the longer the player has been moving, up to real time.
-					timeStep += TIME_STEP_STEP;
-					if (timeStep > MAX_TIME_STEP) {
-						timeStep = MAX_TIME_STEP;
+				if (Input.pressed(Game.KeyboardKey.ENTER) || Input.pressed(Game.KeyboardKey.SPACE)) {
+					switch (menuChoice) {
+						case 0:
+							// Campaign
+							gameState = GameState.CAMPAIGN;
+							env = new Environment();
+							env.characters =
+								[ new Character(new Player(env), new Vec2(X_RES / 2, Y_RES / 2))
+								, new Character(new AI(env), new Vec2(X_RES / 4, Y_RES / 4))
+								, new Character(new AI(env), new Vec2(3 * X_RES / 4, Y_RES / 4))
+								, new Character(new AI(env), new Vec2(3 * X_RES / 4, 3 * Y_RES / 4))
+								, new Character(new AI(env), new Vec2(X_RES / 4, 3 * Y_RES / 4))
+								];
+							break;
+						case 1:
+							// Die, Dog
+							gameState = GameState.DANCE_DOG;
+							env = new Environment();
+							env.characters = [new Character(new Player(env), new Vec2(X_RES / 2, Y_RES / 2))];
+							score = 0;
+							break;
 					}
 				}
-			} else {
-				timeStep = MAX_TIME_STEP;
-			}
-			totalTime += timeStep;
 
-			for (i = 0; i < bullets.length; ++i) {
-				bullets[i].update(timeStep);
+				Graphics2D.Draw.fill(255, 255, 255);
+				// Title
+				new Drawing()
+					.setImage(titleImage)
+					.setPos(X_RES / 2, Y_RES / 4)
+					.alignCenter()
+					.alignMiddle()
+					.draw();
+				// Campaign
+				campaignDrawing = new Drawing()
+					.setImage(campaignImage)
+					.setPos(X_RES / 2, Y_RES / 2)
+					.alignCenter()
+					.alignBottom();
+				// Dance, Dog
+				danceDogDrawing = new Drawing()
+					.setImage(danceDogImage)
+					.setPos(X_RES / 2, Y_RES / 2)
+					.alignCenter()
+					.alignTop();
+				// Highlight current menu choice.
+				switch (menuChoice) {
+					case 0:
+						campaignDrawing.setBgColor(Color.red(128));
+						break;
+					case 1:
+						danceDogDrawing.setBgColor(Color.red(128));
+						break;
+				}
+				// Draw menu options.
+				campaignDrawing.draw();
+				danceDogDrawing.draw();
 
-				outOfBounds = bullets[i].pos.x < -BULLET_DIAMETER || bullets[i].pos.x > X_RES + BULLET_DIAMETER || bullets[i].pos.y < -BULLET_DIAMETER || bullets[i].pos.y > Y_RES + BULLET_DIAMETER;
-				if (outOfBounds) {
-					if (bullets[i].source != character && character.health > 0) {
-						++score;
+				break;
+			case GameState.CAMPAIGN:
+				// Draw environment.
+				env.draw();
+
+				// Update environment.
+				env.update();
+
+				// Draw timer.
+				timeImage = Font.white.render("Time: " + Math.floor(env.totalTime));
+				new Drawing()
+					.setImage(timeImage)
+					.setPos(0, 0)
+					.setBgColor(Color.black(128))
+					.draw();
+
+				// Draw health if the player is alive.
+				if (env.characters.length > 0) {
+					healthImage = Font.red.render("Health: " + env.characters[0].health);
+					new Drawing()
+						.setImage(healthImage)
+						.setPos(0, timeImage.height)
+						.setBgColor(Color.black(128))
+						.draw();
+				}
+				break;
+			case GameState.DANCE_DOG:
+				// Choose target: the player or a random point if the player is dead.
+				target = env.characters.length > 0
+					? env.characters[0].pos
+					: new Vec2(Random.randomInt(0, X_RES), Random.randomInt(0, Y_RES))
+					;
+				if (Random.randomFloat() < DIE_DOG_SHOOT_CHANCE) {
+					env.shoot(Vec2.zero(), target);
+				}
+				if (Random.randomFloat() < DIE_DOG_SHOOT_CHANCE) {
+					env.shoot(new Vec2(X_RES, 0), target);
+				}
+				if (Random.randomFloat() < DIE_DOG_SHOOT_CHANCE) {
+					env.shoot(new Vec2(0, Y_RES), target);
+				}
+				if (Random.randomFloat() < DIE_DOG_SHOOT_CHANCE) {
+					env.shoot(new Vec2(X_RES, Y_RES), target);
+				}
+
+				// Update environment.
+				env.update();
+
+				// Remove out-of-bounds bullets and update score.
+				for (i = 0; i < env.bullets.length; ++i) {
+					if (env.outOfBounds(env.bullets[i])) {
+						if (env.characters.length > 0 && env.bullets[i].source != env.characters[0]) {
+							++score;
+						}
+						env.bullets.remove(i);
+						--i;
 					}
-					bullets.remove(i);
-					--i;
-					continue;
 				}
-				characterCollision = character.health > 0 && collide
-					( bullets[i].pos, bullets[i].vel, BULLET_RADIUS
-					, character.pos, character.vel, CHARACTER_RADIUS
-					, timeStep
-					);
-				if (characterCollision) {
-					bullets.remove(i);
-					--i;
-					--character.health;
-					continue;
+
+				// Draw environment.
+				env.draw();
+
+				// Draw timer.
+				timeImage = Font.white.render("Time: " + Math.floor(env.totalTime));
+				new Drawing()
+					.setImage(timeImage)
+					.setPos(0, 0)
+					.setBgColor(Color.black(128))
+					.draw();
+
+				// Draw score.
+				scoreImage = Font.lime.render("Score: " + score);
+				new Drawing()
+					.setImage(scoreImage)
+					.setPos(0, timeImage.height)
+					.setBgColor(Color.black(128))
+					.draw();
+
+				// Draw health if the player is alive.
+				if (env.characters.length > 0) {
+					healthImage = Font.red.render("Health: " + env.characters[0].health);
+					new Drawing()
+						.setImage(healthImage)
+						.setPos(0, timeImage.height + scoreImage.height)
+						.setBgColor(Color.black(128))
+						.draw();
 				}
-				bullets[i].draw();
-			}
-
-			if (character.health > 0) {
-				character.update(timeStep);
-				character.draw();
-			}
-
-			// Draw timer.
-			timeImage = Font.white.render("Time: " + Math.floor(totalTime));
-			new Drawing()
-				.setImage(timeImage)
-				.setPos(0, 0)
-				.setBgColor(Color.black(128))
-				.draw();
-
-			// Draw score.
-			scoreImage = Font.lime.render("Score: " + score);
-			new Drawing()
-				.setImage(scoreImage)
-				.setPos(0, timeImage.height)
-				.setBgColor(Color.black(128))
-				.draw();
-
-			// Draw health.
-			healthImage = Font.red.render("Health: " + character.health);
-			new Drawing()
-				.setImage(healthImage)
-				.setPos(0, timeImage.height + scoreImage.height)
-				.setBgColor(Color.black(128))
-				.draw();
+				break;
 		}
 
 		window.clockTick();

@@ -1,0 +1,90 @@
+import Graphics2D;
+
+const MIN_TIME_STEP = 0.05;
+const MAX_TIME_STEP = 1.0;
+const TIME_STEP_STEP = 0.05;
+
+// Represents a set of objects in a common environment.
+class Environment {
+	field characters = [];
+	field bullets = [];
+	field timeStep = MIN_TIME_STEP;
+	field totalTime = 0.0;
+
+	constructor() {}
+
+	// Updates all the objects in this environment.
+	function update() {
+		// Update characters.
+		for (i = 0; i < this.characters.length; ++i) {
+			this.characters[i].update(this.timeStep);
+		}
+
+		// Update bullets.
+		for (i = 0; i < this.bullets.length; ++i) {
+			this.bullets[i].update(this.timeStep);
+
+			// Bullet-character collisions.
+			for (j = 0; j < this.characters.length; ++j) {
+				if (this.bullets[i].collidesWith(this.characters[j], this.timeStep)) {
+					this.bullets.remove(i);
+					--i;
+
+					--this.characters[j].health;
+					if (this.characters[j].health <= 0) {
+						this.characters.remove(j);
+					}
+					break;
+				}
+			}
+		}
+
+		// Speed up time the longer the player has been moving, up to real time.
+		if (this.characters.length > 0) {
+			for (i = 0; i < this.characters.length; ++i) {
+				if (this.characters[i].agent.controlsTime()) {
+					if (this.characters[i].vel.isZero()) {
+						this.timeStep = MIN_TIME_STEP;
+					} else {
+						this.timeStep += TIME_STEP_STEP;
+						if (this.timeStep > MAX_TIME_STEP) {
+							this.timeStep = MAX_TIME_STEP;
+						}
+					}
+				}
+			}
+		} else {
+			this.timeStep = MAX_TIME_STEP;
+		}
+		this.totalTime += this.timeStep;
+	}
+
+	function draw() {
+		Graphics2D.Draw.fill(255, 255, 255);
+
+		// Draw bullets.
+		for (i = 0; i < this.bullets.length; ++i) {
+			this.bullets[i].draw();
+		}
+
+		// Draw characters.
+		for (i = 0; i < this.characters.length; ++i) {
+			this.characters[i].draw();
+		}
+	}
+
+	// Whether the given body is out of the environment bounds.
+	function outOfBounds(body) {
+		return body.pos.x < -2.0 * body.radius
+			|| body.pos.x > X_RES + 2.0 * body.radius
+			|| body.pos.y < -2.0 * body.radius
+			|| body.pos.y > Y_RES + 2.0 * body.radius;
+	}
+
+	// Shoots a bullet (with no source) from from to to.
+	function shoot(from, to) {
+		bulletPos = from.clone();
+		bulletVel = to.minus(from).normalize().times(BULLET_SPEED);
+		this.bullets.add(new Bullet(null, bulletPos, bulletVel));
+	}
+}

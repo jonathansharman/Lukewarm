@@ -1,4 +1,42 @@
+import Math;
+import Random;
+
+const AI_TURN_CHANCE = 0.02;
+const AI_TOGGLE_MOVE_CHANCE = 0.02;
+const AI_SHOOT_CHANCE = 0.02;
+
 // A computer-controlled agent.
 class AI : Agent {
-	constructor() : base() {}
+	field direction = 360.0 * Random.randomFloat();
+	field speed = CHARACTER_SPEED;
+
+	constructor(env) : base(env) {}
+
+	function control(character) {
+		if (Random.randomFloat() < AI_TURN_CHANCE) {
+			this.direction = 360.0 * Random.randomFloat();
+		}
+		if (Random.randomFloat() < AI_TOGGLE_MOVE_CHANCE) {
+			this.speed = this.speed > 0.0 ? 0.0 : CHARACTER_SPEED;
+		}
+		if (Random.randomFloat() < AI_SHOOT_CHANCE) {
+			bulletHeading = this.getTarget().minus(character.pos).normalize();
+			bulletPos = character.pos.plus(bulletHeading.times(BULLET_SPAWN_DISTANCE));
+			bulletVel = bulletHeading.times(BULLET_SPEED);
+			this.env.bullets.add(new Bullet(character, bulletPos, bulletVel));
+		}
+
+		character.vel = new Vec2(Math.cos(this.direction), Math.sin(this.direction)).times(this.speed);
+	}
+
+	function controlsTime() { return false; }
+
+	function getTarget() {
+		for (i = 0; i < this.env.characters.length; ++i) {
+			if (this.env.characters[i].agent.controlsTime()) {
+				return this.env.characters[i].pos.clone();
+			}
+		}
+		return new Vec2(Random.randomInt(0, X_RES), Random.randomInt(0, Y_RES));
+	}
 }
