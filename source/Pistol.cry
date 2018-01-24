@@ -1,0 +1,28 @@
+import Graphics2D;
+
+const PISTOL_WIDTH = 7;
+
+// A small gun with five rounds.
+class Pistol : Weapon {
+	field ammo = 5;
+
+	constructor(bearer) : base(bearer) {}
+
+	function cooldown() { return 30.0; }
+
+	function use(from, to, unlimitedAmmo = false) {
+		if (this.activeCooldown <= 0.0 && this.ammo > 0) {
+			this.bearer.env.shoot(from, to);
+			if (!unlimitedAmmo) {
+				--this.ammo;
+			}
+			this.activeCooldown = this.cooldown();
+		}
+	}
+
+	function draw() {
+		from = this.bearer.pos.plus(this.bearer.heading.times(CHARACTER_RADIUS * 0.75));
+		to = this.bearer.pos.plus(this.bearer.heading.times(CHARACTER_RADIUS * 1.5));
+		Graphics2D.Draw.line(from.x, from.y, to.x, to.y, PISTOL_WIDTH, 0, 0, 0);
+	}
+}

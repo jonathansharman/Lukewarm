@@ -1,14 +1,19 @@
 import Graphics2D;
+import Math;
 
 const MIN_TIME_STEP = 0.05;
 const MAX_TIME_STEP = 1.0;
-const TIME_STEP_STEP = 0.05;
+const MOVEMENT_TIME_STEP_PER_FRAME = 0.05;
+const MAX_BULLET_TIME_STEP = 1.0;
+const BULLET_TIME_STEP_DECAY = 0.1;
 
 // Represents a set of objects in a common environment.
 class Environment {
 	field characters = [];
 	field bullets = [];
 	field timeStep = MIN_TIME_STEP;
+	field movementTimeStep = 0.0;
+	field bulletTimeStep = 0.0;
 	field totalTime = 0.0;
 
 	constructor() {}
@@ -24,39 +29,53 @@ class Environment {
 		for (i = 0; i < this.bullets.length; ++i) {
 			this.bullets[i].update(this.timeStep);
 
-			// Bullet-character collisions.
-			for (j = 0; j < this.characters.length; ++j) {
-				if (this.bullets[i].collidesWith(this.characters[j], this.timeStep)) {
-					this.bullets.remove(i);
-					--i;
+			// Remove out-of-bounds bullets.
+			if (this.outOfBounds(this.bullets[i])) {
+				this.bullets.remove(i);
+				--i;
+			} else {
+				// Bullet-character collisions.
+				for (j = 0; j < this.characters.length; ++j) {
+					if (this.bullets[i].collidesWith(this.characters[j], this.timeStep)) {
+						this.bullets.remove(i);
+						--i;
 
-					--this.characters[j].health;
-					if (this.characters[j].health <= 0) {
-						this.characters.remove(j);
+						--this.characters[j].health;
+						if (this.characters[j].health <= 0) {
+							this.characters.remove(j);
+						}
+						break;
 					}
+				}
+			}
+		}
+
+		// Speed up time the longer a player has been moving.
+		playerAlive = false;
+		playerAcceleratedTime = false;
+		for (i = 0; i < this.characters.length; ++i) {
+			if (this.characters[i].agent.isPlayerControlled()) {
+				playerAlive = true;
+				if (!this.characters[i].vel.isZero()) {
+					playerAcceleratedTime = true;
+					this.movementTimeStep += MOVEMENT_TIME_STEP_PER_FRAME;
 					break;
 				}
 			}
 		}
-
-		// Speed up time the longer the player has been moving, up to real time.
-		if (this.characters.length > 0) {
-			for (i = 0; i < this.characters.length; ++i) {
-				if (this.characters[i].agent.controlsTime()) {
-					if (this.characters[i].vel.isZero()) {
-						this.timeStep = MIN_TIME_STEP;
-					} else {
-						this.timeStep += TIME_STEP_STEP;
-						if (this.timeStep > MAX_TIME_STEP) {
-							this.timeStep = MAX_TIME_STEP;
-						}
-					}
-				}
-			}
-		} else {
-			this.timeStep = MAX_TIME_STEP;
+		if (!playerAlive) {
+			// If there are no characters, keep time step at max.
+			this.movementTimeStep = MAX_TIME_STEP;
+		} else if (!playerAcceleratedTime) {
+			// If a player is present but did not accelerate time, immediately revert time step due to movement to zero.
+			this.movementTimeStep = 0.0;
 		}
-		this.totalTime += this.timeStep;
+		// Reduce bullet time step.
+		this.bulletTimeStep = Math.max(0.0, this.bulletTimeStep - BULLET_TIME_STEP_DECAY);
+		// Current time step is the sum of the minimum time step, movement time step, and bullet time step, up to the max.
+		this.timeStep = Math.min(MIN_TIME_STEP + this.movementTimeStep + this.bulletTimeStep, MAX_TIME_STEP);
+		// Add current time step to the total time.
+		this.totalTime += Math.min(this.timeStep, MAX_TIME_STEP);
 	}
 
 	function draw() {
@@ -81,10 +100,10 @@ class Environment {
 			|| body.pos.y > Y_RES + 2.0 * body.radius;
 	}
 
-	// Shoots a bullet (with no source) from from to to.
+	// Shoots a bullet from "from" to "to".
 	function shoot(from, to) {
 		bulletPos = from.clone();
 		bulletVel = to.minus(from).normalize().times(BULLET_SPEED);
-		this.bullets.add(new Bullet(null, bulletPos, bulletVel));
+		this.bullets.add(new Bullet(bulletPos, bulletVel));
 	}
 }

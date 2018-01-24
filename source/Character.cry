@@ -6,11 +6,16 @@ const CHARACTER_SPEED = 5.0;
 
 // A computer- or human-controlled game character.
 class Character : Body {
+	field env;
 	field agent;
-	field health = 5;
+	field heading = new Vec2(1.0, 0.0);
+	field health = 3;
+	field weapon;
 
-	constructor(agent, pos) : base(pos, Vec2.zero(), CHARACTER_RADIUS) {
+	constructor(env, agent, pos) : base(pos, Vec2.zero(), CHARACTER_RADIUS) {
+		this.env = env;
 		this.agent = agent;
+		this.weapon = new Pistol(this);
 	}
 
 	function update(timeStep) {
@@ -28,11 +33,13 @@ class Character : Body {
 			this.pos.y = Y_RES - this.radius;
 		}
 
+		this.weapon.update(timeStep);
+
 		this.agent.control(this);
 	}
 
 	function draw() {
-		color = this.agent.controlsTime() ? Color.black() : Color.red();
+		color = this.agent.isPlayerControlled() ? Color.black() : Color.red();
 		Graphics2D.Draw.ellipse
 			( Math.floor(this.pos.x - this.radius + 0.5)
 			, Math.floor(this.pos.y - this.radius + 0.5)
@@ -40,5 +47,9 @@ class Character : Body {
 			, 2.0 * this.radius
 			, color.r, color.g, color.b
 			);
+
+		if (this.weapon != null) {
+			this.weapon.draw();
+		}
 	}
 }

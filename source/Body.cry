@@ -39,4 +39,9 @@ class Body {
 			return (0.0 <= roots[0] && roots[0] <= timeStep) || (0.0 <= roots[1] && roots[1] <= timeStep);
 		}
 	}
+
+	// Tests whether this body contains the given point.
+	function contains(point) {
+		return this.pos.minus(point).lengthSquared() < this.radius ** 2.0;
+	}
 }

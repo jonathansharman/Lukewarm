@@ -7,36 +7,61 @@ const AI_SHOOT_CHANCE = 0.02;
 
 // A computer-controlled agent.
 class AI : Agent {
-	field direction = 2.0 * Math.PI * Random.randomFloat();
+	field direction = Util.randomAngle();
 	field speed = CHARACTER_SPEED;
 
-	constructor(env) : base(env) {}
+	constructor() : base() {}
 
 	function control(character) {
+		// If there are other characters, acquire a new target.
+		if (character.env.characters.length > 1) {
+			target = this.getTarget(character);
+			character.heading = target.minus(character.pos).normalize();
+		}
+
 		if (Random.randomFloat() < AI_TURN_CHANCE) {
-			this.direction = 2.0 * Math.PI * Random.randomFloat();
+			this.direction = Util.randomAngle();
 		}
 		if (Random.randomFloat() < AI_TOGGLE_MOVE_CHANCE) {
 			this.speed = this.speed > 0.0 ? 0.0 : CHARACTER_SPEED;
 		}
 		if (Random.randomFloat() < AI_SHOOT_CHANCE) {
-			bulletHeading = this.getTarget().minus(character.pos).normalize();
-			bulletPos = character.pos.plus(bulletHeading.times(BULLET_SPAWN_DISTANCE));
-			bulletVel = bulletHeading.times(BULLET_SPEED);
-			this.env.bullets.add(new Bullet(character, bulletPos, bulletVel));
+			// If there are no other characters, acquire a new random target only while shooting.
+			if (character.env.characters.length == 1) {
+				target = this.getTarget(character);
+				character.heading = target.minus(character.pos).normalize();
+			}
+
+			bulletPos = character.pos.plus(character.heading.times(BULLET_SPAWN_DISTANCE));
+			// The AI cheats and has infinite ammo.
+			character.weapon.use(bulletPos, target, true);
 		}
 
 		character.vel = new Vec2(Math.cos(this.direction), Math.sin(this.direction)).times(this.speed);
+
+		if (!character.vel.isZero()) {
+		}
 	}
 
-	function controlsTime() { return false; }
+	function isPlayerControlled() { return false; }
 
-	function getTarget() {
-		for (i = 0; i < this.env.characters.length; ++i) {
-			if (this.env.characters[i].agent.controlsTime()) {
-				return this.env.characters[i].pos.clone();
+	function getTarget(character) {
+		foundPlayer = false;
+		target = null;
+		for (i = 0; i < character.env.characters.length; ++i) {
+			// Prioritize players.
+			if (character.env.characters[i].agent.isPlayerControlled()) {
+				return character.env.characters[i].pos.clone();
+			}
+			// Fall back to other characters.
+			if (character.env.characters[i] != character && target == null) {
+				target = character.env.characters[i].pos;
 			}
 		}
-		return new Vec2(Random.randomInt(0, X_RES), Random.randomInt(0, Y_RES));
+		// If no other characters are found, choose a random target position.
+		return target == null
+			? new Vec2(Random.randomInt(0, X_RES), Random.randomInt(0, Y_RES))
+			: target.clone()
+			;
 	}
 }

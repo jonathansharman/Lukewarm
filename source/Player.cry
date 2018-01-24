@@ -2,15 +2,15 @@ import Game;
 
 // Interface for an agent, which controls a character.
 class Player : Agent {
-	constructor(env) : base(env) {}
+	constructor() : base() {}
 
 	function control(character) {
+		character.heading = Input.mousePos.minus(character.pos).normalize();
 		if (Input.leftClick && !Input.mousePos.equals(character.pos)) {
-			bulletHeading = Input.mousePos.minus(character.pos).normalize();
-			bulletPos = character.pos.plus(bulletHeading.times(BULLET_SPAWN_DISTANCE));
-			bulletVel = bulletHeading.times(BULLET_SPEED);
-			
-			this.env.bullets.add(new Bullet(character, bulletPos, bulletVel));
+			bulletPos = character.pos.plus(character.heading.times(BULLET_SPAWN_DISTANCE));
+			character.weapon.use(bulletPos, Input.mousePos);
+
+			character.env.bulletTimeStep = MAX_BULLET_TIME_STEP;
 		}
 		character.vel = Vec2.zero();
 		if (Input.down(Game.KeyboardKey.A)) {
@@ -29,5 +29,5 @@ class Player : Agent {
 		character.vel = character.vel.times(CHARACTER_SPEED);
 	}
 
-	function controlsTime() { return true; }
+	function isPlayerControlled() { return true; }
 }

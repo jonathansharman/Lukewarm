@@ -1,0 +1,28 @@
+// A weapon a character can use to attack.
+class Weapon {
+	field bearer;
+	field activeCooldown = 0.0;
+
+	constructor(bearer) {
+		this.bearer = bearer;
+	}
+
+	// The minimum length of time required between using this weapon.
+	function cooldown() {
+		throw new Exception("Abstract method not overridden!");
+	}
+
+	function update(timeStep) {
+		this.activeCooldown -= timeStep;
+	}
+
+	// Uses this weapon from "from", aimed towards "to".
+	function use(from, to, unlimitedAmmo = false) {
+		throw new Exception("Abstract method not overridden!");
+	}
+
+	// Draws this weapon to the screen.
+	function draw() {
+		throw new Exception("Abstract method not overridden!");
+	}
+}
