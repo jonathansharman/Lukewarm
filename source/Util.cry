@@ -35,4 +35,10 @@ class Util {
 	static function randomAngle() {
 		return 2.0 * Math.PI * Random.randomFloat();
 	}
+
+	// Returns a random unit vector.
+	static function randomUnitVector() {
+		angle = Util.randomAngle();
+		return new Vec2(Math.cos(angle), Math.sin(angle));
+	}
 }

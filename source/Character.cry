@@ -19,7 +19,7 @@ class Character : Body {
 	}
 
 	function update(timeStep) {
-		this.pos = this.pos.plus(this.vel.times(timeStep));
+		base.update(timeStep);
 
 		// Clamp character to boundaries.
 		if (this.pos.x < this.radius) {
@@ -33,7 +33,9 @@ class Character : Body {
 			this.pos.y = Y_RES - this.radius;
 		}
 
-		this.weapon.update(timeStep);
+		if (this.weapon != null) {
+			this.weapon.update(timeStep);
+		}
 
 		this.agent.control(this);
 	}
@@ -50,6 +52,30 @@ class Character : Body {
 
 		if (this.weapon != null) {
 			this.weapon.draw();
+		}
+	}
+
+	// Causes the character to throw its weapon if it has one.
+	function throwWeapon() {
+		// Throw weapon.
+		if (this.weapon != null) {
+			weaponPos = this.pos.plus(this.heading.times(THROWN_WEAPON_SPAWN_DISTANCE));
+			weaponVel = this.heading.times(THROWN_WEAPON_INITIAL_SPEED);
+			thrownWeapon = new ThrownWeapon(this.weapon, weaponPos, weaponVel);
+			this.weapon = null;
+			this.env.thrownWeapons.add(thrownWeapon);
+		}
+	}
+
+	// Causes the character to drop its weapon if it has one.
+	function dropWeapon() {
+		if (this.weapon != null) {
+			direction = Util.randomUnitVector();
+			weaponPos = this.pos.plus(direction.times(DROPPED_WEAPON_SPAWN_DISTANCE));
+			weaponVel = direction.times(DROPPED_WEAPON_INITIAL_SPEED);
+			droppedWeapon = new DroppedWeapon(this.weapon, weaponPos, weaponVel);
+			this.weapon = null;
+			this.env.droppedWeapons.add(droppedWeapon);
 		}
 	}
 }

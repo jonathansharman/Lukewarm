@@ -1,0 +1,38 @@
+import Graphics2D;
+import Math;
+
+const THROWN_WEAPON_INITIAL_SPEED = 40.0;
+const THROWN_WEAPON_DECELERATION = 3.0;
+const THROWN_WEAPON_RADIUS = 10.0;
+const THROWN_WEAPON_SPAWN_DISTANCE = CHARACTER_RADIUS + THROWN_WEAPON_RADIUS;
+
+// A thrown weapon, which can stun a character.
+class ThrownWeapon : Body {
+	field weapon;
+
+	constructor(weapon, pos, vel) : base(pos, vel, THROWN_WEAPON_RADIUS) {
+		this.weapon = weapon;
+	}
+
+	function update(timeStep) {
+		base.update(timeStep);
+
+		deceleration = THROWN_WEAPON_DECELERATION * timeStep;
+		if (this.vel.lengthSquared() > deceleration ** 2.0) {
+			this.vel = this.vel.minus(this.vel.normalized().times(deceleration));
+		} else {
+			this.vel = Vec2.zero();
+		}
+	}
+
+	function draw() {
+		color = Color.black();
+		Graphics2D.Draw.ellipse
+			( Math.floor(this.pos.x - this.radius + 0.5)
+			, Math.floor(this.pos.y - this.radius + 0.5)
+			, 2.0 * this.radius
+			, 2.0 * this.radius
+			, color.r, color.g, color.b
+			);
+	}
+}

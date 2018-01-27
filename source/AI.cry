@@ -34,7 +34,9 @@ class AI : Agent {
 
 			bulletPos = character.pos.plus(character.heading.times(BULLET_SPAWN_DISTANCE));
 			// The AI cheats and has infinite ammo.
-			character.weapon.use(bulletPos, target, true);
+			if (character.weapon != null) {
+				character.weapon.use(bulletPos, target, true);
+			}
 		}
 
 		character.vel = new Vec2(Math.cos(this.direction), Math.sin(this.direction)).times(this.speed);

@@ -7,9 +7,15 @@ class Player : Agent {
 	function control(character) {
 		character.heading = Input.mousePos.minus(character.pos).normalize();
 		if (Input.leftClick && !Input.mousePos.equals(character.pos)) {
-			bulletPos = character.pos.plus(character.heading.times(BULLET_SPAWN_DISTANCE));
-			character.weapon.use(bulletPos, Input.mousePos);
-
+			// Use weapon.
+			if (character.weapon != null) {
+				bulletPos = character.pos.plus(character.heading.times(BULLET_SPAWN_DISTANCE));
+				character.weapon.use(bulletPos, Input.mousePos);
+				character.env.bulletTimeStep = MAX_BULLET_TIME_STEP;
+			}
+		}
+		if (Input.rightClick && !Input.mousePos.equals(character.pos)) {
+			character.throwWeapon();
 			character.env.bulletTimeStep = MAX_BULLET_TIME_STEP;
 		}
 		character.vel = Vec2.zero();

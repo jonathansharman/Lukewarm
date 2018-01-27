@@ -15,10 +15,6 @@ class Bullet : Body {
 		this.initialPos = pos.clone();
 	}
 
-	function update(timeStep) {
-		this.pos = this.pos.plus(this.vel.times(timeStep));
-	}
-
 	function draw() {
 		trail = this.pos.minus(this.vel.times(BULLET_TRAIL_FACTOR));
 		if (this.pos.minus(this.initialPos).lengthSquared() < this.pos.minus(trail).lengthSquared()) {

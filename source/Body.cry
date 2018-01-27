@@ -10,6 +10,10 @@ class Body {
 		this.radius = radius;
 	}
 
+	function update(timeStep) {
+		this.pos = this.pos.plus(this.vel.times(timeStep));
+	}
+
 	// Tests for collision between this and that over the given time step.
 	// that: Another Body object.
 	// timeStep: The upper bound of the time interval to check. (Lower bound is 0.0.)

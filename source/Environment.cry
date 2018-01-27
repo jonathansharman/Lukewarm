@@ -11,6 +11,8 @@ const BULLET_TIME_STEP_DECAY = 0.1;
 class Environment {
 	field characters = [];
 	field bullets = [];
+	field droppedWeapons = [];
+	field thrownWeapons = [];
 	field timeStep = MIN_TIME_STEP;
 	field movementTimeStep = 0.0;
 	field bulletTimeStep = 0.0;
@@ -37,15 +39,55 @@ class Environment {
 				// Bullet-character collisions.
 				for (j = 0; j < this.characters.length; ++j) {
 					if (this.bullets[i].collidesWith(this.characters[j], this.timeStep)) {
+						// Destroy the bullet.
 						this.bullets.remove(i);
 						--i;
-
+						// Hurt the character.
 						--this.characters[j].health;
 						if (this.characters[j].health <= 0) {
 							this.characters.remove(j);
 						}
 						break;
 					}
+				}
+			}
+		}
+
+		// Update thrown weapons.
+		for (i = 0; i < this.thrownWeapons.length; ++i) {
+			this.thrownWeapons[i].update(this.timeStep);
+			// Destroy thrown weapons after they "land".
+			if (this.thrownWeapons[i].vel.isZero()) {
+				this.thrownWeapons.remove(i);
+				--i;
+				continue;
+			}
+			// Thrown-weapon-character collisions.
+			for (j = 0; j < this.characters.length; ++j) {
+				if (this.thrownWeapons[i].collidesWith(this.characters[j], this.timeStep)) {
+					// Destroy the thrown weapon.
+					this.thrownWeapons.remove(i);
+					--i;
+					// Cause the character to drop its weapon.
+					this.characters[j].dropWeapon();
+					break;
+				}
+			}
+		}
+
+		// Update dropped weapons.
+		for (i = 0; i < this.droppedWeapons.length; ++i) {
+			this.droppedWeapons[i].update(this.timeStep);
+			// Dropped-weapon-character collisions.
+			for (j = 0; j < this.characters.length; ++j) {
+				if (this.droppedWeapons[i].collidesWith(this.characters[j], this.timeStep) && this.characters[j].weapon == null) {
+					// Transfer weapon.
+					this.characters[j].weapon = this.droppedWeapons[i].weapon;
+					this.characters[j].weapon.bearer = this.characters[j];
+					this.characters[j].weapon.activeCooldown = 0.0;
+					this.droppedWeapons.remove(i);
+					--i;
+					break;
 				}
 			}
 		}
@@ -80,6 +122,16 @@ class Environment {
 
 	function draw() {
 		Graphics2D.Draw.fill(255, 255, 255);
+
+		// Update dropped weapons.
+		for (i = 0; i < this.droppedWeapons.length; ++i) {
+			this.droppedWeapons[i].draw();
+		}
+
+		// Update thrown weapons.
+		for (i = 0; i < this.thrownWeapons.length; ++i) {
+			this.thrownWeapons[i].draw();
+		}
 
 		// Draw bullets.
 		for (i = 0; i < this.bullets.length; ++i) {
