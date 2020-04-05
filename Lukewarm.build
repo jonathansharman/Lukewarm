@@ -25,8 +25,8 @@
 	"vars": [
 		{ "name": "game_title", "value": "Lukewarm" },
 		{ "name": "initial_scene", "value": "TitleScene" },
-		{ "name": "screen_width", "value": 800 },
-		{ "name": "screen_height", "value": 600 },
+		{ "name": "screen_width", "value": 640 },
+		{ "name": "screen_height", "value": 480 },
 		{ "name": "use_60_fps", "value": true },
 		{ "name": "enable_wasd", "value": true },
 		{ "name": "thumbnail", "value": "assets/icon200.png" }
