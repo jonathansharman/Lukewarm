@@ -1,34 +1,42 @@
-import Game;
+import TwoCansAlpha4;
 
 // Interface for an agent, which controls a character.
 class Player : Agent {
-	constructor() : base() {}
+	field inputManager;
+
+	constructor(inputManager) : base()
+	{
+		this.inputManager = inputManager;
+	}
 
 	function control(character) {
-		character.heading = Input.mousePos.minus(character.pos).normalize();
-		if (Input.leftClick && !Input.mousePos.equals(character.pos)) {
+		mousePos = this.inputManager.getMousePosition();
+		mousePos = new Vec2(mousePos[0], mousePos[1]);
+		character.heading = mousePos.minus(character.pos).normalize();
+		// TODO: Replace _mouseClickPosition hack if a better alternative is available.
+		if (this.inputManager._mouseClickPosition != null && !mousePos.equals(character.pos)) {
 			// Use weapon.
 			if (character.weapon != null) {
 				bulletPos = character.pos.plus(character.heading.times(BULLET_SPAWN_DISTANCE));
-				character.weapon.use(bulletPos, Input.mousePos);
+				character.weapon.use(bulletPos, mousePos);
 				character.env.bulletTimeStep = MAX_BULLET_TIME_STEP;
 			}
 		}
-		if (Input.rightClick && !Input.mousePos.equals(character.pos)) {
+		if (this.inputManager.isKeyPressedThisFrame(KeyboardKey.E) && !mousePos.equals(character.pos)) {
 			character.throwWeapon();
 			character.env.bulletTimeStep = MAX_BULLET_TIME_STEP;
 		}
 		character.vel = Vec2.zero();
-		if (Input.down(Game.KeyboardKey.A)) {
+		if (this.inputManager.isKeyPressed(KeyboardKey.A)) {
 			--character.vel.x;
 		}
-		if (Input.down(Game.KeyboardKey.D)) {
+		if (this.inputManager.isKeyPressed(KeyboardKey.D)) {
 			++character.vel.x;
 		}
-		if (Input.down(Game.KeyboardKey.W)) {
+		if (this.inputManager.isKeyPressed(KeyboardKey.W)) {
 			--character.vel.y;
 		}
-		if (Input.down(Game.KeyboardKey.S)) {
+		if (this.inputManager.isKeyPressed(KeyboardKey.S)) {
 			++character.vel.y;
 		}
 		character.vel.normalize();

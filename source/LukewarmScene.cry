@@ -1,0 +1,34 @@
+import Graphics2D;
+import TwoCansAlpha4;
+
+const FPS = 60;
+const X_RES = 640;
+const Y_RES = 480;
+
+class LukewarmScene : AbstractScene {
+	constructor() : base() {
+	}
+
+	function update(inputManager, events) {
+		if (inputManager.isKeyPressed(KeyboardKey.ESCAPE)) {
+			// Restart game.
+			this.switchScene(new TitleScene());
+		}
+
+		this.subUpdate(inputManager, events);
+	}
+
+	function render() {
+		Graphics2D.Draw.fill(255, 255, 255);
+
+		this.subRender();
+	}
+
+	function subUpdate(inputManager, events) {
+		throw new Exception("Must override abstract method.");
+	}
+
+	function subRender() {
+		throw new Exception("Must override abstract method.");
+	}
+}

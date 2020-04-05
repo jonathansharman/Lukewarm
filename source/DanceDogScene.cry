@@ -1,0 +1,76 @@
+import Graphics2D;
+import Math;
+import Random;
+
+const DANCE_DOG_CHARGES_PER_SHOT = 20;
+
+class DanceDogScene : LukewarmScene {
+	field env;
+	field charge = 0;
+	field gameOver = false;
+	field scoreImage;
+
+	constructor(inputManager) : base() {
+		this.env = new Environment();
+		this.env.characters = [new Character(this.env, new Player(inputManager), new Vec2(X_RES / 2, Y_RES / 2))];
+	}
+
+	function subUpdate(inputManager, events) {
+		++this.charge;
+		if (this.charge > 0) {
+			this.charge -= DANCE_DOG_CHARGES_PER_SHOT;
+			// Choose target: the player or a random point if the player is dead.
+			target = this.env.characters.length > 0
+				? this.env.characters[0].pos
+				: new Vec2(Random.randomInt(0, X_RES), Random.randomInt(0, Y_RES))
+				;
+			sources =
+				[ new Vec2(Random.randomInt(0, X_RES), 0)
+				, new Vec2(X_RES, Random.randomInt(0, Y_RES))
+				, new Vec2(Random.randomInt(0, X_RES), Y_RES)
+				, new Vec2(0, Random.randomInt(0, Y_RES))
+				];
+			this.env.shoot(sources[Random.randomInt(0, sources.length)], target);
+		}
+
+		// Update environment.
+		this.env.update();
+
+		// Check for game over.
+		if (!this.gameOver && this.env.characters.length == 0) {
+			this.scoreImage = Font.lime.render("Score: " + Math.floor(this.env.totalTime));
+			this.gameOver = true;
+		}
+	}
+
+	function subRender() {
+		// Draw environment.
+		this.env.draw();
+
+		// Draw timer.
+		timeImage = Font.white.render("Time: " + Math.floor(this.env.totalTime));
+		new Drawing()
+			.setImage(timeImage)
+			.setPos(0, 0)
+			.setBgColor(Color.black(128))
+			.draw();
+
+		// Draw health if the player is alive.
+		if (this.gameOver) {
+			// Draw score.
+			new Drawing()
+				.setImage(this.scoreImage)
+				.setPos(0, timeImage.height)
+				.setBgColor(Color.black(128))
+				.draw();
+		} else {
+			// Draw health.
+			healthImage = Font.red.render("Health: " + this.env.characters[0].health);
+			new Drawing()
+				.setImage(healthImage)
+				.setPos(0, timeImage.height)
+				.setBgColor(Color.black(128))
+				.draw();
+		}
+	}
+}

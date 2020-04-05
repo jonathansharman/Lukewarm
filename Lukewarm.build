@@ -1,43 +1,61 @@
-﻿<build>
-	<projectname>Lukewarm</projectname>
-	<title>Lukewarm</title>
-	<description>Classic Lukewarm, player vs. AI.</description>
-	<icon>assets/icon32.png,assets/icon256.png</icon>
+﻿{
+	"title": "LUKEWARM",
+	"id": "Lukewarm",
+	"description": "2D shooter inspired by SUPERHOT.",
+	"icons": ["assets/icon32.png", "assets/icon256.png"],
 
-	<source>source</source>
-	<output>output/%TARGET_NAME%</output>
+	"deps": [
+		"%TWOCANS_SDK%/TwoCansAlpha4"
+	],
 
-	<imagesheets>
-		<sheet id="everything">
-			<prefix>*</prefix>
-		</sheet>
-	</imagesheets>
-	
-	<guidseed>com.yourname.Lukewarm,v1,%TARGET_NAME%</guidseed>
-	
-	<!-- Various targets for exporting to different platforms -->
-	<target name="javascript">
-		<platform>javascript-app</platform>
-		<jsfileprefix>/website/relative/path/from/domain/root</jsfileprefix>
-	</target>
-	
-	<target name="csharp">
-		<platform>csharp-app</platform>
-	</target>
-	
-	<target name="java">
-		<platform>java-app</platform>
-	</target>
-	
-	<target name="python">
-		<platform>python-app</platform>
-	</target>
-	
-	<target name="chrome-web-app">
-		<platform>javascript-app-chrome</platform>
-	</target>
-	
-	<target name="ios">
-		<platform>javascript-app-ios</platform>
-	</target>
-</build>
+	"source": "source",
+	"compilerlocale": "en",
+	"output": "output/%TARGET_NAME%",
+	"delegate-main-to": "TwoCansAlpha4",
+
+	"image-sheets": [
+		{
+			"id": "twocans_everything",
+			"prefix": "*"
+		}
+	],
+
+	"guidseed": "com.jsharman.Lukewarm,v1,%TARGET_NAME%",
+
+	"vars": [
+		{ "name": "game_title", "value": "Lukewarm" },
+		{ "name": "initial_scene", "value": "TitleScene" },
+		{ "name": "screen_width", "value": 800 },
+		{ "name": "screen_height", "value": 600 },
+		{ "name": "use_60_fps", "value": true },
+		{ "name": "enable_wasd", "value": true },
+		{ "name": "thumbnail", "value": "assets/icon200.png" }
+	],
+
+	"targets": [
+		{
+			"name": "csharp",
+			"platform": "csharp-app"
+		},
+		{
+			"name": "java",
+			"platform": "java-app"
+		},
+		{
+			"name": "python",
+			"platform": "python-app"
+		},
+		{
+			"name": "ios",
+			"platform": "javascript-app-ios"
+		},
+		{
+			"name": "android",
+			"platform": "javascript-app-android"
+		},
+		{
+			"name": "javascript",
+			"platform": "javascript-app"
+		}
+	]
+}

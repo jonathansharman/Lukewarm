@@ -1,0 +1,84 @@
+import Graphics2D;
+import Math;
+import Random;
+import TwoCansAlpha4;
+
+class TitleScene : LukewarmScene {
+	field titleImage = Font.title.render("L U K E W A R M");
+	field campaignImage = Font.black.render("Campaign");
+	field danceDogImage = Font.black.render("Dance, Dog");
+	field instructionsImage1 = Font.black.render("WASD to move. Left click to shoot.");
+	field instructionsImage2 = Font.black.render("E to throw weapon. Escape to restart.");
+	field menuChoice = 0;
+
+	constructor() : base() {}
+
+	function subUpdate(inputManager, events) {
+		if (inputManager.isKeyPressedThisFrame(KeyboardKey.UP) || inputManager.isKeyPressedThisFrame(KeyboardKey.W)) {
+			--this.menuChoice;
+		}
+		if (inputManager.isKeyPressedThisFrame(KeyboardKey.DOWN) || inputManager.isKeyPressedThisFrame(KeyboardKey.S)) {
+			++this.menuChoice;
+		}
+		this.menuChoice %= 2;
+
+		if (inputManager.isKeyPressed(KeyboardKey.ENTER) || inputManager.isKeyPressed(KeyboardKey.SPACE)) {
+			switch (this.menuChoice) {
+				case 0: // Campaign
+					this.switchScene(new CampaignScene(inputManager));
+					break;
+				case 1: // Dance, Dog
+					this.switchScene(new DanceDogScene(inputManager));
+					break;
+			}
+		}
+	}
+
+	function subRender() {
+		// Title
+		new Drawing()
+			.setImage(this.titleImage)
+			.setPos(X_RES / 2, Y_RES / 4)
+			.alignCenter()
+			.alignMiddle()
+			.draw();
+		// Campaign
+		campaignDrawing = new Drawing()
+			.setImage(this.campaignImage)
+			.setPos(X_RES / 2, Y_RES / 2)
+			.alignCenter()
+			.alignBottom();
+		// Dance, Dog
+		danceDogDrawing = new Drawing()
+			.setImage(this.danceDogImage)
+			.setPos(X_RES / 2, Y_RES / 2)
+			.alignCenter()
+			.alignTop();
+		// Highlight current menu choice.
+		switch (this.menuChoice) {
+			case 0:
+				campaignDrawing.setBgColor(Color.red(128));
+				break;
+			case 1:
+				danceDogDrawing.setBgColor(Color.red(128));
+				break;
+		}
+		// Draw menu options.
+		campaignDrawing.draw();
+		danceDogDrawing.draw();
+
+		// Draw instructions.
+		new Drawing()
+			.setImage(this.instructionsImage1)
+			.setPos(X_RES / 2, 3 * Y_RES / 4)
+			.alignCenter()
+			.alignMiddle()
+			.draw();
+		new Drawing()
+			.setImage(this.instructionsImage2)
+			.setPos(X_RES / 2, 3 * Y_RES / 4 + this.instructionsImage1.height)
+			.alignCenter()
+			.alignMiddle()
+			.draw();
+	}
+}

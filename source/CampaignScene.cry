@@ -1,0 +1,46 @@
+import Graphics2D;
+import Math;
+import Random;
+
+class CampaignScene : LukewarmScene {
+	field env;
+
+	constructor(inputManager) : base() {
+		this.env = new Environment();
+		this.env.characters =
+			[ new Character(this.env, new Player(inputManager), new Vec2(X_RES / 2, Y_RES / 2))
+			, new Character(this.env, new AI(), new Vec2(X_RES / 4, Y_RES / 4))
+			, new Character(this.env, new AI(), new Vec2(3 * X_RES / 4, Y_RES / 4))
+			, new Character(this.env, new AI(), new Vec2(3 * X_RES / 4, 3 * Y_RES / 4))
+			, new Character(this.env, new AI(), new Vec2(X_RES / 4, 3 * Y_RES / 4))
+			];
+	}
+
+	function subUpdate(inputManager, events) {
+		// Update environment.
+		this.env.update();
+	}
+
+	function subRender() {
+		// Draw environment.
+		this.env.draw();
+
+		// Draw timer.
+		timeImage = Font.white.render("Time: " + Math.floor(this.env.totalTime));
+		new Drawing()
+			.setImage(timeImage)
+			.setPos(0, 0)
+			.setBgColor(Color.black(128))
+			.draw();
+
+		// Draw health if the player is alive.
+		if (this.env.characters.length > 0) {
+			healthImage = Font.red.render("Health: " + this.env.characters[0].health);
+			new Drawing()
+				.setImage(healthImage)
+				.setPos(0, timeImage.height)
+				.setBgColor(Color.black(128))
+				.draw();
+		}
+	}
+}
