@@ -5,13 +5,11 @@ import TwoCansAlpha4;
 
 class TitleScene : LukewarmScene {
 	field titleImage = Font.title.render("L U K E W A R M");
-	field campaignImage = Font.black.render("Campaign");
-	field danceDogImage = Font.black.render("Dance, Dog");
+	field campaignImage = Font.black.render(" Campaign ");
+	field danceDogImage = Font.black.render(" Dance, Dog ");
 	field instructionsImage1 = Font.black.render("WASD to move. Left click to shoot.");
 	field instructionsImage2 = Font.black.render("E to throw weapon. Escape to restart.");
 	field menuChoice = 0;
-
-	constructor() : base() {}
 
 	function subUpdate(inputManager, events) {
 		if (inputManager.isKeyPressedThisFrame(KeyboardKey.UP) || inputManager.isKeyPressedThisFrame(KeyboardKey.W)) {

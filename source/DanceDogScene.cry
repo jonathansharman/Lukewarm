@@ -38,7 +38,7 @@ class DanceDogScene : LukewarmScene {
 
 		// Check for game over.
 		if (!this.gameOver && this.env.characters.length == 0) {
-			this.scoreImage = Font.lime.render("Score: " + Math.floor(this.env.totalTime));
+			this.scoreImage = Font.lime.render(" Score: " + Math.floor(this.env.totalTime) + " ");
 			this.gameOver = true;
 		}
 	}
@@ -48,7 +48,7 @@ class DanceDogScene : LukewarmScene {
 		this.env.draw();
 
 		// Draw timer.
-		timeImage = Font.white.render("Time: " + Math.floor(this.env.totalTime));
+		timeImage = Font.white.render(" Time: " + Math.floor(this.env.totalTime) + " ");
 		new Drawing()
 			.setImage(timeImage)
 			.setPos(0, 0)
@@ -65,7 +65,7 @@ class DanceDogScene : LukewarmScene {
 				.draw();
 		} else {
 			// Draw health.
-			healthImage = Font.red.render("Health: " + this.env.characters[0].health);
+			healthImage = Font.red.render(" Health: " + this.env.characters[0].health + " ");
 			new Drawing()
 				.setImage(healthImage)
 				.setPos(0, timeImage.height)
