@@ -1,691 +1,574 @@
-﻿var v_lib_graphics2d_manifest = function(v_libRegData) {
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "addImageRenderEvent", 13);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "flip", 6);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "initializeTexture", 5);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "initializeTextureResource", 3);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "isOpenGlBased", 0);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "isPlatformUsingTextureAtlas", 0);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "lineToQuad", 1);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "renderQueueAction", 3);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "renderQueueValidateArgs", 1);
-	C$common$registerLibraryFunction('graphics2d', v_libRegData, "scale", 6);
+﻿PST$createNewArray = function(s) {
+	var o = [];
+	while (s-- > 0) o.push(null);
+	return o;
 };
 
+PST$clearList = function(v) {
+	v.length = 0;
+};
 
-var v_lib_graphics2d_function_addImageRenderEvent = function(v_args) {
-	var v_bool1 = false;
-	var v_bool2 = false;
-	var v_float1 = 0.0;
-	var v_i = 0;
-	var v_int1 = 0;
-	var v_int2 = 0;
-	var v_int3 = 0;
-	var v_intArray1 = null;
-	var v_intArray2 = null;
-	var v_len = 0;
-	var v_objArray1 = null;
-	var v_objArrayArray1 = null;
-	var v_objArrayArray2 = null;
-	var v_objInstance1 = null;
-	var v_objInstance2 = null;
-	var v_value = null;
-	var v_output = v_VALUE_NULL;
-	var v_arg1 = v_args[0];
-	var v_arg2 = v_args[1];
-	var v_arg3 = v_args[2];
-	var v_arg4 = v_args[3];
-	var v_arg5 = v_args[4];
-	var v_arg6 = v_args[5];
-	var v_arg7 = v_args[6];
-	var v_arg8 = v_args[7];
-	var v_arg9 = v_args[8];
-	var v_arg10 = v_args[9];
-	var v_arg11 = v_args[10];
-	var v_arg12 = v_args[11];
-	var v_arg13 = v_args[12];
-	v_objInstance1 = v_arg1[1];
-	v_objArray1 = v_objInstance1[3];
-	v_intArray1 = v_objArray1[0];
-	v_len = v_objArray1[1];
-	if ((v_len >= v_intArray1.length)) {
-		v_intArray2 = C$common$createNewArray(((v_len * 2) + 16));
-		v_i = 0;
-		while ((v_i < v_len)) {
-			v_intArray2[v_i] = v_intArray1[v_i];
-			v_i += 1;
-		}
-		v_intArray1 = v_intArray2;
-		v_objArray1[0] = v_intArray1;
+var lib_graphics2d_addImageRenderEvent = function(vm, args) {
+	var i = 0;
+	// get the drawing queue data;
+	var drawQueueData = (args[0][1])[3];
+	// expand the draw event queue;
+	var eventQueue = drawQueueData[0];
+	var queueLength = drawQueueData[1];
+	if ((queueLength >= eventQueue.length)) {
+		eventQueue = lib_graphics2d_expandEventQueueCapacity(eventQueue);
+		drawQueueData[0] = eventQueue;
 	}
-	v_objArray1[1] = (v_len + 16);
-	v_objArrayArray1 = v_objArray1[2];
-	if ((v_objArrayArray1 == null)) {
-		v_int1 = 0;
-		v_objArrayArray1 = C$common$createNewArray(0);
+	drawQueueData[1] = (queueLength + 16);
+	// expand (or create) the image native data queue;
+	var imageNativeDataQueue = drawQueueData[2];
+	var imageNativeDataQueueSize = 0;
+	if ((imageNativeDataQueue == null)) {
+		imageNativeDataQueue = PST$createNewArray(16);
 	} else {
-		v_int1 = v_objArray1[3];
+		imageNativeDataQueueSize = drawQueueData[3];
 	}
-	if ((v_int1 >= v_objArrayArray1.length)) {
-		v_objArrayArray2 = C$common$createNewArray(((v_int1 * 2) + 16));
-		v_i = 0;
-		while ((v_i < v_int1)) {
-			v_objArrayArray2[v_i] = v_objArrayArray1[v_i];
-			v_i += 1;
+	if ((imageNativeDataQueueSize >= imageNativeDataQueue.length)) {
+		var objArrayArray2 = PST$createNewArray(((imageNativeDataQueueSize * 2) + 16));
+		i = 0;
+		while ((i < imageNativeDataQueueSize)) {
+			objArrayArray2[i] = imageNativeDataQueue[i];
+			i += 1;
 		}
-		v_objArrayArray1 = v_objArrayArray2;
-		v_objArray1[2] = v_objArrayArray1;
+		imageNativeDataQueue = objArrayArray2;
+		drawQueueData[2] = imageNativeDataQueue;
 	}
-	v_objArray1[3] = (v_int1 + 1);
-	v_value = v_arg2;
-	v_objInstance2 = v_value[1];
-	v_objArray1 = v_objInstance2[3];
-	v_objArrayArray1[v_int1] = v_objArray1;
-	v_bool1 = true;
-	v_bool2 = false;
-	v_value = v_arg3;
-	v_int1 = v_value[1];
-	v_intArray1[v_len] = 6;
-	v_intArray1[(v_len + 1)] = v_int1;
-	if (((v_int1 & 4) != 0)) {
-		v_value = v_arg12;
-		if ((v_value[0] == 4)) {
-			v_float1 = v_value[1];
+	drawQueueData[3] = (imageNativeDataQueueSize + 1);
+	// Add the image to the image native data queue;
+	var imageNativeData = (args[1][1])[3];
+	imageNativeDataQueue[imageNativeDataQueueSize] = imageNativeData;
+	var isValid = true;
+	var isNoop = false;
+	// mark event as an Image event (6);
+	eventQueue[queueLength] = 6;
+	// get/set the draw options mask;
+	var flag = args[2][1];
+	eventQueue[(queueLength | 1)] = flag;
+	// rotation;
+	if (((flag & 4) != 0)) {
+		var rotationValue = args[11];
+		var theta = 0.0;
+		if ((rotationValue[0] == 4)) {
+			theta = rotationValue[1];
+		} else if ((rotationValue[0] == 3)) {
+			theta += rotationValue[1];
 		} else {
-			if ((v_value[0] == 3)) {
-				v_float1 = (v_value[1] + 0.0);
+			isValid = false;
+		}
+		eventQueue[(queueLength | 10)] = Math.floor((canonicalizeAngle(theta) * 1048576));
+	}
+	// alpha;
+	if (((flag & 8) != 0)) {
+		var alphaValue = args[12];
+		var alpha = 0;
+		if ((alphaValue[0] == 3)) {
+			alpha = alphaValue[1];
+		} else if ((alphaValue[0] == 4)) {
+			alpha = Math.floor((0.5 + alphaValue[1]));
+		} else {
+			isValid = false;
+		}
+		if ((i > 254)) {
+			eventQueue[(queueLength | 1)] = (flag - 8);
+		} else if ((i < 0)) {
+			isNoop = true;
+		} else {
+			eventQueue[(queueLength | 11)] = alpha;
+		}
+	}
+	// Copy values to event queue;
+	var value = null;
+	i = 3;
+	while ((i < 11)) {
+		value = args[i];
+		if ((value[0] == 3)) {
+			eventQueue[(queueLength + i - 1)] = value[1];
+		} else if ((value[0] == 4)) {
+			eventQueue[(queueLength + i - 1)] = Math.floor((0.5 + value[1]));
+		} else {
+			isValid = false;
+		}
+		i += 1;
+	}
+	// slicing;
+	if (((flag & 1) != 0)) {
+		var actualWidth = imageNativeData[5];
+		var sourceX = eventQueue[(queueLength | 2)];
+		var sourceWidth = eventQueue[(queueLength | 4)];
+		if (((sourceX < 0) || ((sourceX + sourceWidth) > actualWidth) || (sourceWidth < 0))) {
+			isValid = false;
+		} else if ((sourceWidth == 0)) {
+			isNoop = true;
+		}
+		var actualHeight = imageNativeData[6];
+		var sourceY = eventQueue[(queueLength | 3)];
+		var sourceHeight = eventQueue[(queueLength | 5)];
+		if (((sourceY < 0) || ((sourceY + sourceHeight) > actualHeight) || (sourceHeight < 0))) {
+			isValid = false;
+		} else if ((sourceHeight == 0)) {
+			isNoop = true;
+		}
+	}
+	// stretching;
+	if (((flag & 2) != 0)) {
+		if ((eventQueue[(queueLength | 6)] <= 0)) {
+			if ((eventQueue[(queueLength | 6)] < 0)) {
+				isValid = false;
 			} else {
-				v_bool1 = false;
+				isNoop = true;
 			}
 		}
-		v_int2 = Math.floor((v_canonicalizeAngle(v_float1) * 1048576));
-		v_intArray1[(v_len | 10)] = v_int2;
-	}
-	if ((v_bool1 && ((v_int1 & 8) != 0))) {
-		v_value = v_arg13;
-		if ((v_value[0] == 3)) {
-			v_int2 = v_value[1];
-		} else {
-			if ((v_value[0] == 4)) {
-				v_float1 = v_value[1];
-				v_int2 = Math.floor((v_float1 + 0.5));
+		if ((eventQueue[(queueLength | 7)] <= 0)) {
+			if ((eventQueue[(queueLength | 7)] < 0)) {
+				isValid = false;
 			} else {
-				v_bool1 = false;
-			}
-		}
-		if ((v_int2 > 254)) {
-			v_intArray1[(v_len | 1)] = (v_int1 - 8);
-		} else {
-			if ((v_int2 < 0)) {
-				v_bool2 = true;
-			} else {
-				v_intArray1[(v_len | 11)] = v_int2;
+				isNoop = true;
 			}
 		}
 	}
-	v_i = 0;
-	while ((v_i < 8)) {
-		v_value = v_args[(3 + v_i)];
-		if ((v_value[0] == 3)) {
-			v_int2 = v_value[1];
-		} else {
-			if ((v_value[0] == 4)) {
-				v_float1 = v_value[1];
-				v_int2 = Math.floor((v_float1 + 0.5));
-			} else {
-				v_bool1 = false;
-				v_i = 9;
-			}
-		}
-		v_intArray1[((v_len + 2) + v_i)] = v_int2;
-		v_i += 1;
+	// Revert the operation if it is null or a no-op;
+	if ((isNoop || !isValid)) {
+		drawQueueData[1] = queueLength;
+		drawQueueData[3] = imageNativeDataQueueSize;
 	}
-	if (((v_int1 & 2) != 0)) {
-		v_int2 = v_intArray1[(v_len + 6)];
-		if ((v_int2 < 0)) {
-			v_bool1 = false;
-		} else {
-			if ((v_int2 == 0)) {
-				v_bool2 = true;
-			}
-		}
-		v_int2 = v_intArray1[(v_len + 7)];
-		if ((v_int2 < 0)) {
-			v_bool1 = false;
-		} else {
-			if ((v_int2 == 0)) {
-				v_bool2 = true;
-			}
-		}
+	if ((isValid || isNoop)) {
+		return vm[15];
 	}
-	if (((v_int1 & 1) != 0)) {
-		v_int1 = v_objArray1[5];
-		v_int2 = v_intArray1[(v_len + 2)];
-		v_int3 = v_intArray1[(v_len + 4)];
-		if (((v_int2 < 0) || ((v_int2 + v_int3) > v_int1) || (v_int3 < 0))) {
-			v_bool1 = false;
-		}
-		if ((v_int3 == 0)) {
-			v_bool2 = true;
-		}
-		if (v_bool1) {
-			v_int1 = v_objArray1[6];
-			v_int2 = v_intArray1[(v_len + 3)];
-			v_int3 = v_intArray1[(v_len + 5)];
-			if (((v_int2 < 0) || ((v_int2 + v_int3) > v_int1) || (v_int3 < 0))) {
-				v_bool1 = false;
-			}
-			if ((v_int3 == 0)) {
-				v_bool2 = true;
-			}
-		}
+	return vm[16];
+};
+
+var lib_graphics2d_expandEventQueueCapacity = function(a) {
+	var _len = a.length;
+	var output = PST$createNewArray(((_len * 2) + 16));
+	var i = 0;
+	while ((i < _len)) {
+		output[i] = a[i];
+		i += 1;
 	}
-	if (v_bool1) {
-		if (v_bool2) {
-			v_objArray1 = v_objInstance1[3];
-			v_objArray1[1] = (v_objArray1[1] - 16);
-			v_objArray1[3] = (v_objArray1[3] - 1);
-		}
-		v_output = v_VALUE_TRUE;
+	return output;
+};
+
+var lib_graphics2d_flip = function(vm, args) {
+	var bool1 = false;
+	var bool2 = false;
+	var i = 0;
+	var objArray1 = null;
+	var objArray2 = null;
+	var object1 = null;
+	var objInstance1 = null;
+	var objInstance2 = null;
+	var arg1 = args[0];
+	var arg2 = args[1];
+	var arg3 = args[2];
+	var arg4 = args[3];
+	var arg5 = args[4];
+	var arg6 = args[5];
+	objInstance1 = arg1[1];
+	objInstance2 = arg2[1];
+	objArray1 = objInstance1[3];
+	objArray2 = PST$createNewArray(7);
+	objInstance2[3] = objArray2;
+	bool1 = arg3[1];
+	bool2 = arg4[1];
+	i = 6;
+	while ((i >= 0)) {
+		objArray2[i] = objArray1[i];
+		i -= 1;
+	}
+	objInstance1 = arg6[1];
+	objArray1 = objInstance1[3];
+	objInstance2 = arg2[1];
+	objInstance2[3][0] = objArray1;
+	object1 = objArray1[3];
+	object1 = C$drawing$flipImage(object1, bool1, bool2);
+	objArray1[3] = object1;
+	return arg2;
+};
+
+var lib_graphics2d_initializeTexture = function(vm, args) {
+	var arg1 = args[0];
+	var arg2 = args[1];
+	var arg3 = args[2];
+	var arg4 = args[3];
+	var arg5 = args[4];
+	var objInstance1 = arg1[1];
+	var objArray1 = PST$createNewArray(7);
+	objInstance1[3] = objArray1;
+	objInstance1 = arg2[1];
+	objArray1[0] = objInstance1[3];
+	var list1 = arg3[1];
+	var value = getItemFromList(list1, 0);
+	var float1 = value[1];
+	value = getItemFromList(list1, 2);
+	var float2 = value[1];
+	objArray1[1] = float1;
+	objArray1[3] = float2;
+	value = getItemFromList(list1, 1);
+	float1 = value[1];
+	value = getItemFromList(list1, 3);
+	float2 = value[1];
+	objArray1[2] = float1;
+	objArray1[4] = float2;
+	objArray1[5] = arg4[1];
+	objArray1[6] = arg5[1];
+	return vm[14];
+};
+
+var lib_graphics2d_initializeTextureResource = function(vm, args) {
+	var textureResourceInstance = args[0][1];
+	var textureResourceNativeData = PST$createNewArray(6);
+	textureResourceInstance[3] = textureResourceNativeData;
+	var nativeImageDataInstance = args[2][1];
+	var nativeImageDataNativeData = nativeImageDataInstance[3];
+	if (args[1][1]) {
+		textureResourceNativeData[0] = false;
+		textureResourceNativeData[1] = false;
+		textureResourceNativeData[2] = -1;
+		textureResourceNativeData[3] = nativeImageDataNativeData[0];
+		textureResourceNativeData[4] = nativeImageDataNativeData[1];
+		textureResourceNativeData[5] = nativeImageDataNativeData[2];
 	} else {
-		v_output = v_VALUE_FALSE;
+		textureResourceNativeData[0] = false;
+		textureResourceNativeData[1] = true;
+		textureResourceNativeData[2] = -1;
+		textureResourceNativeData[3] = nativeImageDataNativeData[3];
+		textureResourceNativeData[4] = nativeImageDataNativeData[4];
+		textureResourceNativeData[5] = nativeImageDataNativeData[5];
 	}
-	return v_output;
+	return vm[14];
 };
 
-
-var v_lib_graphics2d_function_flip = function(v_args) {
-	var v_bool1 = false;
-	var v_bool2 = false;
-	var v_i = 0;
-	var v_objArray1 = null;
-	var v_objArray2 = null;
-	var v_object1 = null;
-	var v_objInstance1 = null;
-	var v_objInstance2 = null;
-	var v_output = v_VALUE_NULL;
-	var v_arg1 = v_args[0];
-	var v_arg2 = v_args[1];
-	var v_arg3 = v_args[2];
-	var v_arg4 = v_args[3];
-	var v_arg5 = v_args[4];
-	var v_arg6 = v_args[5];
-	v_objInstance1 = v_arg1[1];
-	v_objInstance2 = v_arg2[1];
-	v_objArray1 = v_objInstance1[3];
-	v_objArray2 = C$common$createNewArray(7);
-	v_objInstance2[3] = v_objArray2;
-	v_bool1 = v_arg3[1];
-	v_bool2 = v_arg4[1];
-	v_i = 6;
-	while ((v_i >= 0)) {
-		v_objArray2[v_i] = v_objArray1[v_i];
-		v_i -= 1;
-	}
-	v_objInstance1 = v_arg6[1];
-	v_objArray1 = v_objInstance1[3];
-	v_objInstance2 = v_arg2[1];
-	v_objInstance2[3][0] = v_objArray1;
-	v_object1 = v_objArray1[3];
-	v_object1 = C$drawing$flipImage(v_object1, v_bool1, v_bool2);
-	v_objArray1[3] = v_object1;
-	v_output = v_arg2;
-	return v_output;
+var lib_graphics2d_isOpenGlBased = function(vm, args) {
+	return vm[16];
 };
 
-
-var v_lib_graphics2d_function_initializeTexture = function(v_args) {
-	var v_float1 = 0.0;
-	var v_float2 = 0.0;
-	var v_list1 = null;
-	var v_objArray1 = null;
-	var v_objInstance1 = null;
-	var v_value = null;
-	var v_output = v_VALUE_NULL;
-	var v_arg1 = v_args[0];
-	var v_arg2 = v_args[1];
-	var v_arg3 = v_args[2];
-	var v_arg4 = v_args[3];
-	var v_arg5 = v_args[4];
-	v_objInstance1 = v_arg1[1];
-	v_objArray1 = C$common$createNewArray(7);
-	v_objInstance1[3] = v_objArray1;
-	v_objInstance1 = v_arg2[1];
-	v_objArray1[0] = v_objInstance1[3];
-	v_list1 = v_arg3[1];
-	v_value = v_list1[0];
-	v_float1 = v_value[1];
-	v_value = v_list1[2];
-	v_float2 = v_value[1];
-	v_objArray1[1] = v_float1;
-	v_objArray1[3] = v_float2;
-	v_value = v_list1[1];
-	v_float1 = v_value[1];
-	v_value = v_list1[3];
-	v_float2 = v_value[1];
-	v_objArray1[2] = v_float1;
-	v_objArray1[4] = v_float2;
-	v_objArray1[5] = v_arg4[1];
-	v_objArray1[6] = v_arg5[1];
-	return v_output;
+var lib_graphics2d_isPlatformUsingTextureAtlas = function(vm, args) {
+	return vm[16];
 };
 
-
-var v_lib_graphics2d_function_initializeTextureResource = function(v_args) {
-	var v_textureResourceInstance = v_args[0][1];
-	var v_textureResourceNativeData = C$common$createNewArray(6);
-	v_textureResourceInstance[3] = v_textureResourceNativeData;
-	var v_nativeImageDataInstance = v_args[2][1];
-	var v_nativeImageDataNativeData = v_nativeImageDataInstance[3];
-	if (v_args[1][1]) {
-		v_textureResourceNativeData[0] = false;
-		v_textureResourceNativeData[1] = false;
-		v_textureResourceNativeData[2] = -1;
-		v_textureResourceNativeData[3] = v_nativeImageDataNativeData[0];
-		v_textureResourceNativeData[4] = v_nativeImageDataNativeData[1];
-		v_textureResourceNativeData[5] = v_nativeImageDataNativeData[2];
-	} else {
-		v_textureResourceNativeData[0] = false;
-		v_textureResourceNativeData[1] = true;
-		v_textureResourceNativeData[2] = -1;
-		v_textureResourceNativeData[3] = v_nativeImageDataNativeData[3];
-		v_textureResourceNativeData[4] = v_nativeImageDataNativeData[4];
-		v_textureResourceNativeData[5] = v_nativeImageDataNativeData[5];
+var lib_graphics2d_lineToQuad = function(vm, args) {
+	var float1 = 0.0;
+	var float2 = 0.0;
+	var float3 = 0.0;
+	var i = 0;
+	var j = 0;
+	var int1 = 0;
+	var int2 = 0;
+	var int3 = 0;
+	var int4 = 0;
+	var int5 = 0;
+	var objInstance1 = args[0][1];
+	var objArray1 = objInstance1[3];
+	var intArray1 = objArray1[0];
+	var _len = (objArray1[1] - 16);
+	int1 = intArray1[(_len + 1)];
+	int2 = intArray1[(_len + 2)];
+	int3 = intArray1[(_len + 3)];
+	int4 = intArray1[(_len + 4)];
+	int5 = intArray1[(_len + 5)];
+	float1 = ((0.0 + int4) - int2);
+	float2 = ((0.0 + int3) - int1);
+	float3 = (float1 / float2);
+	float1 = (int5 / 2.0);
+	if ((float1 < 0.5)) {
+		float1 = 1.0;
 	}
-	return v_VALUE_NULL;
+	float2 = (float1 / (Math.pow(((float3 * float3) + 1), 0.5)));
+	float1 = (-float2 * float3);
+	i = Math.floor(((int1 + float1) + 0.5));
+	j = Math.floor(((int1 - float1) + 0.5));
+	if ((i == j)) {
+		j += 1;
+	}
+	intArray1[(_len + 1)] = i;
+	intArray1[(_len + 3)] = j;
+	i = Math.floor(((int2 + float2) + 0.5));
+	j = Math.floor(((int2 - float2) + 0.5));
+	if ((i == j)) {
+		j += 1;
+	}
+	intArray1[(_len + 2)] = i;
+	intArray1[(_len + 4)] = j;
+	i = Math.floor(((int3 - float1) + 0.5));
+	j = Math.floor(((int3 + float1) + 0.5));
+	if ((i == j)) {
+		i += 1;
+	}
+	intArray1[(_len + 5)] = i;
+	intArray1[(_len + 7)] = j;
+	i = Math.floor(((int4 - float2) + 0.5));
+	j = Math.floor(((int4 + float2) + 0.5));
+	if ((i == j)) {
+		i += 1;
+	}
+	intArray1[(_len + 6)] = i;
+	intArray1[(_len + 8)] = j;
+	return vm[14];
 };
 
-
-var v_lib_graphics2d_function_isOpenGlBased = function(v_args) {
-	return v_VALUE_FALSE;
-};
-
-
-var v_lib_graphics2d_function_isPlatformUsingTextureAtlas = function(v_args) {
-	return v_VALUE_FALSE;
-};
-
-
-var v_lib_graphics2d_function_lineToQuad = function(v_args) {
-	var v_float1 = 0.0;
-	var v_float2 = 0.0;
-	var v_float3 = 0.0;
-	var v_i = 0;
-	var v_int1 = 0;
-	var v_int2 = 0;
-	var v_int3 = 0;
-	var v_int4 = 0;
-	var v_int5 = 0;
-	var v_intArray1 = null;
-	var v_j = 0;
-	var v_len = 0;
-	var v_objArray1 = null;
-	var v_objInstance1 = null;
-	var v_output = v_VALUE_NULL;
-	var v_arg1 = v_args[0];
-	v_objInstance1 = v_arg1[1];
-	v_objArray1 = v_objInstance1[3];
-	v_intArray1 = v_objArray1[0];
-	v_len = (v_objArray1[1] - 16);
-	v_int1 = v_intArray1[(v_len + 1)];
-	v_int2 = v_intArray1[(v_len + 2)];
-	v_int3 = v_intArray1[(v_len + 3)];
-	v_int4 = v_intArray1[(v_len + 4)];
-	v_int5 = v_intArray1[(v_len + 5)];
-	v_float1 = ((0.0 + v_int4) - v_int2);
-	v_float2 = ((0.0 + v_int3) - v_int1);
-	v_float3 = (v_float1 / v_float2);
-	v_float1 = (v_int5 / 2.0);
-	if ((v_float1 < 0.5)) {
-		v_float1 = 1.0;
+var lib_graphics2d_renderQueueAction = function(vm, args) {
+	var command = args[2][1];
+	var objInstance1 = args[0][1];
+	var objArray1 = objInstance1[3];
+	if ((objArray1 == null)) {
+		objArray1 = PST$createNewArray(5);
+		objInstance1[3] = objArray1;
 	}
-	v_float2 = (v_float1 / (Math.pow(((v_float3 * v_float3) + 1), 0.5)));
-	v_float1 = (-v_float2 * v_float3);
-	v_i = Math.floor(((v_int1 + v_float1) + 0.5));
-	v_j = Math.floor(((v_int1 - v_float1) + 0.5));
-	if ((v_i == v_j)) {
-		v_j += 1;
+	var intArray1 = objArray1[0];
+	if ((intArray1 == null)) {
+		intArray1 = PST$createNewArray(0);
+		objArray1[0] = intArray1;
+		objArray1[1] = 0;
+		objArray1[2] = PST$createNewArray(64);
+		objArray1[3] = 0;
+		objArray1[4] = [];
 	}
-	v_intArray1[(v_len + 1)] = v_i;
-	v_intArray1[(v_len + 3)] = v_j;
-	v_i = Math.floor(((v_int2 + v_float2) + 0.5));
-	v_j = Math.floor(((v_int2 - v_float2) + 0.5));
-	if ((v_i == v_j)) {
-		v_j += 1;
-	}
-	v_intArray1[(v_len + 2)] = v_i;
-	v_intArray1[(v_len + 4)] = v_j;
-	v_i = Math.floor(((v_int3 - v_float1) + 0.5));
-	v_j = Math.floor(((v_int3 + v_float1) + 0.5));
-	if ((v_i == v_j)) {
-		v_i += 1;
-	}
-	v_intArray1[(v_len + 5)] = v_i;
-	v_intArray1[(v_len + 7)] = v_j;
-	v_i = Math.floor(((v_int4 - v_float2) + 0.5));
-	v_j = Math.floor(((v_int4 + v_float2) + 0.5));
-	if ((v_i == v_j)) {
-		v_i += 1;
-	}
-	v_intArray1[(v_len + 6)] = v_i;
-	v_intArray1[(v_len + 8)] = v_j;
-	return v_VALUE_NULL;
-};
-
-
-var v_lib_graphics2d_function_renderQueueAction = function(v_args) {
-	var v_command = v_args[2][1];
-	var v_objInstance1 = v_args[0][1];
-	var v_objArray1 = v_objInstance1[3];
-	if ((v_objArray1 == null)) {
-		v_objArray1 = C$common$createNewArray(5);
-		v_objInstance1[3] = v_objArray1;
-	}
-	var v_intArray1 = v_objArray1[0];
-	if ((v_intArray1 == null)) {
-		v_intArray1 = C$common$createNewArray(0);
-		v_objArray1[0] = v_intArray1;
-		v_objArray1[1] = 0;
-		v_objArray1[2] = C$common$createNewArray(64);
-		v_objArray1[3] = 0;
-		v_objArray1[4] = [];
-	}
-	var v_intList1 = v_objArray1[4];
-	if ((v_command == 1)) {
-		var v_charList = v_args[1];
-		if ((v_charList[0] == 6)) {
-			var v_value = null;
-			var v_list1 = v_charList[1];
-			var v_len = v_list1.length;
-			var v_i = 0;
-			while ((v_i < v_len)) {
-				v_value = v_list1[v_i];
-				v_intList1.push(v_value[1]);
-				v_i += 1;
+	var intList1 = objArray1[4];
+	if ((command == 1)) {
+		var charList = args[1];
+		if ((charList[0] == 6)) {
+			var value = null;
+			var list1 = charList[1];
+			var _len = list1.length;
+			var i = 0;
+			while ((i < _len)) {
+				value = list1[i];
+				intList1.push(value[1]);
+				i += 1;
 			}
 		}
-		C$drawing$rendererSetData(v_intArray1, v_objArray1[1], v_objArray1[2], v_intList1);
-	} else {
-		if ((v_command == 2)) {
-			v_objArray1[1] = 0;
-			v_objArray1[3] = 0;
-			C$common$clearList((v_intList1));
-		}
+		var renderArgs = PST$createNewArray(4);
+		renderArgs[0] = intArray1;
+		renderArgs[1] = objArray1[1];
+		renderArgs[2] = objArray1[2];
+		renderArgs[3] = intList1;
+		var callbackId = getNamedCallbackId(vm, "Game", "set-render-data");
+		invokeNamedCallback(vm, callbackId, renderArgs);
+	} else if ((command == 2)) {
+		objArray1[1] = 0;
+		objArray1[3] = 0;
+		PST$clearList((intList1));
 	}
-	return v_VALUE_NULL;
+	return vm[14];
 };
 
-
-var v_lib_graphics2d_function_renderQueueValidateArgs = function(v_args) {
-	var v_o = v_args[0][1];
-	var v_drawQueueRawData = v_o[3];
-	var v_drawEvents = v_drawQueueRawData[0];
-	var v_length = v_drawQueueRawData[1];
-	var v_r = 0;
-	var v_g = 0;
-	var v_b = 0;
-	var v_a = 0;
-	var v_i = 0;
-	while ((v_i < v_length)) {
-		switch (v_drawEvents[v_i]) {
+var lib_graphics2d_renderQueueValidateArgs = function(vm, args) {
+	var o = args[0][1];
+	var drawQueueRawData = o[3];
+	var drawEvents = drawQueueRawData[0];
+	var length = drawQueueRawData[1];
+	var r = 0;
+	var g = 0;
+	var b = 0;
+	var a = 0;
+	var i = 0;
+	while ((i < length)) {
+		switch (drawEvents[i]) {
 			case 1:
-				v_r = v_drawEvents[(v_i | 5)];
-				v_g = v_drawEvents[(v_i | 6)];
-				v_b = v_drawEvents[(v_i | 7)];
-				v_a = v_drawEvents[(v_i | 8)];
-				if ((v_r > 255)) {
-					v_drawEvents[(v_i | 5)] = 255;
-				} else {
-					if ((v_r < 0)) {
-						v_drawEvents[(v_i | 5)] = 0;
-					}
+				r = drawEvents[(i | 5)];
+				g = drawEvents[(i | 6)];
+				b = drawEvents[(i | 7)];
+				a = drawEvents[(i | 8)];
+				if ((r > 255)) {
+					drawEvents[(i | 5)] = 255;
+				} else if ((r < 0)) {
+					drawEvents[(i | 5)] = 0;
 				}
-				if ((v_g > 255)) {
-					v_drawEvents[(v_i | 6)] = 255;
-				} else {
-					if ((v_g < 0)) {
-						v_drawEvents[(v_i | 6)] = 0;
-					}
+				if ((g > 255)) {
+					drawEvents[(i | 6)] = 255;
+				} else if ((g < 0)) {
+					drawEvents[(i | 6)] = 0;
 				}
-				if ((v_b > 255)) {
-					v_drawEvents[(v_i | 7)] = 255;
-				} else {
-					if ((v_b < 0)) {
-						v_drawEvents[(v_i | 7)] = 0;
-					}
+				if ((b > 255)) {
+					drawEvents[(i | 7)] = 255;
+				} else if ((b < 0)) {
+					drawEvents[(i | 7)] = 0;
 				}
-				if ((v_a > 255)) {
-					v_drawEvents[(v_i | 8)] = 255;
-				} else {
-					if ((v_a < 0)) {
-						v_drawEvents[(v_i | 8)] = 0;
-					}
+				if ((a > 255)) {
+					drawEvents[(i | 8)] = 255;
+				} else if ((a < 0)) {
+					drawEvents[(i | 8)] = 0;
 				}
 				break;
 			case 2:
-				v_r = v_drawEvents[(v_i | 5)];
-				v_g = v_drawEvents[(v_i | 6)];
-				v_b = v_drawEvents[(v_i | 7)];
-				v_a = v_drawEvents[(v_i | 8)];
-				if ((v_r > 255)) {
-					v_drawEvents[(v_i | 5)] = 255;
-				} else {
-					if ((v_r < 0)) {
-						v_drawEvents[(v_i | 5)] = 0;
-					}
+				r = drawEvents[(i | 5)];
+				g = drawEvents[(i | 6)];
+				b = drawEvents[(i | 7)];
+				a = drawEvents[(i | 8)];
+				if ((r > 255)) {
+					drawEvents[(i | 5)] = 255;
+				} else if ((r < 0)) {
+					drawEvents[(i | 5)] = 0;
 				}
-				if ((v_g > 255)) {
-					v_drawEvents[(v_i | 6)] = 255;
-				} else {
-					if ((v_g < 0)) {
-						v_drawEvents[(v_i | 6)] = 0;
-					}
+				if ((g > 255)) {
+					drawEvents[(i | 6)] = 255;
+				} else if ((g < 0)) {
+					drawEvents[(i | 6)] = 0;
 				}
-				if ((v_b > 255)) {
-					v_drawEvents[(v_i | 7)] = 255;
-				} else {
-					if ((v_b < 0)) {
-						v_drawEvents[(v_i | 7)] = 0;
-					}
+				if ((b > 255)) {
+					drawEvents[(i | 7)] = 255;
+				} else if ((b < 0)) {
+					drawEvents[(i | 7)] = 0;
 				}
-				if ((v_a > 255)) {
-					v_drawEvents[(v_i | 8)] = 255;
-				} else {
-					if ((v_a < 0)) {
-						v_drawEvents[(v_i | 8)] = 0;
-					}
+				if ((a > 255)) {
+					drawEvents[(i | 8)] = 255;
+				} else if ((a < 0)) {
+					drawEvents[(i | 8)] = 0;
 				}
 				break;
 			case 3:
-				v_r = v_drawEvents[(v_i | 6)];
-				v_g = v_drawEvents[(v_i | 7)];
-				v_b = v_drawEvents[(v_i | 8)];
-				v_a = v_drawEvents[(v_i | 9)];
-				if ((v_r > 255)) {
-					v_drawEvents[(v_i | 6)] = 255;
-				} else {
-					if ((v_r < 0)) {
-						v_drawEvents[(v_i | 6)] = 0;
-					}
+				r = drawEvents[(i | 6)];
+				g = drawEvents[(i | 7)];
+				b = drawEvents[(i | 8)];
+				a = drawEvents[(i | 9)];
+				if ((r > 255)) {
+					drawEvents[(i | 6)] = 255;
+				} else if ((r < 0)) {
+					drawEvents[(i | 6)] = 0;
 				}
-				if ((v_g > 255)) {
-					v_drawEvents[(v_i | 7)] = 255;
-				} else {
-					if ((v_g < 0)) {
-						v_drawEvents[(v_i | 7)] = 0;
-					}
+				if ((g > 255)) {
+					drawEvents[(i | 7)] = 255;
+				} else if ((g < 0)) {
+					drawEvents[(i | 7)] = 0;
 				}
-				if ((v_b > 255)) {
-					v_drawEvents[(v_i | 8)] = 255;
-				} else {
-					if ((v_b < 0)) {
-						v_drawEvents[(v_i | 8)] = 0;
-					}
+				if ((b > 255)) {
+					drawEvents[(i | 8)] = 255;
+				} else if ((b < 0)) {
+					drawEvents[(i | 8)] = 0;
 				}
-				if ((v_a > 255)) {
-					v_drawEvents[(v_i | 9)] = 255;
-				} else {
-					if ((v_a < 0)) {
-						v_drawEvents[(v_i | 9)] = 0;
-					}
+				if ((a > 255)) {
+					drawEvents[(i | 9)] = 255;
+				} else if ((a < 0)) {
+					drawEvents[(i | 9)] = 0;
 				}
 				break;
 			case 4:
-				v_r = v_drawEvents[(v_i | 7)];
-				v_g = v_drawEvents[(v_i | 8)];
-				v_b = v_drawEvents[(v_i | 9)];
-				v_a = v_drawEvents[(v_i | 10)];
-				if ((v_r > 255)) {
-					v_drawEvents[(v_i | 7)] = 255;
-				} else {
-					if ((v_r < 0)) {
-						v_drawEvents[(v_i | 7)] = 0;
-					}
+				r = drawEvents[(i | 7)];
+				g = drawEvents[(i | 8)];
+				b = drawEvents[(i | 9)];
+				a = drawEvents[(i | 10)];
+				if ((r > 255)) {
+					drawEvents[(i | 7)] = 255;
+				} else if ((r < 0)) {
+					drawEvents[(i | 7)] = 0;
 				}
-				if ((v_g > 255)) {
-					v_drawEvents[(v_i | 8)] = 255;
-				} else {
-					if ((v_g < 0)) {
-						v_drawEvents[(v_i | 8)] = 0;
-					}
+				if ((g > 255)) {
+					drawEvents[(i | 8)] = 255;
+				} else if ((g < 0)) {
+					drawEvents[(i | 8)] = 0;
 				}
-				if ((v_b > 255)) {
-					v_drawEvents[(v_i | 9)] = 255;
-				} else {
-					if ((v_b < 0)) {
-						v_drawEvents[(v_i | 9)] = 0;
-					}
+				if ((b > 255)) {
+					drawEvents[(i | 9)] = 255;
+				} else if ((b < 0)) {
+					drawEvents[(i | 9)] = 0;
 				}
-				if ((v_a > 255)) {
-					v_drawEvents[(v_i | 10)] = 255;
-				} else {
-					if ((v_a < 0)) {
-						v_drawEvents[(v_i | 10)] = 0;
-					}
+				if ((a > 255)) {
+					drawEvents[(i | 10)] = 255;
+				} else if ((a < 0)) {
+					drawEvents[(i | 10)] = 0;
 				}
 				break;
 			case 5:
-				v_r = v_drawEvents[(v_i | 9)];
-				v_g = v_drawEvents[(v_i | 10)];
-				v_b = v_drawEvents[(v_i | 11)];
-				v_a = v_drawEvents[(v_i | 12)];
-				if ((v_r > 255)) {
-					v_drawEvents[(v_i | 9)] = 255;
-				} else {
-					if ((v_r < 0)) {
-						v_drawEvents[(v_i | 9)] = 0;
-					}
+				r = drawEvents[(i | 9)];
+				g = drawEvents[(i | 10)];
+				b = drawEvents[(i | 11)];
+				a = drawEvents[(i | 12)];
+				if ((r > 255)) {
+					drawEvents[(i | 9)] = 255;
+				} else if ((r < 0)) {
+					drawEvents[(i | 9)] = 0;
 				}
-				if ((v_g > 255)) {
-					v_drawEvents[(v_i | 10)] = 255;
-				} else {
-					if ((v_g < 0)) {
-						v_drawEvents[(v_i | 10)] = 0;
-					}
+				if ((g > 255)) {
+					drawEvents[(i | 10)] = 255;
+				} else if ((g < 0)) {
+					drawEvents[(i | 10)] = 0;
 				}
-				if ((v_b > 255)) {
-					v_drawEvents[(v_i | 11)] = 255;
-				} else {
-					if ((v_b < 0)) {
-						v_drawEvents[(v_i | 11)] = 0;
-					}
+				if ((b > 255)) {
+					drawEvents[(i | 11)] = 255;
+				} else if ((b < 0)) {
+					drawEvents[(i | 11)] = 0;
 				}
-				if ((v_a > 255)) {
-					v_drawEvents[(v_i | 12)] = 255;
-				} else {
-					if ((v_a < 0)) {
-						v_drawEvents[(v_i | 12)] = 0;
-					}
-				}
-				break;
-			case 6:
-				v_a = v_drawEvents[(v_i | 11)];
-				if ((v_a > 255)) {
-					v_drawEvents[(v_i | 11)] = 255;
-				} else {
-					if ((v_a < 0)) {
-						v_drawEvents[(v_i | 11)] = 0;
-					}
+				if ((a > 255)) {
+					drawEvents[(i | 12)] = 255;
+				} else if ((a < 0)) {
+					drawEvents[(i | 12)] = 0;
 				}
 				break;
 			case 8:
-				v_r = v_drawEvents[(v_i | 10)];
-				v_g = v_drawEvents[(v_i | 11)];
-				v_b = v_drawEvents[(v_i | 12)];
-				v_a = v_drawEvents[(v_i | 13)];
-				if ((v_r > 255)) {
-					v_drawEvents[(v_i | 10)] = 255;
-				} else {
-					if ((v_r < 0)) {
-						v_drawEvents[(v_i | 10)] = 0;
-					}
+				r = drawEvents[(i | 10)];
+				g = drawEvents[(i | 11)];
+				b = drawEvents[(i | 12)];
+				a = drawEvents[(i | 13)];
+				if ((r > 255)) {
+					drawEvents[(i | 10)] = 255;
+				} else if ((r < 0)) {
+					drawEvents[(i | 10)] = 0;
 				}
-				if ((v_g > 255)) {
-					v_drawEvents[(v_i | 11)] = 255;
-				} else {
-					if ((v_g < 0)) {
-						v_drawEvents[(v_i | 11)] = 0;
-					}
+				if ((g > 255)) {
+					drawEvents[(i | 11)] = 255;
+				} else if ((g < 0)) {
+					drawEvents[(i | 11)] = 0;
 				}
-				if ((v_b > 255)) {
-					v_drawEvents[(v_i | 12)] = 255;
-				} else {
-					if ((v_b < 0)) {
-						v_drawEvents[(v_i | 12)] = 0;
-					}
+				if ((b > 255)) {
+					drawEvents[(i | 12)] = 255;
+				} else if ((b < 0)) {
+					drawEvents[(i | 12)] = 0;
 				}
-				if ((v_a > 255)) {
-					v_drawEvents[(v_i | 13)] = 255;
-				} else {
-					if ((v_a < 0)) {
-						v_drawEvents[(v_i | 13)] = 0;
-					}
+				if ((a > 255)) {
+					drawEvents[(i | 13)] = 255;
+				} else if ((a < 0)) {
+					drawEvents[(i | 13)] = 0;
 				}
 				break;
 		}
-		v_i += 16;
+		i += 16;
 	}
-	return v_VALUE_NULL;
+	return vm[14];
 };
 
-
-var v_lib_graphics2d_function_scale = function(v_args) {
-	var v_objArray1 = null;
-	var v_objArray2 = null;
-	var v_objInstance1 = null;
-	var v_objInstance2 = null;
-	var v_arg2 = v_args[1];
-	var v_arg3 = v_args[2];
-	var v_arg4 = v_args[3];
-	var v_arg5 = v_args[4];
-	var v_arg6 = v_args[5];
-	var v_int1 = v_arg3[1];
-	var v_int2 = v_arg4[1];
-	v_objInstance1 = v_arg5[1];
-	var v_object1 = v_objInstance1[3][3];
-	v_objInstance1 = v_arg6[1];
-	v_objArray1 = C$common$createNewArray(6);
-	v_objInstance1[3] = v_objArray1;
-	v_objArray1[0] = false;
-	v_objArray1[1] = true;
-	v_objArray1[2] = 0;
-	v_objArray1[3] = C$drawing$scaleImage(v_object1, v_int1, v_int2);
-	v_objArray1[4] = v_int1;
-	v_objArray1[5] = v_int2;
-	v_objInstance2 = v_arg2[1];
-	v_objArray1 = C$common$createNewArray(7);
-	v_objInstance2[3] = v_objArray1;
-	v_objInstance2 = v_args[0][1];
-	v_objArray2 = v_objInstance2[3];
-	var v_i = 4;
-	while ((v_i >= 1)) {
-		v_objArray1[v_i] = v_objArray2[v_i];
-		v_i -= 1;
+var lib_graphics2d_scale = function(vm, args) {
+	var objArray1 = null;
+	var objArray2 = null;
+	var objInstance1 = null;
+	var objInstance2 = null;
+	var arg2 = args[1];
+	var arg3 = args[2];
+	var arg4 = args[3];
+	var arg5 = args[4];
+	var arg6 = args[5];
+	var int1 = arg3[1];
+	var int2 = arg4[1];
+	objInstance1 = arg5[1];
+	var object1 = objInstance1[3][3];
+	objInstance1 = arg6[1];
+	objArray1 = PST$createNewArray(6);
+	objInstance1[3] = objArray1;
+	objArray1[0] = false;
+	objArray1[1] = true;
+	objArray1[2] = 0;
+	objArray1[3] = C$drawing$scaleImage(object1, int1, int2);
+	objArray1[4] = int1;
+	objArray1[5] = int2;
+	objInstance2 = arg2[1];
+	objArray1 = PST$createNewArray(7);
+	objInstance2[3] = objArray1;
+	objInstance2 = args[0][1];
+	objArray2 = objInstance2[3];
+	var i = 4;
+	while ((i >= 1)) {
+		objArray1[i] = objArray2[i];
+		i -= 1;
 	}
-	v_objArray1[5] = v_int1;
-	v_objArray1[6] = v_int2;
-	v_objInstance1 = v_arg6[1];
-	v_objArray1[0] = v_objInstance1[3];
-	return v_args[0];
+	objArray1[5] = int1;
+	objArray1[6] = int2;
+	objInstance1 = arg6[1];
+	objArray1[0] = objInstance1[3];
+	return args[0];
 };
 
 

@@ -1,643 +1,931 @@
-﻿var v_COMMON_STRINGS = {};
-var v_INTEGER_NEGATIVE_CACHE = C$common$createNewArray(257);
-var v_INTEGER_POSITIVE_CACHE = C$common$createNewArray(2049);
-var v_VALUE_EMPTY_STRING = [5, ""];
-var v_VALUE_FALSE = [2, false];
-var v_VALUE_FLOAT_NEGATIVE_ONE = [4, -1.0];
-var v_VALUE_FLOAT_ONE = [4, 1.0];
-var v_VALUE_FLOAT_ZERO = [4, 0.0];
-var v_VALUE_INT_NEG_ONE = [3, -1];
-var v_VALUE_INT_ONE = [3, 1];
-var v_VALUE_INT_ZERO = [3, 0];
-var v_VALUE_NULL = [1, null];
-var v_VALUE_TRUE = [2, true];
+﻿PST$clearList = function(v) {
+	v.length = 0;
+};
 
-var v_addLiteralImpl = function(v_row, v_stringArg) {
-	var v_p = C$common$programData;
-	var v_type = v_row[0];
-	if ((v_type == 1)) {
-		v_p[9].push(v_VALUE_NULL);
+PST$createNewArray = function(s) {
+	var o = [];
+	while (s-- > 0) o.push(null);
+	return o;
+};
+
+PST$multiplyList = function(l, n) {
+	var o = [];
+	var s = l.length;
+	var i;
+	while (n-- > 0) {
+		for (i = 0; i < s; ++i) {
+			o.push(l[i]);
+		}
+	}
+	return o;
+};
+
+PST$dictionaryKeys = function(d) {
+	var o = [];
+	for (var k in d) {
+		o.push(k);
+	}
+	return o;
+};
+
+PST$intBuffer16 = PST$multiplyList([0], 16);
+
+PST$stringEndsWith = function(s, v) {
+	return s.indexOf(v, s.length - v.length) !== -1;
+};
+
+PST$stringTrimOneSide = function(s, isLeft) {
+	var i = isLeft ? 0 : s.length - 1;
+	var end = isLeft ? s.length : -1;
+	var step = isLeft ? 1 : -1;
+	var c;
+	var trimming = true;
+	while (trimming && i != end) {
+		c = s.charAt(i);
+		switch (c) {
+			case ' ':
+			case '\n':
+			case '\t':
+			case '\r':
+				i += step;
+				break;
+			default:
+				trimming = false;
+				break;
+		}
+	}
+
+	return isLeft ? s.substring(i) : s.substring(0, i + 1);
+};
+
+PST$shuffle = function(v) {
+	var t;
+	var len = v.length;
+	var sw;
+	for (i = len - 1; i >= 0; --i) {
+		sw = Math.floor(Math.random() * len);
+		t = v[sw];
+		v[sw] = v[i];
+		v[i] = t;
+	}
+};
+
+PST$is_valid_integer = function(n) {
+	var t = parseInt(n);
+	return t < 0 || t >= 0;
+};
+
+PST$floatParseHelper = function(o, s) {
+	var t = parseFloat(s);
+	if (t + '' == 'NaN') {
+		o[0] = -1;
 	} else {
-		if ((v_type == 2)) {
-			v_p[9].push(v_buildBoolean((v_row[1] == 1)));
+		o[0] = 1;
+		o[1] = t;
+	}
+};
+
+PST$sortedCopyOfArray = function(n) {
+	var a = n.concat([]);
+	a.sort();
+	return a;
+};
+
+var addLiteralImpl = function(vm, row, stringArg) {
+	var g = vm[13];
+	var type = row[0];
+	if ((type == 1)) {
+		vm[4][4].push(g[0]);
+	} else if ((type == 2)) {
+		vm[4][4].push(buildBoolean(g, (row[1] == 1)));
+	} else if ((type == 3)) {
+		vm[4][4].push(buildInteger(g, row[1]));
+	} else if ((type == 4)) {
+		vm[4][4].push(buildFloat(g, parseFloat(stringArg)));
+	} else if ((type == 5)) {
+		vm[4][4].push(buildCommonString(g, stringArg));
+	} else if ((type == 9)) {
+		var index = vm[4][4].length;
+		vm[4][4].push(buildCommonString(g, stringArg));
+		vm[4][20][stringArg] = index;
+	} else if ((type == 10)) {
+		var cv = [false, row[1]];
+		vm[4][4].push([10, cv]);
+	}
+	return 0;
+};
+
+var addNameImpl = function(vm, nameValue) {
+	var index = vm[4][1].length;
+	vm[4][2][nameValue] = index;
+	vm[4][1].push(nameValue);
+	if ("length" == nameValue) {
+		vm[4][14] = index;
+	}
+	return 0;
+};
+
+var addToList = function(list, item) {
+	list[2].push(item);
+	list[1] += 1;
+};
+
+var applyDebugSymbolData = function(vm, opArgs, stringData, recentlyDefinedFunction) {
+	return 0;
+};
+
+var buildBoolean = function(g, value) {
+	if (value) {
+		return g[1];
+	}
+	return g[2];
+};
+
+var buildCommonString = function(g, s) {
+	var value = null;
+	value = g[11][s];
+	if (value === undefined) value = null;
+	if ((value == null)) {
+		value = buildString(g, s);
+		g[11][s] = value;
+	}
+	return value;
+};
+
+var buildFloat = function(g, value) {
+	if ((value == 0.0)) {
+		return g[6];
+	}
+	if ((value == 1.0)) {
+		return g[7];
+	}
+	return [4, value];
+};
+
+var buildInteger = function(g, num) {
+	if ((num < 0)) {
+		if ((num > -257)) {
+			return g[10][-num];
+		}
+	} else if ((num < 2049)) {
+		return g[9][num];
+	}
+	return [3, num];
+};
+
+var buildList = function(valueList) {
+	return buildListWithType(null, valueList);
+};
+
+var buildListWithType = function(type, valueList) {
+	return [6, [type, valueList.length, valueList]];
+};
+
+var buildNull = function(globals) {
+	return globals[0];
+};
+
+var buildRelayObj = function(type, iarg1, iarg2, iarg3, farg1, sarg1) {
+	return [type, iarg1, iarg2, iarg3, farg1, sarg1];
+};
+
+var buildString = function(g, s) {
+	if ((s.length == 0)) {
+		return g[8];
+	}
+	return [5, s];
+};
+
+var buildStringDictionary = function(globals, stringKeys, values) {
+	var size = stringKeys.length;
+	var d = [size, 5, 0, null, {}, {}, [], []];
+	var k = null;
+	var i = 0;
+	while ((i < size)) {
+		k = stringKeys[i];
+		if ((d[5][k] !== undefined)) {
+			d[7][d[5][k]] = values[i];
 		} else {
-			if ((v_type == 3)) {
-				v_p[9].push(v_buildInteger(v_row[1]));
-			} else {
-				if ((v_type == 4)) {
-					v_p[9].push(v_buildFloat(parseFloat(v_stringArg)));
-				} else {
-					if ((v_type == 5)) {
-						v_p[9].push(v_buildCommonString(v_stringArg));
+			d[5][k] = d[7].length;
+			d[7].push(values[i]);
+			d[6].push(buildString(globals, k));
+		}
+		i += 1;
+	}
+	d[0] = d[7].length;
+	return [7, d];
+};
+
+var canAssignGenericToGeneric = function(vm, gen1, gen1Index, gen2, gen2Index, newIndexOut) {
+	if ((gen2 == null)) {
+		return true;
+	}
+	if ((gen1 == null)) {
+		return false;
+	}
+	var t1 = gen1[gen1Index];
+	var t2 = gen2[gen2Index];
+	switch (t1) {
+		case 0:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			return (t2 == t1);
+		case 1:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			return (t2 == t1);
+		case 2:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			return (t2 == t1);
+		case 4:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			return (t2 == t1);
+		case 5:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			return (t2 == t1);
+		case 10:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			return (t2 == t1);
+		case 3:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			return ((t2 == 3) || (t2 == 4));
+		case 8:
+			newIndexOut[0] = (gen1Index + 1);
+			newIndexOut[1] = (gen2Index + 2);
+			if ((t2 != 8)) {
+				return false;
+			}
+			var c1 = gen1[(gen1Index + 1)];
+			var c2 = gen2[(gen2Index + 1)];
+			if ((c1 == c2)) {
+				return true;
+			}
+			return isClassASubclassOf(vm, c1, c2);
+		case 6:
+			if ((t2 != 6)) {
+				return false;
+			}
+			return canAssignGenericToGeneric(vm, gen1, (gen1Index + 1), gen2, (gen2Index + 1), newIndexOut);
+		case 7:
+			if ((t2 != 7)) {
+				return false;
+			}
+			if (!canAssignGenericToGeneric(vm, gen1, (gen1Index + 1), gen2, (gen2Index + 1), newIndexOut)) {
+				return false;
+			}
+			return canAssignGenericToGeneric(vm, gen1, newIndexOut[0], gen2, newIndexOut[1], newIndexOut);
+		case 9:
+			if ((t2 != 9)) {
+				return false;
+			}
+			return false;
+		default:
+			return false;
+	}
+};
+
+var canAssignTypeToGeneric = function(vm, value, generics, genericIndex) {
+	switch (value[0]) {
+		case 1:
+			switch (generics[genericIndex]) {
+				case 5:
+					return value;
+				case 8:
+					return value;
+				case 10:
+					return value;
+				case 9:
+					return value;
+				case 6:
+					return value;
+				case 7:
+					return value;
+			}
+			return null;
+		case 2:
+			if ((generics[genericIndex] == value[0])) {
+				return value;
+			}
+			return null;
+		case 5:
+			if ((generics[genericIndex] == value[0])) {
+				return value;
+			}
+			return null;
+		case 10:
+			if ((generics[genericIndex] == value[0])) {
+				return value;
+			}
+			return null;
+		case 3:
+			if ((generics[genericIndex] == 3)) {
+				return value;
+			}
+			if ((generics[genericIndex] == 4)) {
+				return buildFloat(vm[13], (0.0 + value[1]));
+			}
+			return null;
+		case 4:
+			if ((generics[genericIndex] == 4)) {
+				return value;
+			}
+			return null;
+		case 6:
+			var list = value[1];
+			var listType = list[0];
+			genericIndex += 1;
+			if ((listType == null)) {
+				if (((generics[genericIndex] == 1) || (generics[genericIndex] == 0))) {
+					return value;
+				}
+				return null;
+			}
+			var i = 0;
+			while ((i < listType.length)) {
+				if ((listType[i] != generics[(genericIndex + i)])) {
+					return null;
+				}
+				i += 1;
+			}
+			return value;
+		case 7:
+			var dict = value[1];
+			var j = genericIndex;
+			switch (dict[1]) {
+				case 3:
+					if ((generics[1] == dict[1])) {
+						j += 2;
 					} else {
-						if ((v_type == 9)) {
-							var v_index = v_p[9].length;
-							v_p[9].push(v_buildCommonString(v_stringArg));
-							v_p[36][v_stringArg] = v_index;
-						} else {
-							if ((v_type == 10)) {
-								var v_cv = [false, v_row[1]];
-								v_p[9].push([10, v_cv]);
-							}
-						}
+						return null;
 					}
+					break;
+				case 5:
+					if ((generics[1] == dict[1])) {
+						j += 2;
+					} else {
+						return null;
+					}
+					break;
+				case 8:
+					if ((generics[1] == 8)) {
+						j += 3;
+					} else {
+						return null;
+					}
+					break;
+			}
+			var valueType = dict[3];
+			if ((valueType == null)) {
+				if (((generics[j] == 0) || (generics[j] == 1))) {
+					return value;
+				}
+				return null;
+			}
+			var k = 0;
+			while ((k < valueType.length)) {
+				if ((valueType[k] != generics[(j + k)])) {
+					return null;
+				}
+				k += 1;
+			}
+			return value;
+		case 8:
+			if ((generics[genericIndex] == 8)) {
+				var targetClassId = generics[(genericIndex + 1)];
+				var givenClassId = (value[1])[0];
+				if ((targetClassId == givenClassId)) {
+					return value;
+				}
+				if (isClassASubclassOf(vm, givenClassId, targetClassId)) {
+					return value;
 				}
 			}
-		}
+			return null;
 	}
-	return 0;
+	return null;
 };
 
-
-var v_addNameImpl = function(v_nameValue) {
-	var v_p = C$common$programData;
-	var v_index = v_p[6].length;
-	v_p[7][v_nameValue] = v_index;
-	v_p[6].push(v_nameValue);
-	if ("length" == v_nameValue) {
-		v_p[25] = v_index;
+var canonicalizeAngle = function(a) {
+	var twopi = 6.28318530717958;
+	a = (a % twopi);
+	if ((a < 0)) {
+		a += twopi;
 	}
-	return 0;
+	return a;
 };
 
-
-var v_buildBoolean = function(v_value) {
-	if (v_value) {
-		return v_VALUE_TRUE;
-	}
-	return v_VALUE_FALSE;
-};
-
-
-var v_buildCommonString = function(v_s) {
-	if (!(v_COMMON_STRINGS[v_s] !== undefined)) {
-		var v_value = v_buildString(v_s);
-		v_COMMON_STRINGS[v_s] = v_value;
-	}
-	return v_COMMON_STRINGS[v_s];
-};
-
-
-var v_buildDictionary = function(v_keys, v_values) {
-	var v_keyLookup = {};
-	var v_valueLookup = {};
-	var v_i = (v_keys.length - 1);
-	var v_key = null;
-	var v_keyValue = null;
-	while ((v_i >= 0)) {
-		v_key = v_keys[v_i];
-		v_keyValue = [5, v_key];
-		v_keyLookup[v_key] = v_keyValue;
-		v_valueLookup[v_key] = v_values[v_i];
-		v_i -= 1;
-	}
-	return [7, [{}, {}, v_keyLookup, v_valueLookup, Object.keys(v_keyLookup).length, 5]];
-};
-
-
-var v_buildFloat = function(v_value) {
-	if ((v_value == 0.0)) {
-		return v_VALUE_FLOAT_ZERO;
-	}
-	if ((v_value == 1.0)) {
-		return v_VALUE_FLOAT_ONE;
-	}
-	return [4, v_value];
-};
-
-
-var v_buildInteger = function(v_num) {
-	if ((v_num < 0)) {
-		if ((v_num > -257)) {
-			return v_INTEGER_NEGATIVE_CACHE[-v_num];
-		}
-	} else {
-		if ((v_num < 2049)) {
-			return v_INTEGER_POSITIVE_CACHE[v_num];
-		}
-	}
-	return [3, v_num];
-};
-
-
-var v_buildList = function(v_valueList) {
-	return [6, v_valueList];
-};
-
-
-var v_buildRelayObj = function(v_type, v_iarg1, v_iarg2, v_iarg3, v_farg1, v_sarg1) {
-	return [v_type, v_iarg1, v_iarg2, v_iarg3, v_farg1, v_sarg1];
-};
-
-
-var v_buildString = function(v_s) {
-	if ((v_s.length == 0)) {
-		return v_VALUE_EMPTY_STRING;
-	}
-	return [5, v_s];
-};
-
-
-var v_buildStringList = function(v_stringList) {
-	var v_output = [];
-	var v_size = v_stringList.length;
-	var v_i = 0;
-	while ((v_i < v_size)) {
-		v_output.push(v_buildString(v_stringList[v_i]));
-		v_i += 1;
-	}
-	return v_buildList(v_output);
-};
-
-
-var v_buildSwitchIntImpl = function(v_row) {
-	var v_p = C$common$programData;
-	var v_integerSwitchLookup = {};
-	var v_i = 0;
-	while ((v_i < v_row.length)) {
-		v_integerSwitchLookup[v_row[v_i]] = v_row[(v_i + 1)];
-		v_i += 2;
-	}
-	v_p[15].push(v_integerSwitchLookup);
-	return 0;
-};
-
-
-var v_buildSwitchStringImpl = function(v_row, v_caseValue) {
-	var v_p = C$common$programData;
-	var v_allStringSwitchLookups = v_p[17];
-	var v_id = v_row[0];
-	while ((v_allStringSwitchLookups.length <= v_id)) {
-		v_allStringSwitchLookups.push({});
-	}
-	var v_stringSwitchLookup = v_allStringSwitchLookups[v_id];
-	v_stringSwitchLookup[v_caseValue] = v_row[1];
-	return 0;
-};
-
-
-var v_canonicalizeAngle = function(v_a) {
-	var v_twopi = 6.28318530717958;
-	v_a = (v_a % v_twopi);
-	if ((v_a < 0)) {
-		v_a += v_twopi;
-	}
-	return v_a;
-};
-
-
-var v_canonicalizeListSliceArgs = function(v_outParams, v_beginValue, v_endValue, v_beginIndex, v_endIndex, v_stepAmount, v_length, v_isForward) {
-	if ((v_beginValue == null)) {
-		if (v_isForward) {
-			v_beginIndex = 0;
+var canonicalizeListSliceArgs = function(outParams, beginValue, endValue, beginIndex, endIndex, stepAmount, length, isForward) {
+	if ((beginValue == null)) {
+		if (isForward) {
+			beginIndex = 0;
 		} else {
-			v_beginIndex = (v_length - 1);
+			beginIndex = (length - 1);
 		}
 	}
-	if ((v_endValue == null)) {
-		if (v_isForward) {
-			v_endIndex = v_length;
+	if ((endValue == null)) {
+		if (isForward) {
+			endIndex = length;
 		} else {
-			v_endIndex = (-1 - v_length);
+			endIndex = (-1 - length);
 		}
 	}
-	if ((v_beginIndex < 0)) {
-		v_beginIndex += v_length;
+	if ((beginIndex < 0)) {
+		beginIndex += length;
 	}
-	if ((v_endIndex < 0)) {
-		v_endIndex += v_length;
+	if ((endIndex < 0)) {
+		endIndex += length;
 	}
-	if (((v_beginIndex == 0) && (v_endIndex == v_length) && (v_stepAmount == 1))) {
+	if (((beginIndex == 0) && (endIndex == length) && (stepAmount == 1))) {
 		return 2;
 	}
-	if (v_isForward) {
-		if ((v_beginIndex >= v_length)) {
+	if (isForward) {
+		if ((beginIndex >= length)) {
 			return 0;
 		}
-		if ((v_beginIndex < 0)) {
+		if ((beginIndex < 0)) {
 			return 3;
 		}
-		if ((v_endIndex < v_beginIndex)) {
+		if ((endIndex < beginIndex)) {
 			return 4;
 		}
-		if ((v_beginIndex == v_endIndex)) {
+		if ((beginIndex == endIndex)) {
 			return 0;
 		}
-		if ((v_endIndex > v_length)) {
-			v_endIndex = v_length;
+		if ((endIndex > length)) {
+			endIndex = length;
 		}
 	} else {
-		if ((v_beginIndex < 0)) {
+		if ((beginIndex < 0)) {
 			return 0;
 		}
-		if ((v_beginIndex >= v_length)) {
+		if ((beginIndex >= length)) {
 			return 3;
 		}
-		if ((v_endIndex > v_beginIndex)) {
+		if ((endIndex > beginIndex)) {
 			return 4;
 		}
-		if ((v_beginIndex == v_endIndex)) {
+		if ((beginIndex == endIndex)) {
 			return 0;
 		}
-		if ((v_endIndex < -1)) {
-			v_endIndex = -1;
+		if ((endIndex < -1)) {
+			endIndex = -1;
 		}
 	}
-	v_outParams[0] = v_beginIndex;
-	v_outParams[1] = v_endIndex;
+	outParams[0] = beginIndex;
+	outParams[1] = endIndex;
 	return 1;
 };
 
-
-var v_cloneDictionary = function(v_original, v_clone) {
-	var v_keyIntLookup_clone = null;
-	var v_valueIntLookup_clone = null;
-	var v_keyStringLookup_clone = null;
-	var v_valueStringLookup_clone = null;
-	if ((v_clone == null)) {
-		v_keyIntLookup_clone = {};
-		v_valueIntLookup_clone = {};
-		v_keyStringLookup_clone = {};
-		v_valueStringLookup_clone = {};
-		v_clone = [v_keyIntLookup_clone, v_valueIntLookup_clone, v_keyStringLookup_clone, v_valueStringLookup_clone, 0, v_original[5]];
-	} else {
-		v_keyIntLookup_clone = v_clone[0];
-		v_valueIntLookup_clone = v_clone[1];
-		v_keyStringLookup_clone = v_clone[2];
-		v_valueStringLookup_clone = v_clone[3];
-	}
-	var v_i = 0;
-	var v_iKey = 0;
-	var v_sKey = null;
-	var v_intKeys = C$common$dictionaryKeys(v_original[0]);
-	var v_stringKeys = C$common$dictionaryKeys(v_original[2]);
-	v_i = (v_intKeys.length - 1);
-	while ((v_i >= 0)) {
-		v_iKey = v_intKeys[v_i];
-		v_keyIntLookup_clone[v_iKey] = v_original[0][v_iKey];
-		v_valueIntLookup_clone[v_iKey] = v_original[1][v_iKey];
-		v_i -= 1;
-	}
-	v_i = (v_stringKeys.length - 1);
-	while ((v_i >= 0)) {
-		v_sKey = v_stringKeys[v_i];
-		v_keyStringLookup_clone[v_sKey] = v_original[2][v_sKey];
-		v_valueStringLookup_clone[v_sKey] = v_original[3][v_sKey];
-		v_i -= 1;
-	}
-	v_clone[4] = (Object.keys(v_keyStringLookup_clone).length + Object.keys(v_keyIntLookup_clone).length);
-	return v_clone;
+var classIdToString = function(vm, classId) {
+	return vm[4][9][classId][16];
 };
 
-
-var v_createLibraryFunctionLookup = function() {
-	var v_p = C$common$programData;
-	var v_length = v_p[2].length;
-	var v_row = null;
-	var v_functionPointersByPc = C$common$createNewArray(v_length);
-	var v_pc = 0;
-	while ((v_pc < v_length)) {
-		if ((v_p[2][v_pc] == 14)) {
-			v_row = v_p[3][v_pc];
-			var v_functionId = v_p[32][((v_row[0] * 4096) + v_row[1])];
-			var v_fp = v_p[33][v_functionId];
-			v_functionPointersByPc[v_pc] = v_fp;
-		}
-		v_pc += 1;
-	}
-	v_p[38] = v_functionPointersByPc;
-	return v_functionPointersByPc;
-};
-
-
-var v_declareLibrary = function(v_refId, v_descriptor) {
-	var v_p = C$common$programData;
-	var v_descriptorParts = v_descriptor.split(",");
-	var v_name = v_descriptorParts[0];
-	var v_ver = v_descriptorParts[1];
-	var v_status = C$common$determineLibraryAvailability(v_name, v_ver);
-	if ((v_status == 0)) {
-		var v_lro = [v_p[33], v_p[34], v_p[35]];
-		v_p[37] = v_refId;
-		v_status = C$common$runLibraryManifest(v_name, v_lro);
-	}
-	return v_status;
-};
-
-
-var v_defOriginalCodeImpl = function(v_row, v_fileContents) {
-	var v_p = C$common$programData;
-	var v_fileId = v_row[0];
-	var v_codeLookup = v_p[13];
-	while ((v_codeLookup.length <= v_fileId)) {
-		v_codeLookup.push(null);
-	}
-	v_codeLookup[v_fileId] = v_fileContents;
+var clearList = function(a) {
+	PST$clearList(a[2]);
+	a[1] = 0;
 	return 0;
 };
 
+var cloneDictionary = function(original, clone) {
+	var type = original[1];
+	var i = 0;
+	var size = original[0];
+	var kInt = 0;
+	var kString = null;
+	if ((clone == null)) {
+		clone = [0, type, original[2], original[3], {}, {}, [], []];
+		if ((type == 5)) {
+			while ((i < size)) {
+				clone[5][original[6][i][1]] = i;
+				i += 1;
+			}
+		} else {
+			while ((i < size)) {
+				if ((type == 8)) {
+					kInt = (original[6][i][1])[1];
+				} else {
+					kInt = original[6][i][1];
+				}
+				clone[4][kInt] = i;
+				i += 1;
+			}
+		}
+		i = 0;
+		while ((i < size)) {
+			clone[6].push(original[6][i]);
+			clone[7].push(original[7][i]);
+			i += 1;
+		}
+	} else {
+		i = 0;
+		while ((i < size)) {
+			if ((type == 5)) {
+				kString = original[6][i][1];
+				if ((clone[5][kString] !== undefined)) {
+					clone[7][clone[5][kString]] = original[7][i];
+				} else {
+					clone[5][kString] = clone[7].length;
+					clone[7].push(original[7][i]);
+					clone[6].push(original[6][i]);
+				}
+			} else {
+				if ((type == 3)) {
+					kInt = original[6][i][1];
+				} else {
+					kInt = (original[6][i][1])[1];
+				}
+				if ((clone[4][kInt] !== undefined)) {
+					clone[7][clone[4][kInt]] = original[7][i];
+				} else {
+					clone[4][kInt] = clone[7].length;
+					clone[7].push(original[7][i]);
+					clone[6].push(original[6][i]);
+				}
+			}
+			i += 1;
+		}
+	}
+	clone[0] = (Object.keys(clone[4]).length + Object.keys(clone[5]).length);
+	return clone;
+};
 
-var v_doEqualityComparisonAndReturnCode = function(v_a, v_b) {
-	var v_leftType = v_a[0];
-	var v_rightType = v_b[0];
-	if ((v_leftType == v_rightType)) {
-		var v_output = 0;
-		switch (v_leftType) {
+var createInstanceType = function(classId) {
+	var o = PST$createNewArray(2);
+	o[0] = 8;
+	o[1] = classId;
+	return o;
+};
+
+var createVm = function(rawByteCode, resourceManifest) {
+	var globals = initializeConstantValues();
+	var resources = resourceManagerInitialize(globals, resourceManifest);
+	var byteCode = initializeByteCode(rawByteCode);
+	var localsStack = PST$createNewArray(10);
+	var localsStackSet = PST$createNewArray(10);
+	var i = 0;
+	i = (localsStack.length - 1);
+	while ((i >= 0)) {
+		localsStack[i] = null;
+		localsStackSet[i] = 0;
+		i -= 1;
+	}
+	var stack = [0, 1, 0, 0, null, false, null, 0, 0, 1, 0, null, null, null];
+	var executionContext = [0, stack, 0, 100, PST$createNewArray(100), localsStack, localsStackSet, 1, 0, false, null, false, 0, null];
+	var executionContexts = {};
+	executionContexts[0] = executionContext;
+	var vm = [executionContexts, executionContext[0], byteCode, [PST$createNewArray(byteCode[0].length), null, [], null, null, {}, {}], [null, [], {}, null, [], null, [], null, [], PST$createNewArray(100), PST$createNewArray(100), {}, null, {}, -1, PST$createNewArray(10), 0, null, null, [0, 0, 0], {}, {}, null], 0, false, [], null, resources, [], [PST$createNewArray(0), false, null, null], [[], {}], globals, globals[0], globals[1], globals[2]];
+	return vm;
+};
+
+var debuggerClearBreakpoint = function(vm, id) {
+	return 0;
+};
+
+var debuggerFindPcForLine = function(vm, path, line) {
+	return -1;
+};
+
+var debuggerSetBreakpoint = function(vm, path, line) {
+	return -1;
+};
+
+var debugSetStepOverBreakpoint = function(vm) {
+	return false;
+};
+
+var defOriginalCodeImpl = function(vm, row, fileContents) {
+	var fileId = row[0];
+	var codeLookup = vm[3][2];
+	while ((codeLookup.length <= fileId)) {
+		codeLookup.push(null);
+	}
+	codeLookup[fileId] = fileContents;
+	return 0;
+};
+
+var dictKeyInfoToString = function(vm, dict) {
+	if ((dict[1] == 5)) {
+		return "string";
+	}
+	if ((dict[1] == 3)) {
+		return "int";
+	}
+	if ((dict[2] == 0)) {
+		return "instance";
+	}
+	return classIdToString(vm, dict[2]);
+};
+
+var doEqualityComparisonAndReturnCode = function(a, b) {
+	var leftType = a[0];
+	var rightType = b[0];
+	if ((leftType == rightType)) {
+		var output = 0;
+		switch (leftType) {
 			case 1:
-				v_output = 1;
+				output = 1;
 				break;
 			case 3:
-				if ((v_a[1] == v_b[1])) {
-					v_output = 1;
+				if ((a[1] == b[1])) {
+					output = 1;
 				}
 				break;
 			case 4:
-				if ((v_a[1] == v_b[1])) {
-					v_output = 1;
+				if ((a[1] == b[1])) {
+					output = 1;
 				}
 				break;
 			case 2:
-				if ((v_a[1] == v_b[1])) {
-					v_output = 1;
+				if ((a[1] == b[1])) {
+					output = 1;
 				}
 				break;
 			case 5:
-				if ((v_a[1] == v_b[1])) {
-					v_output = 1;
+				if ((a[1] == b[1])) {
+					output = 1;
 				}
 				break;
 			case 6:
-				if ((v_a[1] == v_b[1])) {
-					v_output = 1;
+				if ((a[1] == b[1])) {
+					output = 1;
 				}
 				break;
 			case 7:
-				if ((v_a[1] == v_b[1])) {
-					v_output = 1;
+				if ((a[1] == b[1])) {
+					output = 1;
 				}
 				break;
 			case 8:
-				if ((v_a[1] == v_b[1])) {
-					v_output = 1;
+				if ((a[1] == b[1])) {
+					output = 1;
 				}
 				break;
 			case 9:
-				var v_f1 = v_a[1];
-				var v_f2 = v_b[1];
-				if ((v_f1[3] == v_f2[3])) {
-					if (((v_f1[0] == 2) || (v_f1[0] == 4))) {
-						if ((v_doEqualityComparisonAndReturnCode(v_f1[1], v_f2[1]) == 1)) {
-							v_output = 1;
+				var f1 = a[1];
+				var f2 = b[1];
+				if ((f1[3] == f2[3])) {
+					if (((f1[0] == 2) || (f1[0] == 4))) {
+						if ((doEqualityComparisonAndReturnCode(f1[1], f2[1]) == 1)) {
+							output = 1;
 						}
 					} else {
-						v_output = 1;
+						output = 1;
 					}
 				}
 				break;
 			case 10:
-				var v_c1 = v_a[1];
-				var v_c2 = v_b[1];
-				if ((v_c1[1] == v_c2[1])) {
-					v_output = 1;
+				var c1 = a[1];
+				var c2 = b[1];
+				if ((c1[1] == c2[1])) {
+					output = 1;
 				}
 				break;
 			default:
-				v_output = 2;
+				output = 2;
 				break;
 		}
-		return v_output;
+		return output;
 	}
-	if ((v_rightType == 1)) {
+	if ((rightType == 1)) {
 		return 0;
 	}
-	if (((v_leftType == 3) && (v_rightType == 4))) {
-		if ((v_a[1] == v_b[1])) {
+	if (((leftType == 3) && (rightType == 4))) {
+		if ((a[1] == b[1])) {
 			return 1;
 		}
-	} else {
-		if (((v_leftType == 4) && (v_rightType == 3))) {
-			if ((v_a[1] == v_b[1])) {
-				return 1;
-			}
+	} else if (((leftType == 4) && (rightType == 3))) {
+		if ((a[1] == b[1])) {
+			return 1;
 		}
 	}
 	return 0;
 };
 
-
-var v_errorResult = function(v_error) {
-	return [3, v_error];
-};
-
-
-var v_EX_AssertionFailed = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 2, v_exMsg);
-};
-
-
-var v_EX_DivisionByZero = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 3, v_exMsg);
-};
-
-
-var v_EX_Fatal = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 0, v_exMsg);
-};
-
-
-var v_EX_IndexOutOfRange = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 4, v_exMsg);
-};
-
-
-var v_EX_InvalidArgument = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 5, v_exMsg);
-};
-
-
-var v_EX_InvalidAssignment = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 6, v_exMsg);
-};
-
-
-var v_EX_InvalidInvocation = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 7, v_exMsg);
-};
-
-
-var v_EX_InvalidKey = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 8, v_exMsg);
-};
-
-
-var v_EX_KeyNotFound = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 9, v_exMsg);
-};
-
-
-var v_EX_NullReference = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 10, v_exMsg);
-};
-
-
-var v_EX_UnassignedVariable = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 11, v_exMsg);
-};
-
-
-var v_EX_UnknownField = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 12, v_exMsg);
-};
-
-
-var v_EX_UnsupportedOperation = function(v_ec, v_exMsg) {
-	return v_generateException2(v_ec, 13, v_exMsg);
-};
-
-
-var v_finalizeInitializationImpl = function(v_projectId) {
-	var v_p = C$common$programData;
-	v_p[5] = C$common$multiplyList(v_p[6], 1);
-	v_p[8] = C$common$multiplyList(v_p[9], 1);
-	v_p[14] = C$common$multiplyList(v_p[15], 1);
-	v_p[16] = C$common$multiplyList(v_p[17], 1);
-	v_p[12] = C$common$multiplyList(v_p[13], 1);
-	v_p[23] = v_primitiveMethodsInitializeLookup(v_p[7]);
-	v_p[24] = C$common$createNewArray(v_p[5].length);
-	v_p[28] = v_projectId;
-	v_p[6] = null;
-	v_p[9] = null;
-	v_p[15] = null;
-	v_p[17] = null;
-	v_p[13] = null;
-	v_p[38] = v_createLibraryFunctionLookup();
-	v_p[19] = true;
-	return 0;
-};
-
-
-var v_fixFuzzyFloatPrecision = function(v_x) {
-	if (((v_x % 1) != 0)) {
-		var v_u = (v_x % 1);
-		if ((v_u < 0)) {
-			v_u += 1.0;
+var doExponentMath = function(globals, b, e, preferInt) {
+	if ((e == 0.0)) {
+		if (preferInt) {
+			return globals[4];
 		}
-		var v_roundDown = false;
-		if ((v_u > 0.9999999999)) {
-			v_roundDown = true;
-			v_x += 0.1;
+		return globals[7];
+	}
+	if ((b == 0.0)) {
+		if (preferInt) {
+			return globals[3];
+		}
+		return globals[6];
+	}
+	var r = 0.0;
+	if ((b < 0)) {
+		if (((e >= 0) && (e < 1))) {
+			return null;
+		}
+		if (((e % 1.0) == 0.0)) {
+			var eInt = Math.floor(e);
+			r = (0.0 + Math.pow(b, eInt));
 		} else {
-			if ((v_u < 0.00000000002250000000)) {
-				v_roundDown = true;
-			}
+			return null;
 		}
-		if (v_roundDown) {
-			if ((true || (v_x > 0))) {
-				v_x = (Math.floor(v_x) + 0.0);
+	} else {
+		r = Math.pow(b, e);
+	}
+	if (preferInt) {
+		r = fixFuzzyFloatPrecision(r);
+		if (((r % 1.0) == 0.0)) {
+			return buildInteger(globals, Math.floor(r));
+		}
+	}
+	return buildFloat(globals, r);
+};
+
+var encodeBreakpointData = function(vm, breakpoint, pc) {
+	return null;
+};
+
+var errorResult = function(error) {
+	return [3, error, 0.0, 0, false, ""];
+};
+
+var EX_AssertionFailed = function(ec, exMsg) {
+	return generateException2(ec, 2, exMsg);
+};
+
+var EX_DivisionByZero = function(ec, exMsg) {
+	return generateException2(ec, 3, exMsg);
+};
+
+var EX_Fatal = function(ec, exMsg) {
+	return generateException2(ec, 0, exMsg);
+};
+
+var EX_IndexOutOfRange = function(ec, exMsg) {
+	return generateException2(ec, 4, exMsg);
+};
+
+var EX_InvalidArgument = function(ec, exMsg) {
+	return generateException2(ec, 5, exMsg);
+};
+
+var EX_InvalidAssignment = function(ec, exMsg) {
+	return generateException2(ec, 6, exMsg);
+};
+
+var EX_InvalidInvocation = function(ec, exMsg) {
+	return generateException2(ec, 7, exMsg);
+};
+
+var EX_InvalidKey = function(ec, exMsg) {
+	return generateException2(ec, 8, exMsg);
+};
+
+var EX_KeyNotFound = function(ec, exMsg) {
+	return generateException2(ec, 9, exMsg);
+};
+
+var EX_NullReference = function(ec, exMsg) {
+	return generateException2(ec, 10, exMsg);
+};
+
+var EX_UnassignedVariable = function(ec, exMsg) {
+	return generateException2(ec, 11, exMsg);
+};
+
+var EX_UnknownField = function(ec, exMsg) {
+	return generateException2(ec, 12, exMsg);
+};
+
+var EX_UnsupportedOperation = function(ec, exMsg) {
+	return generateException2(ec, 13, exMsg);
+};
+
+var finalizeInitializationImpl = function(vm, projectId, localeCount) {
+	vm[3][1] = PST$multiplyList(vm[3][2], 1);
+	vm[3][2] = null;
+	vm[4][19][2] = localeCount;
+	vm[4][0] = PST$multiplyList(vm[4][1], 1);
+	vm[4][3] = PST$multiplyList(vm[4][4], 1);
+	vm[4][12] = primitiveMethodsInitializeLookup(vm[4][2]);
+	vm[8] = PST$createNewArray(vm[4][0].length);
+	vm[4][17] = projectId;
+	vm[4][1] = null;
+	vm[4][4] = null;
+	vm[6] = true;
+	return 0;
+};
+
+var fixFuzzyFloatPrecision = function(x) {
+	if (((x % 1) != 0)) {
+		var u = (x % 1);
+		if ((u < 0)) {
+			u += 1.0;
+		}
+		var roundDown = false;
+		if ((u > 0.9999999999)) {
+			roundDown = true;
+			x += 0.1;
+		} else if ((u < 0.00000000002250000000)) {
+			roundDown = true;
+		}
+		if (roundDown) {
+			x = (Math.floor(x) + 0.0);
+		}
+	}
+	return x;
+};
+
+var generateEsfData = function(byteCodeLength, esfArgs) {
+	var output = PST$createNewArray(byteCodeLength);
+	var esfTokenStack = [];
+	var esfTokenStackTop = null;
+	var esfArgIterator = 0;
+	var esfArgLength = esfArgs.length;
+	var j = 0;
+	var pc = 0;
+	while ((pc < byteCodeLength)) {
+		if (((esfArgIterator < esfArgLength) && (pc == esfArgs[esfArgIterator]))) {
+			esfTokenStackTop = PST$createNewArray(2);
+			j = 1;
+			while ((j < 3)) {
+				esfTokenStackTop[(j - 1)] = esfArgs[(esfArgIterator + j)];
+				j += 1;
+			}
+			esfTokenStack.push(esfTokenStackTop);
+			esfArgIterator += 3;
+		}
+		while (((esfTokenStackTop != null) && (esfTokenStackTop[1] <= pc))) {
+			esfTokenStack.pop();
+			if ((esfTokenStack.length == 0)) {
+				esfTokenStackTop = null;
 			} else {
-				v_x = (Math.floor(v_x) - 1.0);
+				esfTokenStackTop = esfTokenStack[(esfTokenStack.length - 1)];
 			}
 		}
+		output[pc] = esfTokenStackTop;
+		pc += 1;
 	}
-	return v_x;
+	return output;
 };
 
-
-var v_generateEsfData = function(v_byteCodeLength, v_esfArgs) {
-	var v_output = C$common$createNewArray(v_byteCodeLength);
-	var v_esfTokenStack = [];
-	var v_esfTokenStackTop = null;
-	var v_esfArgIterator = 0;
-	var v_esfArgLength = v_esfArgs.length;
-	var v_j = 0;
-	var v_pc = 0;
-	while ((v_pc < v_byteCodeLength)) {
-		if (((v_esfArgIterator < v_esfArgLength) && (v_pc == v_esfArgs[v_esfArgIterator]))) {
-			v_esfTokenStackTop = C$common$createNewArray(2);
-			v_j = 1;
-			while ((v_j < 3)) {
-				v_esfTokenStackTop[(v_j - 1)] = v_esfArgs[(v_esfArgIterator + v_j)];
-				v_j += 1;
-			}
-			v_esfTokenStack.push(v_esfTokenStackTop);
-			v_esfArgIterator += 3;
-		}
-		while (((v_esfTokenStackTop != null) && (v_esfTokenStackTop[1] <= v_pc))) {
-			v_esfTokenStack.pop();
-			if ((v_esfTokenStack.length == 0)) {
-				v_esfTokenStackTop = null;
-			} else {
-				v_esfTokenStackTop = v_esfTokenStack[(v_esfTokenStack.length - 1)];
-			}
-		}
-		v_output[v_pc] = v_esfTokenStackTop;
-		v_pc += 1;
+var generateException = function(vm, stack, pc, valueStackSize, ec, type, message) {
+	ec[2] = valueStackSize;
+	stack[0] = pc;
+	var mn = vm[4][19];
+	var generateExceptionFunctionId = mn[1];
+	var functionInfo = vm[4][10][generateExceptionFunctionId];
+	pc = functionInfo[2];
+	if ((ec[5].length <= (functionInfo[7] + stack[3]))) {
+		increaseLocalsStackCapacity(ec, functionInfo[7]);
 	}
-	return v_output;
+	var localsIndex = stack[3];
+	var localsStackSetToken = (ec[7] + 1);
+	ec[7] = localsStackSetToken;
+	ec[5][localsIndex] = buildInteger(vm[13], type);
+	ec[5][(localsIndex + 1)] = buildString(vm[13], message);
+	ec[6][localsIndex] = localsStackSetToken;
+	ec[6][(localsIndex + 1)] = localsStackSetToken;
+	ec[1] = [(pc + 1), localsStackSetToken, stack[3], (stack[3] + functionInfo[7]), stack, false, null, valueStackSize, 0, (stack[9] + 1), 0, null, null, null];
+	return [5, null, 0.0, 0, false, ""];
 };
 
-
-var v_generateException = function(v_stack, v_pc, v_valueStackSize, v_ec, v_type, v_message) {
-	v_ec[2] = v_valueStackSize;
-	v_stack[0] = v_pc;
-	v_ec[7] = (v_stack[1] + 1);
-	var v_p = C$common$programData;
-	var v_mn = v_p[30];
-	var v_generateExceptionFunctionId = v_mn[1];
-	var v_functionInfo = v_p[21][v_generateExceptionFunctionId];
-	v_pc = v_functionInfo[2];
-	if ((v_ec[5].length <= (v_functionInfo[7] + v_stack[3]))) {
-		v_increaseLocalsStackCapacity(v_ec, v_functionInfo[7]);
-	}
-	var v_localsIndex = v_stack[3];
-	v_ec[5][v_localsIndex] = v_buildInteger(v_type);
-	v_ec[5][(v_localsIndex + 1)] = v_buildString(v_message);
-	v_ec[6][v_localsIndex] = v_ec[7];
-	v_ec[6][(v_localsIndex + 1)] = v_ec[7];
-	v_ec[1] = [(v_pc + 1), v_ec[7], v_stack[3], (v_stack[3] + v_functionInfo[7]), v_stack, false, null, v_valueStackSize, 0, (v_stack[9] + 1), 0, null];
-	return [5, null];
-};
-
-
-var v_generateException2 = function(v_ec, v_exceptionType, v_exMsg) {
-	v_ec[13] = [1, v_exceptionType, v_exMsg];
+var generateException2 = function(ec, exceptionType, exMsg) {
+	ec[13] = [1, exceptionType, exMsg, 0.0, null];
 	return true;
 };
 
-
-var v_generatePrimitiveMethodReference = function(v_lookup, v_globalNameId, v_context) {
-	var v_functionId = v_resolvePrimitiveMethodName2(v_lookup, v_context[0], v_globalNameId);
-	if ((v_functionId < 0)) {
+var generatePrimitiveMethodReference = function(lookup, globalNameId, context) {
+	var functionId = resolvePrimitiveMethodName2(lookup, context[0], globalNameId);
+	if ((functionId < 0)) {
 		return null;
 	}
-	return [9, [4, v_context, 0, v_functionId]];
+	return [9, [4, context, 0, functionId, null]];
 };
 
-
-var v_generateTokenListFromPcs = function(v_pcs) {
-	var v_output = [];
-	var v_p = C$common$programData;
-	var v_tokensByPc = v_p[10];
-	var v_token = null;
-	var v_i = 0;
-	while ((v_i < v_pcs.length)) {
-		var v_localTokens = v_tokensByPc[v_pcs[v_i]];
-		if ((v_localTokens == null)) {
-			if ((v_output.length > 0)) {
-				v_output.push(null);
+var generateTokenListFromPcs = function(vm, pcs) {
+	var output = [];
+	var tokensByPc = vm[3][0];
+	var token = null;
+	var i = 0;
+	while ((i < pcs.length)) {
+		var localTokens = tokensByPc[pcs[i]];
+		if ((localTokens == null)) {
+			if ((output.length > 0)) {
+				output.push(null);
 			}
 		} else {
-			v_token = v_localTokens[0];
-			v_output.push(v_token);
+			token = localTokens[0];
+			output.push(token);
 		}
-		v_i += 1;
+		i += 1;
 	}
-	return v_output;
+	return output;
 };
 
-
-var v_getBinaryOpFromId = function(v_id) {
-	switch (v_id) {
+var getBinaryOpFromId = function(id) {
+	switch (id) {
 		case 0:
 			return "+";
 		case 1:
@@ -673,77 +961,99 @@ var v_getBinaryOpFromId = function(v_id) {
 	}
 };
 
-
-var v_getClassTable = function(v_p, v_classId) {
-	var v_oldTable = v_p[20];
-	var v_oldLength = v_oldTable.length;
-	if ((v_classId < v_oldLength)) {
-		return v_oldTable;
+var getClassTable = function(vm, classId) {
+	var oldTable = vm[4][9];
+	var oldLength = oldTable.length;
+	if ((classId < oldLength)) {
+		return oldTable;
 	}
-	var v_newLength = (v_oldLength * 2);
-	if ((v_classId >= v_newLength)) {
-		v_newLength = (v_classId + 100);
+	var newLength = (oldLength * 2);
+	if ((classId >= newLength)) {
+		newLength = (classId + 100);
 	}
-	var v_newTable = C$common$createNewArray(v_newLength);
-	var v_i = (v_oldLength - 1);
-	while ((v_i >= 0)) {
-		v_newTable[v_i] = v_oldTable[v_i];
-		v_i -= 1;
+	var newTable = PST$createNewArray(newLength);
+	var i = (oldLength - 1);
+	while ((i >= 0)) {
+		newTable[i] = oldTable[i];
+		i -= 1;
 	}
-	v_p[20] = v_newTable;
-	return v_newTable;
+	vm[4][9] = newTable;
+	return newTable;
 };
 
-
-var v_getExecutionContext = function(v_id) {
-	var v_p = C$common$programData;
-	if ((v_id == -1)) {
-		v_id = v_p[1];
-	}
-	if ((v_p[0][v_id] !== undefined)) {
-		return v_p[0][v_id];
+var getExecutionContext = function(vm, id) {
+	if ((vm[0][id] !== undefined)) {
+		return vm[0][id];
 	}
 	return null;
 };
 
-
-var v_getFloat = function(v_num) {
-	if ((v_num[0] == 4)) {
-		return v_num[1];
-	}
-	return (v_num[1] + 0.0);
+var getExponentErrorMsg = function(vm, b, e) {
+	return ["Invalid values for exponent computation. Base: ", valueToString(vm, b), ", Power: ", valueToString(vm, e)].join('');
 };
 
-
-var v_getFunctionTable = function(v_p, v_functionId) {
-	var v_oldTable = v_p[21];
-	var v_oldLength = v_oldTable.length;
-	if ((v_functionId < v_oldLength)) {
-		return v_oldTable;
+var getFloat = function(num) {
+	if ((num[0] == 4)) {
+		return num[1];
 	}
-	var v_newLength = (v_oldLength * 2);
-	if ((v_functionId >= v_newLength)) {
-		v_newLength = (v_functionId + 100);
-	}
-	var v_newTable = C$common$createNewArray(v_newLength);
-	var v_i = 0;
-	while ((v_i < v_oldLength)) {
-		v_newTable[v_i] = v_oldTable[v_i];
-		v_i += 1;
-	}
-	v_p[21] = v_newTable;
-	return v_newTable;
+	return (num[1] + 0.0);
 };
 
-
-var v_getNativeDataItem = function(v_objValue, v_index) {
-	var v_obj = v_objValue[1];
-	return v_obj[3][v_index];
+var getFunctionTable = function(vm, functionId) {
+	var oldTable = vm[4][10];
+	var oldLength = oldTable.length;
+	if ((functionId < oldLength)) {
+		return oldTable;
+	}
+	var newLength = (oldLength * 2);
+	if ((functionId >= newLength)) {
+		newLength = (functionId + 100);
+	}
+	var newTable = PST$createNewArray(newLength);
+	var i = 0;
+	while ((i < oldLength)) {
+		newTable[i] = oldTable[i];
+		i += 1;
+	}
+	vm[4][10] = newTable;
+	return newTable;
 };
 
+var getItemFromList = function(list, i) {
+	return list[2][i];
+};
 
-var v_getTypeFromId = function(v_id) {
-	switch (v_id) {
+var getNamedCallbackId = function(vm, scope, functionName) {
+	return getNamedCallbackIdImpl(vm, scope, functionName, false);
+};
+
+var getNamedCallbackIdImpl = function(vm, scope, functionName, allocIfMissing) {
+	var lookup = vm[12][1];
+	var idsForScope = null;
+	idsForScope = lookup[scope];
+	if (idsForScope === undefined) idsForScope = null;
+	if ((idsForScope == null)) {
+		idsForScope = {};
+		lookup[scope] = idsForScope;
+	}
+	var id = -1;
+	id = idsForScope[functionName];
+	if (id === undefined) id = -1;
+	if (((id == -1) && allocIfMissing)) {
+		id = vm[12][0].length;
+		vm[12][0].push(null);
+		idsForScope[functionName] = id;
+	}
+	return id;
+};
+
+var getNativeDataItem = function(objValue, index) {
+	var obj = objValue[1];
+	return obj[3][index];
+};
+
+var getTypeFromId = function(id) {
+	switch (id) {
 		case 1:
 			return "null";
 		case 2:
@@ -766,4348 +1076,4863 @@ var v_getTypeFromId = function(v_id) {
 	return null;
 };
 
+var getVmReinvokeDelay = function(result) {
+	return result[2];
+};
 
-var v_increaseLocalsStackCapacity = function(v_ec, v_newScopeSize) {
-	var v_oldLocals = v_ec[5];
-	var v_oldSetIndicator = v_ec[6];
-	var v_oldCapacity = v_oldLocals.length;
-	var v_newCapacity = ((v_oldCapacity * 2) + v_newScopeSize);
-	var v_newLocals = C$common$createNewArray(v_newCapacity);
-	var v_newSetIndicator = C$common$createNewArray(v_newCapacity);
-	var v_i = 0;
-	while ((v_i < v_oldCapacity)) {
-		v_newLocals[v_i] = v_oldLocals[v_i];
-		v_newSetIndicator[v_i] = v_oldSetIndicator[v_i];
-		v_i += 1;
+var getVmResultAssemblyInfo = function(result) {
+	return result[5];
+};
+
+var getVmResultExecId = function(result) {
+	return result[3];
+};
+
+var getVmResultStatus = function(result) {
+	return result[0];
+};
+
+var increaseListCapacity = function(list) {
+};
+
+var increaseLocalsStackCapacity = function(ec, newScopeSize) {
+	var oldLocals = ec[5];
+	var oldSetIndicator = ec[6];
+	var oldCapacity = oldLocals.length;
+	var newCapacity = ((oldCapacity * 2) + newScopeSize);
+	var newLocals = PST$createNewArray(newCapacity);
+	var newSetIndicator = PST$createNewArray(newCapacity);
+	var i = 0;
+	while ((i < oldCapacity)) {
+		newLocals[i] = oldLocals[i];
+		newSetIndicator[i] = oldSetIndicator[i];
+		i += 1;
 	}
-	v_ec[5] = v_newLocals;
-	v_ec[6] = v_newSetIndicator;
+	ec[5] = newLocals;
+	ec[6] = newSetIndicator;
 	return 0;
 };
 
-
-var v_initialize_constant_values = function() {
-	var v_i = 0;
-	v_i = 2;
-	while ((v_i < 2049)) {
-		v_INTEGER_POSITIVE_CACHE[v_i] = [3, v_i];
-		v_i += 1;
+var initFileNameSymbolData = function(vm) {
+	var symbolData = vm[3];
+	if ((symbolData == null)) {
+		return 0;
 	}
-	v_i = 2;
-	while ((v_i < 257)) {
-		v_INTEGER_NEGATIVE_CACHE[v_i] = [3, -v_i];
-		v_i += 1;
-	}
-	v_INTEGER_POSITIVE_CACHE[0] = v_VALUE_INT_ZERO;
-	v_INTEGER_POSITIVE_CACHE[1] = v_VALUE_INT_ONE;
-	v_INTEGER_NEGATIVE_CACHE[0] = v_VALUE_INT_ZERO;
-	v_INTEGER_NEGATIVE_CACHE[1] = v_VALUE_INT_NEG_ONE;
-	return 0;
-};
-
-
-var v_initializeClass = function(v_pc, v_p, v_args, v_className) {
-	var v_i = 0;
-	var v_memberId = 0;
-	var v_globalId = 0;
-	var v_functionId = 0;
-	var v_t = 0;
-	var v_classId = v_args[0];
-	var v_baseClassId = v_args[1];
-	var v_globalNameId = v_args[2];
-	var v_constructorFunctionId = v_args[3];
-	var v_staticConstructorFunctionId = v_args[4];
-	var v_staticInitializationState = 0;
-	if ((v_staticConstructorFunctionId == -1)) {
-		v_staticInitializationState = 2;
-	}
-	var v_staticFieldCount = v_args[5];
-	var v_staticFields = C$common$createNewArray(v_staticFieldCount);
-	v_i = 0;
-	while ((v_i < v_staticFieldCount)) {
-		v_staticFields[v_i] = v_VALUE_NULL;
-		v_i += 1;
-	}
-	var v_classInfo = [v_classId, v_globalNameId, v_baseClassId, v_staticInitializationState, v_staticFields, v_staticConstructorFunctionId, v_constructorFunctionId, 0, null, null, null, null, v_className];
-	var v_classTable = v_getClassTable(v_p, v_classId);
-	v_classTable[v_classId] = v_classInfo;
-	var v_classChain = [];
-	v_classChain.push(v_classInfo);
-	var v_classIdWalker = v_baseClassId;
-	while ((v_classIdWalker != -1)) {
-		var v_walkerClass = v_classTable[v_classIdWalker];
-		v_classChain.push(v_walkerClass);
-		v_classIdWalker = v_walkerClass[2];
-	}
-	var v_baseClass = null;
-	if ((v_baseClassId != -1)) {
-		v_baseClass = v_classChain[1];
-	}
-	var v_functionIds = [];
-	var v_fieldInitializationCommand = [];
-	var v_fieldInitializationLiteral = [];
-	var v_globalNameIdToMemberId = {};
-	if ((v_baseClass != null)) {
-		v_i = 0;
-		while ((v_i < v_baseClass[7])) {
-			v_functionIds.push(v_baseClass[8][v_i]);
-			v_fieldInitializationCommand.push(v_baseClass[9][v_i]);
-			v_fieldInitializationLiteral.push(v_baseClass[10][v_i]);
-			v_i += 1;
-		}
-		var v_keys = C$common$dictionaryKeys(v_baseClass[11]);
-		v_i = 0;
-		while ((v_i < v_keys.length)) {
-			v_t = v_keys[v_i];
-			v_globalNameIdToMemberId[v_t] = v_baseClass[11][v_t];
-			v_i += 1;
-		}
-	}
-	v_i = 6;
-	while ((v_i < v_args.length)) {
-		v_memberId = v_args[(v_i + 1)];
-		v_globalId = v_args[(v_i + 2)];
-		while ((v_memberId >= v_functionIds.length)) {
-			v_functionIds.push(-1);
-			v_fieldInitializationCommand.push(-1);
-			v_fieldInitializationLiteral.push(null);
-		}
-		v_globalNameIdToMemberId[v_globalId] = v_memberId;
-		if ((v_args[v_i] == 0)) {
-			v_fieldInitializationCommand[v_memberId] = v_args[(v_i + 3)];
-			v_t = v_args[(v_i + 4)];
-			if ((v_t == -1)) {
-				v_fieldInitializationLiteral[v_memberId] = v_VALUE_NULL;
-			} else {
-				v_fieldInitializationLiteral[v_memberId] = v_p[8][v_t];
-			}
-		} else {
-			v_functionId = v_args[(v_i + 3)];
-			v_functionIds[v_memberId] = v_functionId;
-		}
-		v_i += 5;
-	}
-	v_classInfo[8] = C$common$multiplyList(v_functionIds, 1);
-	v_classInfo[9] = C$common$multiplyList(v_fieldInitializationCommand, 1);
-	v_classInfo[10] = C$common$multiplyList(v_fieldInitializationLiteral, 1);
-	v_classInfo[7] = v_functionIds.length;
-	v_classInfo[11] = v_globalNameIdToMemberId;
-	if ("Core.Exception" == v_className) {
-		var v_mn = v_p[30];
-		v_mn[0] = v_classId;
-	}
-	return 0;
-};
-
-
-var v_initializeFunction = function(v_p, v_args, v_currentPc, v_stringArg) {
-	var v_functionId = v_args[0];
-	var v_nameId = v_args[1];
-	var v_minArgCount = v_args[2];
-	var v_maxArgCount = v_args[3];
-	var v_functionType = v_args[4];
-	var v_classId = v_args[5];
-	var v_localsCount = v_args[6];
-	var v_pcJump = v_args[7];
-	var v_numPcOffsetsForOptionalArgs = v_args[8];
-	var v_pcOffsetsForOptionalArgs = C$common$createNewArray((v_numPcOffsetsForOptionalArgs + 1));
-	var v_i = 0;
-	while ((v_i < v_numPcOffsetsForOptionalArgs)) {
-		v_pcOffsetsForOptionalArgs[(v_i + 1)] = v_args[(9 + v_i)];
-		v_i += 1;
-	}
-	var v_functionTable = v_getFunctionTable(v_p, v_functionId);
-	v_functionTable[v_functionId] = [v_functionId, v_nameId, v_currentPc, v_minArgCount, v_maxArgCount, v_functionType, v_classId, v_localsCount, v_pcOffsetsForOptionalArgs, v_stringArg];
-	if ((v_nameId >= 0)) {
-		var v_name = v_p[5][v_nameId];
-		if ("_LIB_CORE_list_filter" == v_name) {
-			v_p[26][0] = v_functionId;
-		} else {
-			if ("_LIB_CORE_list_map" == v_name) {
-				v_p[26][1] = v_functionId;
-			} else {
-				if ("_LIB_CORE_list_sort_by_key" == v_name) {
-					v_p[26][2] = v_functionId;
-				} else {
-					if ("_LIB_CORE_invoke" == v_name) {
-						v_p[26][3] = v_functionId;
-					} else {
-						if ("_LIB_CORE_generateException" == v_name) {
-							var v_mn = v_p[30];
-							v_mn[1] = v_functionId;
-						}
-					}
+	if ((symbolData[3] == null)) {
+		var i = 0;
+		var filenames = PST$createNewArray(symbolData[1].length);
+		var fileIdByPath = {};
+		i = 0;
+		while ((i < filenames.length)) {
+			var sourceCode = symbolData[1][i];
+			if ((sourceCode != null)) {
+				var colon = sourceCode.indexOf("\n");
+				if ((colon != -1)) {
+					var filename = sourceCode.substring(0, 0 + colon);
+					filenames[i] = filename;
+					fileIdByPath[filename] = i;
 				}
 			}
+			i += 1;
+		}
+		symbolData[3] = filenames;
+		symbolData[4] = fileIdByPath;
+	}
+	return 0;
+};
+
+var initializeByteCode = function(raw) {
+	var index = PST$createNewArray(1);
+	index[0] = 0;
+	var length = raw.length;
+	var header = read_till(index, raw, length, "@");
+	if ((header != "CRAYON")) {
+	}
+	var alphaNums = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	var opCount = read_integer(index, raw, length, alphaNums);
+	var ops = PST$createNewArray(opCount);
+	var iargs = PST$createNewArray(opCount);
+	var sargs = PST$createNewArray(opCount);
+	var c = " ";
+	var argc = 0;
+	var j = 0;
+	var stringarg = null;
+	var stringPresent = false;
+	var iarg = 0;
+	var iarglist = null;
+	var i = 0;
+	i = 0;
+	while ((i < opCount)) {
+		c = raw.charAt(index[0]);
+		index[0] = (index[0] + 1);
+		argc = 0;
+		stringPresent = true;
+		if ((c == "!")) {
+			argc = 1;
+		} else if ((c == "&")) {
+			argc = 2;
+		} else if ((c == "*")) {
+			argc = 3;
+		} else {
+			if ((c != "~")) {
+				stringPresent = false;
+				index[0] = (index[0] - 1);
+			}
+			argc = read_integer(index, raw, length, alphaNums);
+		}
+		iarglist = PST$createNewArray((argc - 1));
+		j = 0;
+		while ((j < argc)) {
+			iarg = read_integer(index, raw, length, alphaNums);
+			if ((j == 0)) {
+				ops[i] = iarg;
+			} else {
+				iarglist[(j - 1)] = iarg;
+			}
+			j += 1;
+		}
+		iargs[i] = iarglist;
+		if (stringPresent) {
+			stringarg = read_string(index, raw, length, alphaNums);
+		} else {
+			stringarg = null;
+		}
+		sargs[i] = stringarg;
+		i += 1;
+	}
+	var hasBreakpoint = PST$createNewArray(opCount);
+	var breakpointInfo = PST$createNewArray(opCount);
+	i = 0;
+	while ((i < opCount)) {
+		hasBreakpoint[i] = false;
+		breakpointInfo[i] = null;
+		i += 1;
+	}
+	return [ops, iargs, sargs, PST$createNewArray(opCount), PST$createNewArray(opCount), [hasBreakpoint, breakpointInfo, {}, 1, 0]];
+};
+
+var initializeClass = function(pc, vm, args, className) {
+	var i = 0;
+	var memberId = 0;
+	var globalId = 0;
+	var functionId = 0;
+	var t = 0;
+	var classId = args[0];
+	var baseClassId = args[1];
+	var globalNameId = args[2];
+	var constructorFunctionId = args[3];
+	var staticConstructorFunctionId = args[4];
+	var staticInitializationState = 0;
+	if ((staticConstructorFunctionId == -1)) {
+		staticInitializationState = 2;
+	}
+	var staticFieldCount = args[5];
+	var assemblyId = args[6];
+	var staticFields = PST$createNewArray(staticFieldCount);
+	i = 0;
+	while ((i < staticFieldCount)) {
+		staticFields[i] = vm[13][0];
+		i += 1;
+	}
+	var classInfo = [classId, globalNameId, baseClassId, assemblyId, staticInitializationState, staticFields, staticConstructorFunctionId, constructorFunctionId, 0, null, null, null, null, null, vm[4][21][classId], null, className];
+	var classTable = getClassTable(vm, classId);
+	classTable[classId] = classInfo;
+	var classChain = [];
+	classChain.push(classInfo);
+	var classIdWalker = baseClassId;
+	while ((classIdWalker != -1)) {
+		var walkerClass = classTable[classIdWalker];
+		classChain.push(walkerClass);
+		classIdWalker = walkerClass[2];
+	}
+	var baseClass = null;
+	if ((baseClassId != -1)) {
+		baseClass = classChain[1];
+	}
+	var functionIds = [];
+	var fieldInitializationCommand = [];
+	var fieldInitializationLiteral = [];
+	var fieldAccessModifier = [];
+	var globalNameIdToMemberId = {};
+	if ((baseClass != null)) {
+		i = 0;
+		while ((i < baseClass[8])) {
+			functionIds.push(baseClass[9][i]);
+			fieldInitializationCommand.push(baseClass[10][i]);
+			fieldInitializationLiteral.push(baseClass[11][i]);
+			fieldAccessModifier.push(baseClass[12][i]);
+			i += 1;
+		}
+		var keys = PST$dictionaryKeys(baseClass[13]);
+		i = 0;
+		while ((i < keys.length)) {
+			t = keys[i];
+			globalNameIdToMemberId[t] = baseClass[13][t];
+			i += 1;
+		}
+		keys = PST$dictionaryKeys(baseClass[14]);
+		i = 0;
+		while ((i < keys.length)) {
+			t = keys[i];
+			classInfo[14][t] = baseClass[14][t];
+			i += 1;
 		}
 	}
-	return v_pcJump;
-};
-
-
-var v_interpret = function(v_executionContextId) {
-	var v_output = v_interpretImpl(v_executionContextId);
-	while ((v_output[0] == 5)) {
-		v_output = v_interpretImpl(v_executionContextId);
+	var accessModifier = 0;
+	i = 7;
+	while ((i < args.length)) {
+		memberId = args[(i + 1)];
+		globalId = args[(i + 2)];
+		accessModifier = args[(i + 5)];
+		while ((memberId >= functionIds.length)) {
+			functionIds.push(-1);
+			fieldInitializationCommand.push(-1);
+			fieldInitializationLiteral.push(null);
+			fieldAccessModifier.push(0);
+		}
+		globalNameIdToMemberId[globalId] = memberId;
+		fieldAccessModifier[memberId] = accessModifier;
+		if ((args[i] == 0)) {
+			fieldInitializationCommand[memberId] = args[(i + 3)];
+			t = args[(i + 4)];
+			if ((t == -1)) {
+				fieldInitializationLiteral[memberId] = vm[13][0];
+			} else {
+				fieldInitializationLiteral[memberId] = vm[4][3][t];
+			}
+		} else {
+			functionId = args[(i + 3)];
+			functionIds[memberId] = functionId;
+		}
+		i += 6;
 	}
-	return v_output;
-};
-
-
-var v_interpreterFinished = function(v_ec) {
-	if ((v_ec != null)) {
-		var v_id = v_ec[0];
-		var v_p = C$common$programData;
-		if ((v_p[0][v_id] !== undefined)) {
-			delete v_p[0][v_id];
+	classInfo[9] = PST$multiplyList(functionIds, 1);
+	classInfo[10] = PST$multiplyList(fieldInitializationCommand, 1);
+	classInfo[11] = PST$multiplyList(fieldInitializationLiteral, 1);
+	classInfo[12] = PST$multiplyList(fieldAccessModifier, 1);
+	classInfo[8] = functionIds.length;
+	classInfo[13] = globalNameIdToMemberId;
+	classInfo[15] = PST$createNewArray(classInfo[8]);
+	if ((baseClass != null)) {
+		i = 0;
+		while ((i < baseClass[15].length)) {
+			classInfo[15][i] = baseClass[15][i];
+			i += 1;
 		}
 	}
-	return [1, null];
+	if ("Core.Exception" == className) {
+		var mn = vm[4][19];
+		mn[0] = classId;
+	}
+	return 0;
 };
 
+var initializeClassFieldTypeInfo = function(vm, opCodeRow) {
+	var classInfo = vm[4][9][opCodeRow[0]];
+	var memberId = opCodeRow[1];
+	var _len = opCodeRow.length;
+	var typeInfo = PST$createNewArray((_len - 2));
+	var i = 2;
+	while ((i < _len)) {
+		typeInfo[(i - 2)] = opCodeRow[i];
+		i += 1;
+	}
+	classInfo[15][memberId] = typeInfo;
+	return 0;
+};
 
-var v_interpreterGetExecutionContext = function(v_executionContextId) {
-	var v_p = C$common$programData;
-	var v_executionContexts = v_p[0];
-	if (!(v_executionContexts[v_executionContextId] !== undefined)) {
+var initializeConstantValues = function() {
+	var pos = PST$createNewArray(2049);
+	var neg = PST$createNewArray(257);
+	var i = 0;
+	while ((i < 2049)) {
+		pos[i] = [3, i];
+		i += 1;
+	}
+	i = 1;
+	while ((i < 257)) {
+		neg[i] = [3, -i];
+		i += 1;
+	}
+	neg[0] = pos[0];
+	var globals = [[1, null], [2, true], [2, false], pos[0], pos[1], neg[1], [4, 0.0], [4, 1.0], [5, ""], pos, neg, {}, PST$createNewArray(1), PST$createNewArray(1), PST$createNewArray(1), PST$createNewArray(1), PST$createNewArray(1), PST$createNewArray(2)];
+	globals[11][""] = globals[8];
+	globals[12][0] = 2;
+	globals[13][0] = 3;
+	globals[15][0] = 4;
+	globals[14][0] = 5;
+	globals[16][0] = 10;
+	globals[17][0] = 8;
+	globals[17][1] = 0;
+	return globals;
+};
+
+var initializeFunction = function(vm, args, currentPc, stringArg) {
+	var functionId = args[0];
+	var nameId = args[1];
+	var minArgCount = args[2];
+	var maxArgCount = args[3];
+	var functionType = args[4];
+	var classId = args[5];
+	var localsCount = args[6];
+	var numPcOffsetsForOptionalArgs = args[8];
+	var pcOffsetsForOptionalArgs = PST$createNewArray((numPcOffsetsForOptionalArgs + 1));
+	var i = 0;
+	while ((i < numPcOffsetsForOptionalArgs)) {
+		pcOffsetsForOptionalArgs[(i + 1)] = args[(9 + i)];
+		i += 1;
+	}
+	var functionTable = getFunctionTable(vm, functionId);
+	functionTable[functionId] = [functionId, nameId, currentPc, minArgCount, maxArgCount, functionType, classId, localsCount, pcOffsetsForOptionalArgs, stringArg, null];
+	vm[4][22] = functionTable[functionId];
+	if ((nameId >= 0)) {
+		var name = vm[4][0][nameId];
+		if ("_LIB_CORE_list_filter" == name) {
+			vm[4][15][0] = functionId;
+		} else if ("_LIB_CORE_list_map" == name) {
+			vm[4][15][1] = functionId;
+		} else if ("_LIB_CORE_list_sort_by_key" == name) {
+			vm[4][15][2] = functionId;
+		} else if ("_LIB_CORE_invoke" == name) {
+			vm[4][15][3] = functionId;
+		} else if ("_LIB_CORE_generateException" == name) {
+			var mn = vm[4][19];
+			mn[1] = functionId;
+		}
+	}
+	return 0;
+};
+
+var initializeIntSwitchStatement = function(vm, pc, args) {
+	var output = {};
+	var i = 1;
+	while ((i < args.length)) {
+		output[args[i]] = args[(i + 1)];
+		i += 2;
+	}
+	vm[2][3][pc] = output;
+	return output;
+};
+
+var initializeStringSwitchStatement = function(vm, pc, args) {
+	var output = {};
+	var i = 1;
+	while ((i < args.length)) {
+		var s = vm[4][3][args[i]][1];
+		output[s] = args[(i + 1)];
+		i += 2;
+	}
+	vm[2][4][pc] = output;
+	return output;
+};
+
+var initLocTable = function(vm, row) {
+	var classId = row[0];
+	var memberCount = row[1];
+	var nameId = 0;
+	var totalLocales = vm[4][19][2];
+	var lookup = {};
+	var i = 2;
+	while ((i < row.length)) {
+		var localeId = row[i];
+		i += 1;
+		var j = 0;
+		while ((j < memberCount)) {
+			nameId = row[(i + j)];
+			if ((nameId != -1)) {
+				lookup[((nameId * totalLocales) + localeId)] = j;
+			}
+			j += 1;
+		}
+		i += memberCount;
+	}
+	vm[4][21][classId] = lookup;
+	return 0;
+};
+
+var interpret = function(vm, executionContextId) {
+	var output = interpretImpl(vm, executionContextId);
+	while (((output[0] == 5) && (output[2] == 0))) {
+		output = interpretImpl(vm, executionContextId);
+	}
+	return output;
+};
+
+var interpreterFinished = function(vm, ec) {
+	if ((ec != null)) {
+		var id = ec[0];
+		if ((vm[0][id] !== undefined)) {
+			delete vm[0][id];
+		}
+	}
+	return [1, null, 0.0, 0, false, ""];
+};
+
+var interpreterGetExecutionContext = function(vm, executionContextId) {
+	var executionContexts = vm[0];
+	if (!(executionContexts[executionContextId] !== undefined)) {
 		return null;
 	}
-	return v_executionContexts[v_executionContextId];
+	return executionContexts[executionContextId];
 };
 
-
-var v_interpretImpl = function(v_executionContextId) {
-	var v_p = C$common$programData;
-	var v_executionContexts = v_p[0];
-	var v_ec = v_interpreterGetExecutionContext(v_executionContextId);
-	if ((v_ec == null)) {
-		return v_interpreterFinished(null);
+var interpretImpl = function(vm, executionContextId) {
+	var metadata = vm[4];
+	var globals = vm[13];
+	var VALUE_NULL = globals[0];
+	var VALUE_TRUE = globals[1];
+	var VALUE_FALSE = globals[2];
+	var VALUE_INT_ONE = globals[4];
+	var VALUE_INT_ZERO = globals[3];
+	var VALUE_FLOAT_ZERO = globals[6];
+	var VALUE_FLOAT_ONE = globals[7];
+	var INTEGER_POSITIVE_CACHE = globals[9];
+	var INTEGER_NEGATIVE_CACHE = globals[10];
+	var executionContexts = vm[0];
+	var ec = interpreterGetExecutionContext(vm, executionContextId);
+	if ((ec == null)) {
+		return interpreterFinished(vm, null);
 	}
-	v_ec[8] += 1;
-	var v_stack = v_ec[1];
-	var v_ops = v_p[2];
-	var v_args = v_p[3];
-	var v_stringArgs = v_p[4];
-	var v_libFunctionPointers = v_p[38];
-	var v_classTable = v_p[20];
-	var v_functionTable = v_p[21];
-	var v_literalTable = v_p[8];
-	var v_identifiers = v_p[5];
-	var v_valueStack = v_ec[4];
-	var v_valueStackSize = v_ec[2];
-	var v_valueStackCapacity = v_valueStack.length;
-	var v_hasInterrupt = false;
-	var v_type = 0;
-	var v_nameId = 0;
-	var v_classId = 0;
-	var v_functionId = 0;
-	var v_classInfo = null;
-	var v_len = 0;
-	var v_root = null;
-	var v_row = null;
-	var v_argCount = 0;
-	var v_stringList = null;
-	var v_returnValueUsed = false;
-	var v_output = null;
-	var v_functionInfo = null;
-	var v_keyType = 0;
-	var v_intKey = 0;
-	var v_stringKey = null;
-	var v_dictIntKeyLookup = null;
-	var v_dictIntValueLookup = null;
-	var v_dictStringKeyLookup = null;
-	var v_dictStringValueLookup = null;
-	var v_first = false;
-	var v_primitiveMethodToCoreLibraryFallback = false;
-	var v_bool1 = false;
-	var v_bool2 = false;
-	var v_staticConstructorNotInvoked = true;
-	var v_int1 = 0;
-	var v_int2 = 0;
-	var v_int3 = 0;
-	var v_int4 = 0;
-	var v_int5 = 0;
-	var v_i = 0;
-	var v_j = 0;
-	var v_float1 = 0.0;
-	var v_float2 = 0.0;
-	var v_float3 = 0.0;
-	var v_floatList1 = C$common$createNewArray(2);
-	var v_value = null;
-	var v_value2 = null;
-	var v_value3 = null;
-	var v_string1 = null;
-	var v_string2 = null;
-	var v_objInstance1 = null;
-	var v_objInstance2 = null;
-	var v_object1 = null;
-	var v_list1 = null;
-	var v_list2 = null;
-	var v_dictImpl = null;
-	var v_dictImpl2 = null;
-	var v_stringList1 = null;
-	var v_intList1 = null;
-	var v_valueArray1 = null;
-	var v_intArray1 = null;
-	var v_intArray2 = null;
-	var v_objArray1 = null;
-	var v_functionPointer1 = null;
-	var v_intIntDict1 = null;
-	var v_stackFrame2 = null;
-	var v_leftValue = null;
-	var v_rightValue = null;
-	var v_classValue = null;
-	var v_arg1 = null;
-	var v_arg2 = null;
-	var v_arg3 = null;
-	var v_globalNameIdToPrimitiveMethodName = v_p[23];
-	var v_magicNumbers = v_p[30];
-	var v_integerSwitches = v_p[14];
-	var v_stringSwitches = v_p[16];
-	var v_integerSwitch = null;
-	var v_stringSwitch = null;
-	var v_esfData = v_p[29];
-	var v_localsStack = v_ec[5];
-	var v_localsStackSet = v_ec[6];
-	var v_localsStackSetToken = v_stack[1];
-	var v_localsStackCapacity = v_localsStack.length;
-	var v_localsStackOffset = v_stack[2];
-	var v_funcArgs = v_p[24];
-	var v_pc = v_stack[0];
+	ec[8] += 1;
+	var stack = ec[1];
+	var ops = vm[2][0];
+	var args = vm[2][1];
+	var stringArgs = vm[2][2];
+	var classTable = vm[4][9];
+	var functionTable = vm[4][10];
+	var literalTable = vm[4][3];
+	var identifiers = vm[4][0];
+	var valueStack = ec[4];
+	var valueStackSize = ec[2];
+	var valueStackCapacity = valueStack.length;
+	var hasInterrupt = false;
+	var type = 0;
+	var nameId = 0;
+	var classId = 0;
+	var functionId = 0;
+	var localeId = 0;
+	var classInfo = null;
+	var _len = 0;
+	var root = null;
+	var row = null;
+	var argCount = 0;
+	var stringList = null;
+	var returnValueUsed = false;
+	var output = null;
+	var functionInfo = null;
+	var keyType = 0;
+	var intKey = 0;
+	var stringKey = null;
+	var first = false;
+	var primitiveMethodToCoreLibraryFallback = false;
+	var bool1 = false;
+	var bool2 = false;
+	var staticConstructorNotInvoked = true;
+	var int1 = 0;
+	var int2 = 0;
+	var int3 = 0;
+	var i = 0;
+	var j = 0;
+	var float1 = 0.0;
+	var float2 = 0.0;
+	var float3 = 0.0;
+	var floatList1 = PST$createNewArray(2);
+	var value = null;
+	var value2 = null;
+	var value3 = null;
+	var string1 = null;
+	var string2 = null;
+	var objInstance1 = null;
+	var objInstance2 = null;
+	var list1 = null;
+	var list2 = null;
+	var valueList1 = null;
+	var valueList2 = null;
+	var dictImpl = null;
+	var dictImpl2 = null;
+	var stringList1 = null;
+	var intList1 = null;
+	var valueArray1 = null;
+	var intArray1 = null;
+	var intArray2 = null;
+	var objArray1 = null;
+	var functionPointer1 = null;
+	var intIntDict1 = null;
+	var stringIntDict1 = null;
+	var stackFrame2 = null;
+	var leftValue = null;
+	var rightValue = null;
+	var classValue = null;
+	var arg1 = null;
+	var arg2 = null;
+	var arg3 = null;
+	var tokenList = null;
+	var globalNameIdToPrimitiveMethodName = vm[4][12];
+	var magicNumbers = vm[4][19];
+	var integerSwitchesByPc = vm[2][3];
+	var stringSwitchesByPc = vm[2][4];
+	var integerSwitch = null;
+	var stringSwitch = null;
+	var esfData = vm[4][18];
+	var closure = null;
+	var parentClosure = null;
+	var intBuffer = PST$createNewArray(16);
+	var localsStack = ec[5];
+	var localsStackSet = ec[6];
+	var localsStackSetToken = stack[1];
+	var localsStackCapacity = localsStack.length;
+	var localsStackOffset = stack[2];
+	var funcArgs = vm[8];
+	var pc = stack[0];
+	var nativeFp = null;
+	var debugData = vm[2][5];
+	var isBreakPointPresent = debugData[0];
+	var breakpointInfo = null;
+	var debugBreakPointTemporaryDisable = false;
 	while (true) {
-		v_row = v_args[v_pc];
-		switch (v_ops[v_pc]) {
+		row = args[pc];
+		switch (ops[pc]) {
 			case 0:
 				// ADD_LITERAL;
-				v_addLiteralImpl(v_row, v_stringArgs[v_pc]);
+				addLiteralImpl(vm, row, stringArgs[pc]);
 				break;
 			case 1:
 				// ADD_NAME;
-				v_addNameImpl(v_stringArgs[v_pc]);
+				addNameImpl(vm, stringArgs[pc]);
 				break;
 			case 2:
-				// ASSIGN_INDEX;
-				v_valueStackSize -= 3;
-				v_value = v_valueStack[(v_valueStackSize + 2)];
-				v_value2 = v_valueStack[(v_valueStackSize + 1)];
-				v_root = v_valueStack[v_valueStackSize];
-				v_type = v_root[0];
-				v_bool1 = (v_row[0] == 1);
-				if ((v_type == 6)) {
-					if ((v_value2[0] == 3)) {
-						v_i = v_value2[1];
-						v_list1 = v_root[1];
-						if ((v_i >= v_list1.length)) {
-							v_hasInterrupt = v_EX_IndexOutOfRange(v_ec, "Index is out of range.");
-						} else {
-							if ((v_i < 0)) {
-								v_i += v_list1.length;
-								if ((v_i < 0)) {
-									v_hasInterrupt = v_EX_IndexOutOfRange(v_ec, "Index is out of range.");
-								} else {
-									v_list1[v_i] = v_value;
-								}
-							} else {
-								v_list1[v_i] = v_value;
-							}
-						}
-					} else {
-						v_hasInterrupt = v_EX_InvalidArgument(v_ec, "List index must be an integer.");
-					}
-				} else {
-					if ((v_type == 7)) {
-						v_keyType = v_value2[0];
-						if ((v_keyType == 3)) {
-							v_intKey = v_value2[1];
-						} else {
-							if ((v_keyType == 5)) {
-								v_stringKey = v_value2[1];
-							} else {
-								if ((v_keyType == 8)) {
-									v_objInstance1 = v_value2[1];
-									v_intKey = v_objInstance1[1];
-								} else {
-									v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Invalid key for a dictionary.");
-								}
-							}
-						}
-						if (!v_hasInterrupt) {
-							v_dictImpl = v_root[1];
-							v_bool2 = (v_dictImpl[4] > 0);
-							if ((v_bool2 && (v_dictImpl[5] != v_keyType))) {
-								v_hasInterrupt = v_EX_InvalidKey(v_ec, "Cannot have multiple keys in one dictionary with different types.");
-							} else {
-								if ((v_keyType == 5)) {
-									if (!(v_dictImpl[2][v_stringKey] !== undefined)) {
-										v_dictImpl[2][v_stringKey] = v_value2;
-										v_dictImpl[4] += 1;
-										if (!v_bool2) {
-											v_dictImpl[5] = v_keyType;
-										}
-									}
-									v_dictImpl[3][v_stringKey] = v_value;
-								} else {
-									if (!(v_dictImpl[0][v_intKey] !== undefined)) {
-										v_dictImpl[0][v_intKey] = v_value2;
-										v_dictImpl[4] += 1;
-										if (!v_bool2) {
-											v_dictImpl[5] = v_keyType;
-										}
-									}
-									v_dictImpl[1][v_intKey] = v_value;
-								}
-							}
-						}
-					} else {
-						v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, v_getTypeFromId(v_type) + " type does not support assigning to an index.");
-					}
+				// ARG_TYPE_VERIFY;
+				_len = row[0];
+				i = 1;
+				j = 0;
+				while ((j < _len)) {
+					j += 1;
 				}
-				if (v_bool1) {
-					v_valueStack[v_valueStackSize] = v_value;
-					v_valueStackSize += 1;
+				break;
+			case 3:
+				// ASSIGN_CLOSURE;
+				value = valueStack[--valueStackSize];
+				i = row[0];
+				if ((stack[12] == null)) {
+					closure = {};
+					closure[-1] = [stack[6]];
+					stack[12] = closure;
+					closure[i] = [value];
+				} else {
+					closure = stack[12];
+					if ((closure[i] !== undefined)) {
+						closure[i][0] = value;
+					} else {
+						closure[i] = [value];
+					}
 				}
 				break;
 			case 4:
-				// ASSIGN_STATIC_FIELD;
-				v_classInfo = v_classTable[v_row[0]];
-				v_staticConstructorNotInvoked = true;
-				if ((v_classInfo[3] < 2)) {
-					v_stack[0] = v_pc;
-					v_stackFrame2 = v_maybeInvokeStaticConstructor(v_p, v_ec, v_stack, v_classInfo, v_valueStackSize, C$common$intBuffer16);
-					if ((C$common$intBuffer16[0] == 1)) {
-						return v_generateException(v_stack, v_pc, v_valueStackSize, v_ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
-					}
-					if ((v_stackFrame2 != null)) {
-						v_staticConstructorNotInvoked = false;
-						v_stack = v_stackFrame2;
-						v_pc = v_stack[0];
-						v_localsStackSetToken = v_stack[1];
-						v_localsStackOffset = v_stack[2];
-					}
-				}
-				if (v_staticConstructorNotInvoked) {
-					v_valueStackSize -= 1;
-					v_classInfo[4][v_row[1]] = v_valueStack[v_valueStackSize];
-				}
-				break;
-			case 5:
-				// ASSIGN_STEP;
-				v_valueStackSize -= 2;
-				v_value = v_valueStack[(v_valueStackSize + 1)];
-				v_value2 = v_valueStack[v_valueStackSize];
-				v_nameId = v_row[0];
-				if ((v_value2[0] == 8)) {
-					v_objInstance1 = v_value2[1];
-					v_classId = v_objInstance1[0];
-					v_classInfo = v_classTable[v_classId];
-					v_intIntDict1 = v_classInfo[11];
-					if ((v_intIntDict1[v_nameId] !== undefined)) {
-						v_int1 = v_intIntDict1[v_nameId];
-						v_int2 = v_classInfo[8][v_int1];
-						if ((v_int2 == -1)) {
-							v_objInstance1[2][v_int1] = v_value;
-						} else {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Cannot override a method with assignment.");
+				// ASSIGN_INDEX;
+				valueStackSize -= 3;
+				value = valueStack[(valueStackSize + 2)];
+				value2 = valueStack[(valueStackSize + 1)];
+				root = valueStack[valueStackSize];
+				type = root[0];
+				bool1 = (row[0] == 1);
+				if ((type == 6)) {
+					if ((value2[0] == 3)) {
+						i = value2[1];
+						list1 = root[1];
+						if ((list1[0] != null)) {
+							value3 = canAssignTypeToGeneric(vm, value, list1[0], 0);
+							if ((value3 == null)) {
+								hasInterrupt = EX_InvalidArgument(ec, ["Cannot convert a ", typeToStringFromValue(vm, value), " into a ", typeToString(vm, list1[0], 0)].join(''));
+							}
+							value = value3;
+						}
+						if (!hasInterrupt) {
+							if ((i >= list1[1])) {
+								hasInterrupt = EX_IndexOutOfRange(ec, "Index is out of range.");
+							} else if ((i < 0)) {
+								i += list1[1];
+								if ((i < 0)) {
+									hasInterrupt = EX_IndexOutOfRange(ec, "Index is out of range.");
+								}
+							}
+							if (!hasInterrupt) {
+								list1[2][i] = value;
+							}
 						}
 					} else {
-						v_hasInterrupt = v_EX_InvalidAssignment(v_ec, ["'", v_classInfo[12], "' instances do not have a field called '", v_p[5][v_nameId], "'"].join(''));
+						hasInterrupt = EX_InvalidArgument(ec, "List index must be an integer.");
+					}
+				} else if ((type == 7)) {
+					dictImpl = root[1];
+					if ((dictImpl[3] != null)) {
+						value3 = canAssignTypeToGeneric(vm, value, dictImpl[3], 0);
+						if ((value3 == null)) {
+							hasInterrupt = EX_InvalidArgument(ec, "Cannot assign a value to this dictionary of this type.");
+						} else {
+							value = value3;
+						}
+					}
+					keyType = value2[0];
+					if ((keyType == 3)) {
+						intKey = value2[1];
+					} else if ((keyType == 5)) {
+						stringKey = value2[1];
+					} else if ((keyType == 8)) {
+						objInstance1 = value2[1];
+						intKey = objInstance1[1];
+					} else {
+						hasInterrupt = EX_InvalidArgument(ec, "Invalid key for a dictionary.");
+					}
+					if (!hasInterrupt) {
+						bool2 = (dictImpl[0] == 0);
+						if ((dictImpl[1] != keyType)) {
+							if ((dictImpl[3] != null)) {
+								string1 = ["Cannot assign a key of type ", typeToStringFromValue(vm, value2), " to a dictionary that requires key types of ", dictKeyInfoToString(vm, dictImpl), "."].join('');
+								hasInterrupt = EX_InvalidKey(ec, string1);
+							} else if (!bool2) {
+								hasInterrupt = EX_InvalidKey(ec, "Cannot have multiple keys in one dictionary with different types.");
+							}
+						} else if (((keyType == 8) && (dictImpl[2] > 0) && (objInstance1[0] != dictImpl[2]))) {
+							if (isClassASubclassOf(vm, objInstance1[0], dictImpl[2])) {
+								hasInterrupt = EX_InvalidKey(ec, "Cannot use this type of object as a key for this dictionary.");
+							}
+						}
+					}
+					if (!hasInterrupt) {
+						if ((keyType == 5)) {
+							int1 = dictImpl[5][stringKey];
+							if (int1 === undefined) int1 = -1;
+							if ((int1 == -1)) {
+								dictImpl[5][stringKey] = dictImpl[0];
+								dictImpl[0] += 1;
+								dictImpl[6].push(value2);
+								dictImpl[7].push(value);
+								if (bool2) {
+									dictImpl[1] = keyType;
+								}
+							} else {
+								dictImpl[7][int1] = value;
+							}
+						} else {
+							int1 = dictImpl[4][intKey];
+							if (int1 === undefined) int1 = -1;
+							if ((int1 == -1)) {
+								dictImpl[4][intKey] = dictImpl[0];
+								dictImpl[0] += 1;
+								dictImpl[6].push(value2);
+								dictImpl[7].push(value);
+								if (bool2) {
+									dictImpl[1] = keyType;
+								}
+							} else {
+								dictImpl[7][int1] = value;
+							}
+						}
 					}
 				} else {
-					v_hasInterrupt = v_EX_InvalidAssignment(v_ec, "Cannot assign to a field on this type.");
+					hasInterrupt = EX_UnsupportedOperation(ec, getTypeFromId(type) + " type does not support assigning to an index.");
 				}
-				if ((v_row[1] == 1)) {
-					v_valueStack[v_valueStackSize++] = v_value;
+				if (bool1) {
+					valueStack[valueStackSize] = value;
+					valueStackSize += 1;
 				}
 				break;
 			case 6:
-				// ASSIGN_THIS_STEP;
-				v_objInstance2 = v_stack[6][1];
-				v_objInstance2[2][v_row[0]] = v_valueStack[--v_valueStackSize];
-				break;
-			case 3:
-				// ASSIGN_LOCAL;
-				v_i = (v_localsStackOffset + v_row[0]);
-				v_localsStack[v_i] = v_valueStack[--v_valueStackSize];
-				v_localsStackSet[v_i] = v_localsStackSetToken;
+				// ASSIGN_STATIC_FIELD;
+				classInfo = classTable[row[0]];
+				staticConstructorNotInvoked = true;
+				if ((classInfo[4] < 2)) {
+					stack[0] = pc;
+					stackFrame2 = maybeInvokeStaticConstructor(vm, ec, stack, classInfo, valueStackSize, PST$intBuffer16);
+					if ((PST$intBuffer16[0] == 1)) {
+						return generateException(vm, stack, pc, valueStackSize, ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
+					}
+					if ((stackFrame2 != null)) {
+						staticConstructorNotInvoked = false;
+						stack = stackFrame2;
+						pc = stack[0];
+						localsStackSetToken = stack[1];
+						localsStackOffset = stack[2];
+					}
+				}
+				if (staticConstructorNotInvoked) {
+					valueStackSize -= 1;
+					classInfo[5][row[1]] = valueStack[valueStackSize];
+				}
 				break;
 			case 7:
+				// ASSIGN_FIELD;
+				valueStackSize -= 2;
+				value = valueStack[(valueStackSize + 1)];
+				value2 = valueStack[valueStackSize];
+				nameId = row[2];
+				if ((value2[0] == 8)) {
+					objInstance1 = value2[1];
+					classId = objInstance1[0];
+					classInfo = classTable[classId];
+					intIntDict1 = classInfo[14];
+					if ((row[5] == classId)) {
+						int1 = row[6];
+					} else {
+						int1 = intIntDict1[nameId];
+						if (int1 === undefined) int1 = -1;
+						if ((int1 != -1)) {
+							int3 = classInfo[12][int1];
+							if ((int3 > 1)) {
+								if ((int3 == 2)) {
+									if ((classId != row[3])) {
+										int1 = -2;
+									}
+								} else {
+									if (((int3 == 3) || (int3 == 5))) {
+										if ((classInfo[3] != row[4])) {
+											int1 = -3;
+										}
+									}
+									if (((int3 == 4) || (int3 == 5))) {
+										i = row[3];
+										if ((classId == i)) {
+										} else {
+											classInfo = classTable[classInfo[0]];
+											while (((classInfo[2] != -1) && (int1 < classTable[classInfo[2]][12].length))) {
+												classInfo = classTable[classInfo[2]];
+											}
+											j = classInfo[0];
+											if ((j != i)) {
+												bool1 = false;
+												while (((i != -1) && (classTable[i][2] != -1))) {
+													i = classTable[i][2];
+													if ((i == j)) {
+														bool1 = true;
+														i = -1;
+													}
+												}
+												if (!bool1) {
+													int1 = -4;
+												}
+											}
+										}
+										classInfo = classTable[classId];
+									}
+								}
+							}
+						}
+						row[5] = classId;
+						row[6] = int1;
+					}
+					if ((int1 > -1)) {
+						int2 = classInfo[9][int1];
+						if ((int2 == -1)) {
+							intArray1 = classInfo[15][int1];
+							if ((intArray1 == null)) {
+								objInstance1[2][int1] = value;
+							} else {
+								value2 = canAssignTypeToGeneric(vm, value, intArray1, 0);
+								if ((value2 != null)) {
+									objInstance1[2][int1] = value2;
+								} else {
+									hasInterrupt = EX_InvalidArgument(ec, "Cannot assign this type to this field.");
+								}
+							}
+						} else {
+							hasInterrupt = EX_InvalidArgument(ec, "Cannot override a method with assignment.");
+						}
+					} else if ((int1 < -1)) {
+						string1 = identifiers[row[0]];
+						if ((int1 == -2)) {
+							string2 = "private";
+						} else if ((int1 == -3)) {
+							string2 = "internal";
+						} else {
+							string2 = "protected";
+						}
+						hasInterrupt = EX_UnknownField(ec, ["The field '", string1, "' is marked as ", string2, " and cannot be accessed from here."].join(''));
+					} else {
+						hasInterrupt = EX_InvalidAssignment(ec, ["'", classInfo[16], "' instances do not have a field called '", metadata[0][row[0]], "'"].join(''));
+					}
+				} else if ((value2[0] == 1)) {
+					hasInterrupt = EX_NullReference(ec, "Cannot assign to a field on null.");
+				} else {
+					hasInterrupt = EX_InvalidAssignment(ec, "Cannot assign to a field on this type.");
+				}
+				if ((row[1] == 1)) {
+					valueStack[valueStackSize++] = value;
+				}
+				break;
+			case 8:
+				// ASSIGN_THIS_FIELD;
+				objInstance2 = stack[6][1];
+				objInstance2[2][row[0]] = valueStack[--valueStackSize];
+				break;
+			case 5:
+				// ASSIGN_LOCAL;
+				i = (localsStackOffset + row[0]);
+				localsStack[i] = valueStack[--valueStackSize];
+				localsStackSet[i] = localsStackSetToken;
+				break;
+			case 9:
 				// BINARY_OP;
-				v_rightValue = v_valueStack[--v_valueStackSize];
-				v_leftValue = v_valueStack[(v_valueStackSize - 1)];
-				switch (((((v_leftValue[0] * 15) + v_row[0]) * 11) + v_rightValue[0])) {
+				rightValue = valueStack[--valueStackSize];
+				leftValue = valueStack[(valueStackSize - 1)];
+				switch (((((leftValue[0] * 15) + row[0]) * 11) + rightValue[0])) {
 					case 553:
 						// int ** int;
-						if ((v_rightValue[1] == 0)) {
-							v_value = v_VALUE_INT_ONE;
-						} else {
-							if ((v_rightValue[1] > 0)) {
-								v_value = v_buildInteger(Math.floor(Math.pow(v_leftValue[1], v_rightValue[1])));
-							} else {
-								v_value = v_buildFloat(Math.pow(v_leftValue[1], v_rightValue[1]));
-							}
+						value = doExponentMath(globals, (0.0 + leftValue[1]), (0.0 + rightValue[1]), false);
+						if ((value == null)) {
+							hasInterrupt = EX_InvalidArgument(ec, getExponentErrorMsg(vm, leftValue, rightValue));
 						}
 						break;
 					case 554:
 						// int ** float;
-						v_value = v_buildFloat((0.0 + Math.pow(v_leftValue[1], v_rightValue[1])));
+						value = doExponentMath(globals, (0.0 + leftValue[1]), rightValue[1], false);
+						if ((value == null)) {
+							hasInterrupt = EX_InvalidArgument(ec, getExponentErrorMsg(vm, leftValue, rightValue));
+						}
 						break;
 					case 718:
 						// float ** int;
-						v_value = v_buildFloat((0.0 + Math.pow(v_leftValue[1], v_rightValue[1])));
+						value = doExponentMath(globals, leftValue[1], (0.0 + rightValue[1]), false);
+						if ((value == null)) {
+							hasInterrupt = EX_InvalidArgument(ec, getExponentErrorMsg(vm, leftValue, rightValue));
+						}
 						break;
 					case 719:
 						// float ** float;
-						v_value = v_buildFloat((0.0 + Math.pow(v_leftValue[1], v_rightValue[1])));
+						value = doExponentMath(globals, leftValue[1], rightValue[1], false);
+						if ((value == null)) {
+							hasInterrupt = EX_InvalidArgument(ec, getExponentErrorMsg(vm, leftValue, rightValue));
+						}
 						break;
 					case 708:
 						// float % float;
-						v_float1 = v_rightValue[1];
-						if ((v_float1 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Modulo by 0.");
+						float1 = rightValue[1];
+						if ((float1 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Modulo by 0.");
 						} else {
-							v_float3 = (v_leftValue[1] % v_float1);
-							if ((v_float3 < 0)) {
-								v_float3 += v_float1;
+							float3 = (leftValue[1] % float1);
+							if ((float3 < 0)) {
+								float3 += float1;
 							}
-							v_value = v_buildFloat(v_float3);
+							value = buildFloat(globals, float3);
 						}
 						break;
 					case 707:
 						// float % int;
-						v_int1 = v_rightValue[1];
-						if ((v_int1 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Modulo by 0.");
+						int1 = rightValue[1];
+						if ((int1 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Modulo by 0.");
 						} else {
-							v_float1 = (v_leftValue[1] % v_int1);
-							if ((v_float1 < 0)) {
-								v_float1 += v_int1;
+							float1 = (leftValue[1] % int1);
+							if ((float1 < 0)) {
+								float1 += int1;
 							}
-							v_value = v_buildFloat(v_float1);
+							value = buildFloat(globals, float1);
 						}
 						break;
 					case 543:
 						// int % float;
-						v_float3 = v_rightValue[1];
-						if ((v_float3 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Modulo by 0.");
+						float3 = rightValue[1];
+						if ((float3 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Modulo by 0.");
 						} else {
-							v_float1 = (v_leftValue[1] % v_float3);
-							if ((v_float1 < 0)) {
-								v_float1 += v_float3;
+							float1 = (leftValue[1] % float3);
+							if ((float1 < 0)) {
+								float1 += float3;
 							}
-							v_value = v_buildFloat(v_float1);
+							value = buildFloat(globals, float1);
 						}
 						break;
 					case 542:
 						// int % int;
-						v_int2 = v_rightValue[1];
-						if ((v_int2 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Modulo by 0.");
+						int2 = rightValue[1];
+						if ((int2 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Modulo by 0.");
 						} else {
-							v_int1 = (v_leftValue[1] % v_int2);
-							if ((v_int1 < 0)) {
-								v_int1 += v_int2;
+							int1 = (leftValue[1] % int2);
+							if ((int1 < 0)) {
+								int1 += int2;
 							}
-							v_value = v_buildInteger(v_int1);
+							value = buildInteger(globals, int1);
 						}
 						break;
 					case 996:
 						// list + list;
-						v_value = [6, v_leftValue[1].concat(v_rightValue[1])];
+						value = [6, valueConcatLists(leftValue[1], rightValue[1])];
 						break;
 					case 498:
 						// int + int;
-						v_int1 = (v_leftValue[1] + v_rightValue[1]);
-						if ((v_int1 < 0)) {
-							if ((v_int1 > -257)) {
-								v_value = v_INTEGER_NEGATIVE_CACHE[-v_int1];
+						int1 = (leftValue[1] + rightValue[1]);
+						if ((int1 < 0)) {
+							if ((int1 > -257)) {
+								value = INTEGER_NEGATIVE_CACHE[-int1];
 							} else {
-								v_value = [3, v_int1];
+								value = [3, int1];
 							}
+						} else if ((int1 < 2049)) {
+							value = INTEGER_POSITIVE_CACHE[int1];
 						} else {
-							if ((v_int1 < 2049)) {
-								v_value = v_INTEGER_POSITIVE_CACHE[v_int1];
-							} else {
-								v_value = [3, v_int1];
-							}
+							value = [3, int1];
 						}
 						break;
 					case 509:
 						// int - int;
-						v_int1 = (v_leftValue[1] - v_rightValue[1]);
-						if ((v_int1 < 0)) {
-							if ((v_int1 > -257)) {
-								v_value = v_INTEGER_NEGATIVE_CACHE[-v_int1];
+						int1 = (leftValue[1] - rightValue[1]);
+						if ((int1 < 0)) {
+							if ((int1 > -257)) {
+								value = INTEGER_NEGATIVE_CACHE[-int1];
 							} else {
-								v_value = [3, v_int1];
+								value = [3, int1];
 							}
+						} else if ((int1 < 2049)) {
+							value = INTEGER_POSITIVE_CACHE[int1];
 						} else {
-							if ((v_int1 < 2049)) {
-								v_value = v_INTEGER_POSITIVE_CACHE[v_int1];
-							} else {
-								v_value = [3, v_int1];
-							}
+							value = [3, int1];
 						}
 						break;
 					case 520:
 						// int * int;
-						v_int1 = (v_leftValue[1] * v_rightValue[1]);
-						if ((v_int1 < 0)) {
-							if ((v_int1 > -257)) {
-								v_value = v_INTEGER_NEGATIVE_CACHE[-v_int1];
+						int1 = (leftValue[1] * rightValue[1]);
+						if ((int1 < 0)) {
+							if ((int1 > -257)) {
+								value = INTEGER_NEGATIVE_CACHE[-int1];
 							} else {
-								v_value = [3, v_int1];
+								value = [3, int1];
 							}
+						} else if ((int1 < 2049)) {
+							value = INTEGER_POSITIVE_CACHE[int1];
 						} else {
-							if ((v_int1 < 2049)) {
-								v_value = v_INTEGER_POSITIVE_CACHE[v_int1];
-							} else {
-								v_value = [3, v_int1];
-							}
+							value = [3, int1];
 						}
 						break;
 					case 531:
 						// int / int;
-						v_int2 = v_rightValue[1];
-						if ((v_int2 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Division by 0.");
+						int1 = leftValue[1];
+						int2 = rightValue[1];
+						if ((int2 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Division by 0.");
+						} else if ((int1 == 0)) {
+							value = VALUE_INT_ZERO;
 						} else {
-							v_int1 = Math.floor(v_leftValue[1] / v_int2);
-							if ((v_int1 < 0)) {
-								if ((v_int1 > -257)) {
-									v_value = v_INTEGER_NEGATIVE_CACHE[-v_int1];
-								} else {
-									v_value = [3, v_int1];
-								}
+							if (((int1 % int2) == 0)) {
+								int3 = Math.floor(int1 / int2);
+							} else if ((((int1 < 0)) != ((int2 < 0)))) {
+								float1 = (1 + ((-1.0 * int1) / int2));
+								float1 -= (float1 % 1.0);
+								int3 = Math.floor((-float1));
 							} else {
-								if ((v_int1 < 2049)) {
-									v_value = v_INTEGER_POSITIVE_CACHE[v_int1];
+								int3 = Math.floor(int1 / int2);
+							}
+							if ((int3 < 0)) {
+								if ((int3 > -257)) {
+									value = INTEGER_NEGATIVE_CACHE[-int3];
 								} else {
-									v_value = [3, v_int1];
+									value = [3, int3];
 								}
+							} else if ((int3 < 2049)) {
+								value = INTEGER_POSITIVE_CACHE[int3];
+							} else {
+								value = [3, int3];
 							}
 						}
 						break;
 					case 663:
 						// float + int;
-						v_value = v_buildFloat((v_leftValue[1] + v_rightValue[1]));
+						value = buildFloat(globals, (leftValue[1] + rightValue[1]));
 						break;
 					case 499:
 						// int + float;
-						v_value = v_buildFloat((v_leftValue[1] + v_rightValue[1]));
+						value = buildFloat(globals, (leftValue[1] + rightValue[1]));
 						break;
 					case 664:
 						// float + float;
-						v_float1 = (v_leftValue[1] + v_rightValue[1]);
-						if ((v_float1 == 0)) {
-							v_value = v_VALUE_FLOAT_ZERO;
+						float1 = (leftValue[1] + rightValue[1]);
+						if ((float1 == 0)) {
+							value = VALUE_FLOAT_ZERO;
+						} else if ((float1 == 1)) {
+							value = VALUE_FLOAT_ONE;
 						} else {
-							if ((v_float1 == 1)) {
-								v_value = v_VALUE_FLOAT_ONE;
-							} else {
-								v_value = [4, v_float1];
-							}
+							value = [4, float1];
 						}
 						break;
 					case 510:
 						// int - float;
-						v_value = v_buildFloat((v_leftValue[1] - v_rightValue[1]));
+						value = buildFloat(globals, (leftValue[1] - rightValue[1]));
 						break;
 					case 674:
 						// float - int;
-						v_value = v_buildFloat((v_leftValue[1] - v_rightValue[1]));
+						value = buildFloat(globals, (leftValue[1] - rightValue[1]));
 						break;
 					case 675:
 						// float - float;
-						v_float1 = (v_leftValue[1] - v_rightValue[1]);
-						if ((v_float1 == 0)) {
-							v_value = v_VALUE_FLOAT_ZERO;
+						float1 = (leftValue[1] - rightValue[1]);
+						if ((float1 == 0)) {
+							value = VALUE_FLOAT_ZERO;
+						} else if ((float1 == 1)) {
+							value = VALUE_FLOAT_ONE;
 						} else {
-							if ((v_float1 == 1)) {
-								v_value = v_VALUE_FLOAT_ONE;
-							} else {
-								v_value = [4, v_float1];
-							}
+							value = [4, float1];
 						}
 						break;
 					case 685:
 						// float * int;
-						v_value = v_buildFloat((v_leftValue[1] * v_rightValue[1]));
+						value = buildFloat(globals, (leftValue[1] * rightValue[1]));
 						break;
 					case 521:
 						// int * float;
-						v_value = v_buildFloat((v_leftValue[1] * v_rightValue[1]));
+						value = buildFloat(globals, (leftValue[1] * rightValue[1]));
 						break;
 					case 686:
 						// float * float;
-						v_value = v_buildFloat((v_leftValue[1] * v_rightValue[1]));
+						value = buildFloat(globals, (leftValue[1] * rightValue[1]));
 						break;
 					case 532:
 						// int / float;
-						v_float1 = v_rightValue[1];
-						if ((v_float1 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Division by 0.");
+						float1 = rightValue[1];
+						if ((float1 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Division by 0.");
 						} else {
-							v_value = v_buildFloat((v_leftValue[1] / v_float1));
+							value = buildFloat(globals, (leftValue[1] / float1));
 						}
 						break;
 					case 696:
 						// float / int;
-						v_int1 = v_rightValue[1];
-						if ((v_int1 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Division by 0.");
+						int1 = rightValue[1];
+						if ((int1 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Division by 0.");
 						} else {
-							v_value = v_buildFloat((v_leftValue[1] / v_int1));
+							value = buildFloat(globals, (leftValue[1] / int1));
 						}
 						break;
 					case 697:
 						// float / float;
-						v_float1 = v_rightValue[1];
-						if ((v_float1 == 0)) {
-							v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Division by 0.");
+						float1 = rightValue[1];
+						if ((float1 == 0)) {
+							hasInterrupt = EX_DivisionByZero(ec, "Division by 0.");
 						} else {
-							v_value = v_buildFloat((v_leftValue[1] / v_float1));
+							value = buildFloat(globals, (leftValue[1] / float1));
 						}
 						break;
 					case 564:
 						// int & int;
-						v_value = v_buildInteger((v_leftValue[1] & v_rightValue[1]));
+						value = buildInteger(globals, (leftValue[1] & rightValue[1]));
 						break;
 					case 575:
 						// int | int;
-						v_value = v_buildInteger((v_leftValue[1] | v_rightValue[1]));
+						value = buildInteger(globals, (leftValue[1] | rightValue[1]));
 						break;
 					case 586:
 						// int ^ int;
-						v_value = v_buildInteger((v_leftValue[1] ^ v_rightValue[1]));
+						value = buildInteger(globals, (leftValue[1] ^ rightValue[1]));
 						break;
 					case 597:
 						// int << int;
-						v_int1 = v_rightValue[1];
-						if ((v_int1 < 0)) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Cannot bit shift by a negative number.");
+						int1 = rightValue[1];
+						if ((int1 < 0)) {
+							hasInterrupt = EX_InvalidArgument(ec, "Cannot bit shift by a negative number.");
 						} else {
-							v_value = v_buildInteger((v_leftValue[1] << v_int1));
+							value = buildInteger(globals, (leftValue[1] << int1));
 						}
 						break;
 					case 608:
 						// int >> int;
-						v_int1 = v_rightValue[1];
-						if ((v_int1 < 0)) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Cannot bit shift by a negative number.");
+						int1 = rightValue[1];
+						if ((int1 < 0)) {
+							hasInterrupt = EX_InvalidArgument(ec, "Cannot bit shift by a negative number.");
 						} else {
-							v_value = v_buildInteger((v_leftValue[1] >> v_int1));
+							value = buildInteger(globals, (leftValue[1] >> int1));
 						}
 						break;
 					case 619:
 						// int < int;
-						if ((v_leftValue[1] < v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] < rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 630:
 						// int <= int;
-						if ((v_leftValue[1] <= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] <= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 784:
 						// float < int;
-						if ((v_leftValue[1] < v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] < rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 795:
 						// float <= int;
-						if ((v_leftValue[1] <= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] <= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 620:
 						// int < float;
-						if ((v_leftValue[1] < v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] < rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 631:
 						// int <= float;
-						if ((v_leftValue[1] <= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] <= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 785:
 						// float < float;
-						if ((v_leftValue[1] < v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] < rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 796:
 						// float <= float;
-						if ((v_leftValue[1] <= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] <= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 652:
 						// int >= int;
-						if ((v_leftValue[1] >= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] >= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 641:
 						// int > int;
-						if ((v_leftValue[1] > v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] > rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 817:
 						// float >= int;
-						if ((v_leftValue[1] >= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] >= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 806:
 						// float > int;
-						if ((v_leftValue[1] > v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] > rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 653:
 						// int >= float;
-						if ((v_leftValue[1] >= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] >= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 642:
 						// int > float;
-						if ((v_leftValue[1] > v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] > rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 818:
 						// float >= float;
-						if ((v_leftValue[1] >= v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] >= rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 807:
 						// float > float;
-						if ((v_leftValue[1] > v_rightValue[1])) {
-							v_value = v_VALUE_TRUE;
+						if ((leftValue[1] > rightValue[1])) {
+							value = VALUE_TRUE;
 						} else {
-							v_value = v_VALUE_FALSE;
+							value = VALUE_FALSE;
 						}
 						break;
 					case 830:
 						// string + string;
-						v_value = [5, v_leftValue[1] + v_rightValue[1]];
+						value = [5, leftValue[1] + rightValue[1]];
 						break;
 					case 850:
 						// string * int;
-						v_value = v_multiplyString(v_leftValue, v_leftValue[1], v_rightValue[1]);
+						value = multiplyString(globals, leftValue, leftValue[1], rightValue[1]);
 						break;
 					case 522:
 						// int * string;
-						v_value = v_multiplyString(v_rightValue, v_rightValue[1], v_leftValue[1]);
+						value = multiplyString(globals, rightValue, rightValue[1], leftValue[1]);
 						break;
 					case 1015:
 						// list * int;
-						v_int1 = v_rightValue[1];
-						if ((v_int1 < 0)) {
-							v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, "Cannot multiply list by negative number.");
+						int1 = rightValue[1];
+						if ((int1 < 0)) {
+							hasInterrupt = EX_UnsupportedOperation(ec, "Cannot multiply list by negative number.");
 						} else {
-							v_value = [6, C$common$multiplyList(v_leftValue[1], v_int1)];
+							value = [6, valueMultiplyList(leftValue[1], int1)];
 						}
 						break;
 					case 523:
 						// int * list;
-						v_int1 = v_leftValue[1];
-						if ((v_int1 < 0)) {
-							v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, "Cannot multiply list by negative number.");
+						int1 = leftValue[1];
+						if ((int1 < 0)) {
+							hasInterrupt = EX_UnsupportedOperation(ec, "Cannot multiply list by negative number.");
 						} else {
-							v_value = [6, C$common$multiplyList(v_rightValue[1], v_int1)];
+							value = [6, valueMultiplyList(rightValue[1], int1)];
 						}
 						break;
 					default:
-						if (((v_row[0] == 0) && (((v_leftValue[0] == 5) || (v_rightValue[0] == 5))))) {
-							v_value = [5, v_valueToString(v_leftValue) + v_valueToString(v_rightValue)];
+						if (((row[0] == 0) && (((leftValue[0] == 5) || (rightValue[0] == 5))))) {
+							value = [5, valueToString(vm, leftValue) + valueToString(vm, rightValue)];
 						} else {
 							// unrecognized op;
-							v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, ["The '", v_getBinaryOpFromId(v_row[0]), "' operator is not supported for these types: ", v_getTypeFromId(v_leftValue[0]), " and ", v_getTypeFromId(v_rightValue[0])].join(''));
+							hasInterrupt = EX_UnsupportedOperation(ec, ["The '", getBinaryOpFromId(row[0]), "' operator is not supported for these types: ", getTypeFromId(leftValue[0]), " and ", getTypeFromId(rightValue[0])].join(''));
 						}
 						break;
 				}
-				v_valueStack[(v_valueStackSize - 1)] = v_value;
-				break;
-			case 8:
-				// BOOLEAN_NOT;
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				if ((v_value[0] != 2)) {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Boolean expected.");
-				} else {
-					if (v_value[1]) {
-						v_valueStack[(v_valueStackSize - 1)] = v_VALUE_FALSE;
-					} else {
-						v_valueStack[(v_valueStackSize - 1)] = v_VALUE_TRUE;
-					}
-				}
-				break;
-			case 9:
-				// BREAK;
-				if ((v_row[0] == 1)) {
-					v_pc += v_row[1];
-				} else {
-					v_intArray1 = v_esfData[v_pc];
-					v_pc = (v_intArray1[1] - 1);
-					v_valueStackSize = (v_stack[7] + v_p[31][v_pc]);
-					v_stack[10] = 1;
-				}
+				valueStack[(valueStackSize - 1)] = value;
 				break;
 			case 10:
-				// BUILD_SWITCH_INT;
-				v_buildSwitchIntImpl(v_row);
+				// BOOLEAN_NOT;
+				value = valueStack[(valueStackSize - 1)];
+				if ((value[0] != 2)) {
+					hasInterrupt = EX_InvalidArgument(ec, "Boolean expected.");
+				} else if (value[1]) {
+					valueStack[(valueStackSize - 1)] = VALUE_FALSE;
+				} else {
+					valueStack[(valueStackSize - 1)] = VALUE_TRUE;
+				}
 				break;
 			case 11:
-				// BUILD_SWITCH_STRING;
-				v_buildSwitchStringImpl(v_row, v_stringArgs[v_pc]);
+				// BREAK;
+				if ((row[0] == 1)) {
+					pc += row[1];
+				} else {
+					intArray1 = esfData[pc];
+					pc = (intArray1[1] - 1);
+					valueStackSize = stack[7];
+					stack[10] = 1;
+				}
 				break;
 			case 12:
 				// CALL_FUNCTION;
-				v_type = v_row[0];
-				v_argCount = v_row[1];
-				v_functionId = v_row[2];
-				v_returnValueUsed = (v_row[3] == 1);
-				v_classId = v_row[4];
-				if (((v_type == 2) || (v_type == 6))) {
+				type = row[0];
+				argCount = row[1];
+				functionId = row[2];
+				returnValueUsed = (row[3] == 1);
+				classId = row[4];
+				if (((type == 2) || (type == 6))) {
 					// constructor or static method;
-					v_classInfo = v_p[20][v_classId];
-					v_staticConstructorNotInvoked = true;
-					if ((v_classInfo[3] < 2)) {
-						v_stack[0] = v_pc;
-						v_stackFrame2 = v_maybeInvokeStaticConstructor(v_p, v_ec, v_stack, v_classInfo, v_valueStackSize, C$common$intBuffer16);
-						if ((C$common$intBuffer16[0] == 1)) {
-							return v_generateException(v_stack, v_pc, v_valueStackSize, v_ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
+					classInfo = metadata[9][classId];
+					staticConstructorNotInvoked = true;
+					if ((classInfo[4] < 2)) {
+						stack[0] = pc;
+						stackFrame2 = maybeInvokeStaticConstructor(vm, ec, stack, classInfo, valueStackSize, PST$intBuffer16);
+						if ((PST$intBuffer16[0] == 1)) {
+							return generateException(vm, stack, pc, valueStackSize, ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
 						}
-						if ((v_stackFrame2 != null)) {
-							v_staticConstructorNotInvoked = false;
-							v_stack = v_stackFrame2;
-							v_pc = v_stack[0];
-							v_localsStackSetToken = v_stack[1];
-							v_localsStackOffset = v_stack[2];
+						if ((stackFrame2 != null)) {
+							staticConstructorNotInvoked = false;
+							stack = stackFrame2;
+							pc = stack[0];
+							localsStackSetToken = stack[1];
+							localsStackOffset = stack[2];
 						}
 					}
 				} else {
-					v_staticConstructorNotInvoked = true;
+					staticConstructorNotInvoked = true;
 				}
-				if (v_staticConstructorNotInvoked) {
-					v_bool1 = true;
+				if (staticConstructorNotInvoked) {
+					bool1 = true;
 					// construct args array;
-					if ((v_argCount == -1)) {
-						v_valueStackSize -= 1;
-						v_value = v_valueStack[v_valueStackSize];
-						if ((v_value[0] == 1)) {
-							v_argCount = 0;
-						} else {
-							if ((v_value[0] == 6)) {
-								v_list1 = v_value[1];
-								v_argCount = v_list1.length;
-								v_i = (v_argCount - 1);
-								while ((v_i >= 0)) {
-									v_funcArgs[v_i] = v_list1[v_i];
-									v_i -= 1;
-								}
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Function pointers' .invoke method requires a list argument.");
+					if ((argCount == -1)) {
+						valueStackSize -= 1;
+						value = valueStack[valueStackSize];
+						if ((value[0] == 1)) {
+							argCount = 0;
+						} else if ((value[0] == 6)) {
+							list1 = value[1];
+							argCount = list1[1];
+							i = (argCount - 1);
+							while ((i >= 0)) {
+								funcArgs[i] = list1[2][i];
+								i -= 1;
 							}
+						} else {
+							hasInterrupt = EX_InvalidArgument(ec, "Function pointers' .invoke method requires a list argument.");
 						}
 					} else {
-						v_i = (v_argCount - 1);
-						while ((v_i >= 0)) {
-							v_valueStackSize -= 1;
-							v_funcArgs[v_i] = v_valueStack[v_valueStackSize];
-							v_i -= 1;
+						i = (argCount - 1);
+						while ((i >= 0)) {
+							valueStackSize -= 1;
+							funcArgs[i] = valueStack[valueStackSize];
+							i -= 1;
 						}
 					}
-					if (!v_hasInterrupt) {
-						if ((v_type == 3)) {
-							v_value = v_stack[6];
-							v_objInstance1 = v_value[1];
-							if ((v_objInstance1[0] != v_classId)) {
-								v_int2 = v_row[5];
-								if ((v_int2 != -1)) {
-									v_classInfo = v_classTable[v_objInstance1[0]];
-									v_functionId = v_classInfo[8][v_int2];
+					if (!hasInterrupt) {
+						if ((type == 3)) {
+							value = stack[6];
+							objInstance1 = value[1];
+							if ((objInstance1[0] != classId)) {
+								int2 = row[5];
+								if ((int2 != -1)) {
+									classInfo = classTable[objInstance1[0]];
+									functionId = classInfo[9][int2];
 								}
 							}
-						} else {
-							if ((v_type == 5)) {
-								// field invocation;
-								v_valueStackSize -= 1;
-								v_value = v_valueStack[v_valueStackSize];
-								switch (v_value[0]) {
-									case 1:
-										v_hasInterrupt = v_EX_NullReference(v_ec, "Invoked method on null.");
-										break;
-									case 8:
-										// field invoked on an object instance.;
-										v_objInstance1 = v_value[1];
-										v_int1 = v_objInstance1[0];
-										v_classInfo = v_classTable[v_int1];
-										if ((v_classInfo[11][v_classId] !== undefined)) {
-											v_int1 = v_classInfo[11][v_classId];
-											v_functionId = v_classInfo[8][v_int1];
-											if ((v_functionId > 0)) {
-												v_type = 3;
-											} else {
-												v_value = v_objInstance1[2][v_int1];
-												v_type = 4;
-												v_valueStack[v_valueStackSize] = v_value;
-												v_valueStackSize += 1;
-											}
+						} else if ((type == 5)) {
+							// field invocation;
+							valueStackSize -= 1;
+							value = valueStack[valueStackSize];
+							localeId = row[5];
+							switch (value[0]) {
+								case 1:
+									hasInterrupt = EX_NullReference(ec, "Invoked method on null.");
+									break;
+								case 8:
+									// field invoked on an object instance.;
+									objInstance1 = value[1];
+									int1 = objInstance1[0];
+									classInfo = classTable[int1];
+									intIntDict1 = classInfo[14];
+									int1 = ((row[4] * magicNumbers[2]) + row[5]);
+									i = intIntDict1[int1];
+									if (i === undefined) i = -1;
+									if ((i != -1)) {
+										int1 = intIntDict1[int1];
+										functionId = classInfo[9][int1];
+										if ((functionId > 0)) {
+											type = 3;
 										} else {
-											v_hasInterrupt = v_EX_UnknownField(v_ec, "Unknown field.");
+											value = objInstance1[2][int1];
+											type = 4;
+											valueStack[valueStackSize] = value;
+											valueStackSize += 1;
 										}
-										break;
-									case 10:
-										// field invocation on a class object instance.;
-										v_functionId = v_resolvePrimitiveMethodName2(v_globalNameIdToPrimitiveMethodName, v_value[0], v_classId);
-										if ((v_functionId < 0)) {
-											v_hasInterrupt = v_EX_InvalidInvocation(v_ec, "Class definitions do not have that method.");
-										} else {
-											v_functionId = v_resolvePrimitiveMethodName2(v_globalNameIdToPrimitiveMethodName, v_value[0], v_classId);
-											if ((v_functionId < 0)) {
-												v_hasInterrupt = v_EX_InvalidInvocation(v_ec, v_getTypeFromId(v_value[0]) + " does not have that method.");
+									} else {
+										hasInterrupt = EX_UnknownField(ec, "Unknown field.");
+									}
+									break;
+								case 10:
+									// field invocation on a class object instance.;
+									functionId = resolvePrimitiveMethodName2(globalNameIdToPrimitiveMethodName, value[0], classId);
+									if ((functionId < 0)) {
+										hasInterrupt = EX_InvalidInvocation(ec, "Class definitions do not have that method.");
+									} else {
+										functionId = resolvePrimitiveMethodName2(globalNameIdToPrimitiveMethodName, value[0], classId);
+										if ((functionId < 0)) {
+											hasInterrupt = EX_InvalidInvocation(ec, getTypeFromId(value[0]) + " does not have that method.");
+										} else if ((globalNameIdToPrimitiveMethodName[classId] == 8)) {
+											type = 6;
+											classValue = value[1];
+											if (classValue[0]) {
+												hasInterrupt = EX_UnsupportedOperation(ec, "Cannot create an instance of an interface.");
 											} else {
-												if ((v_globalNameIdToPrimitiveMethodName[v_classId] == 8)) {
-													v_type = 6;
-													v_classValue = v_value[1];
-													if (v_classValue[0]) {
-														v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, "Cannot create an instance of an interface.");
-													} else {
-														v_classId = v_classValue[1];
-														if (!v_returnValueUsed) {
-															v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, "Cannot create an instance and not use the output.");
-														} else {
-															v_classInfo = v_p[20][v_classId];
-															v_functionId = v_classInfo[6];
-														}
-													}
+												classId = classValue[1];
+												if (!returnValueUsed) {
+													hasInterrupt = EX_UnsupportedOperation(ec, "Cannot create an instance and not use the output.");
 												} else {
-													v_type = 9;
+													classInfo = metadata[9][classId];
+													functionId = classInfo[7];
 												}
 											}
-										}
-										break;
-									default:
-										// primitive method suspected.;
-										v_functionId = v_resolvePrimitiveMethodName2(v_globalNameIdToPrimitiveMethodName, v_value[0], v_classId);
-										if ((v_functionId < 0)) {
-											v_hasInterrupt = v_EX_InvalidInvocation(v_ec, v_getTypeFromId(v_value[0]) + " does not have that method.");
 										} else {
-											v_type = 9;
+											type = 9;
 										}
-										break;
-								}
+									}
+									break;
+								default:
+									// primitive method suspected.;
+									functionId = resolvePrimitiveMethodName2(globalNameIdToPrimitiveMethodName, value[0], classId);
+									if ((functionId < 0)) {
+										hasInterrupt = EX_InvalidInvocation(ec, getTypeFromId(value[0]) + " does not have that method.");
+									} else {
+										type = 9;
+									}
+									break;
 							}
 						}
 					}
-					if (((v_type == 4) && !v_hasInterrupt)) {
+					if (((type == 4) && !hasInterrupt)) {
 						// pointer provided;
-						v_valueStackSize -= 1;
-						v_value = v_valueStack[v_valueStackSize];
-						if ((v_value[0] == 9)) {
-							v_functionPointer1 = v_value[1];
-							switch (v_functionPointer1[0]) {
+						valueStackSize -= 1;
+						value = valueStack[valueStackSize];
+						if ((value[0] == 9)) {
+							functionPointer1 = value[1];
+							switch (functionPointer1[0]) {
 								case 1:
 									// pointer to a function;
-									v_functionId = v_functionPointer1[3];
-									v_type = 1;
+									functionId = functionPointer1[3];
+									type = 1;
 									break;
 								case 2:
 									// pointer to a method;
-									v_functionId = v_functionPointer1[3];
-									v_value = v_functionPointer1[1];
-									v_type = 3;
+									functionId = functionPointer1[3];
+									value = functionPointer1[1];
+									type = 3;
 									break;
 								case 3:
 									// pointer to a static method;
-									v_functionId = v_functionPointer1[3];
-									v_classId = v_functionPointer1[2];
-									v_type = 2;
+									functionId = functionPointer1[3];
+									classId = functionPointer1[2];
+									type = 2;
 									break;
 								case 4:
 									// pointer to a primitive method;
-									v_value = v_functionPointer1[1];
-									v_functionId = v_functionPointer1[3];
-									v_type = 9;
+									value = functionPointer1[1];
+									functionId = functionPointer1[3];
+									type = 9;
+									break;
+								case 5:
+									// lambda instance;
+									value = functionPointer1[1];
+									functionId = functionPointer1[3];
+									type = 10;
+									closure = functionPointer1[4];
 									break;
 							}
 						} else {
-							v_hasInterrupt = v_EX_InvalidInvocation(v_ec, "This type cannot be invoked like a function.");
+							hasInterrupt = EX_InvalidInvocation(ec, "This type cannot be invoked like a function.");
 						}
 					}
-					if (((v_type == 9) && !v_hasInterrupt)) {
+					if (((type == 9) && !hasInterrupt)) {
 						// primitive method invocation;
-						v_output = v_VALUE_NULL;
-						v_primitiveMethodToCoreLibraryFallback = false;
-						switch (v_value[0]) {
+						output = VALUE_NULL;
+						primitiveMethodToCoreLibraryFallback = false;
+						switch (value[0]) {
 							case 5:
 								// ...on a string;
-								v_string1 = v_value[1];
-								switch (v_functionId) {
+								string1 = value[1];
+								switch (functionId) {
 									case 7:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string contains method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string contains method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 5)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "string contains method requires another string as input.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 5)) {
+												hasInterrupt = EX_InvalidArgument(ec, "string contains method requires another string as input.");
+											} else if ((string1.indexOf(value2[1]) != -1)) {
+												output = VALUE_TRUE;
 											} else {
-												if ((v_string1.indexOf(v_value2[1]) != -1)) {
-													v_output = v_VALUE_TRUE;
-												} else {
-													v_output = v_VALUE_FALSE;
-												}
+												output = VALUE_FALSE;
 											}
 										}
 										break;
 									case 9:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string endsWith method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string endsWith method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 5)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "string endsWith method requires another string as input.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 5)) {
+												hasInterrupt = EX_InvalidArgument(ec, "string endsWith method requires another string as input.");
+											} else if (PST$stringEndsWith(string1, value2[1])) {
+												output = VALUE_TRUE;
 											} else {
-												if (C$common$stringEndsWith(v_string1, v_value2[1])) {
-													v_output = v_VALUE_TRUE;
-												} else {
-													v_output = v_VALUE_FALSE;
-												}
+												output = VALUE_FALSE;
 											}
 										}
 										break;
 									case 13:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string indexOf method", 1, v_argCount));
+										if (((argCount < 1) || (argCount > 2))) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string indexOf method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 5)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "string indexOf method requires another string as input.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 5)) {
+												hasInterrupt = EX_InvalidArgument(ec, "string indexOf method requires another string as input.");
+											} else if ((argCount == 1)) {
+												output = buildInteger(globals, string1.indexOf(value2[1]));
+											} else if ((funcArgs[1][0] != 3)) {
+												hasInterrupt = EX_InvalidArgument(ec, "string indexOf method requires an integer as its second argument.");
 											} else {
-												v_output = v_buildInteger(v_string1.indexOf(v_value2[1]));
+												int1 = funcArgs[1][1];
+												if (((int1 < 0) || (int1 >= string1.length))) {
+													hasInterrupt = EX_IndexOutOfRange(ec, "String index is out of bounds.");
+												} else {
+													output = buildInteger(globals, string1.indexOf(value2[1], int1));
+												}
 											}
 										}
 										break;
 									case 19:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string lower method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string lower method", 0, argCount));
 										} else {
-											v_output = v_buildString(v_string1.toLowerCase());
+											output = buildString(globals, string1.toLowerCase());
 										}
 										break;
 									case 20:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string ltrim method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string ltrim method", 0, argCount));
 										} else {
-											v_output = v_buildString(C$common$stringTrimOneSide(v_string1, true));
+											output = buildString(globals, PST$stringTrimOneSide(string1, true));
 										}
 										break;
 									case 25:
-										if ((v_argCount != 2)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string replace method", 2, v_argCount));
+										if ((argCount != 2)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string replace method", 2, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											v_value3 = v_funcArgs[1];
-											if (((v_value2[0] != 5) || (v_value3[0] != 5))) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "string replace method requires 2 strings as input.");
+											value2 = funcArgs[0];
+											value3 = funcArgs[1];
+											if (((value2[0] != 5) || (value3[0] != 5))) {
+												hasInterrupt = EX_InvalidArgument(ec, "string replace method requires 2 strings as input.");
 											} else {
-												v_output = v_buildString(v_string1.split(v_value2[1]).join(v_value3[1]));
+												output = buildString(globals, string1.split(value2[1]).join(value3[1]));
 											}
 										}
 										break;
 									case 26:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string reverse method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string reverse method", 0, argCount));
 										} else {
-											v_output = v_buildString(v_string1.split('').reverse().join(''));
+											output = buildString(globals, string1.split('').reverse().join(''));
 										}
 										break;
 									case 27:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string rtrim method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string rtrim method", 0, argCount));
 										} else {
-											v_output = v_buildString(C$common$stringTrimOneSide(v_string1, false));
+											output = buildString(globals, PST$stringTrimOneSide(string1, false));
 										}
 										break;
 									case 30:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string split method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string split method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 5)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "string split method requires another string as input.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 5)) {
+												hasInterrupt = EX_InvalidArgument(ec, "string split method requires another string as input.");
 											} else {
-												v_stringList = v_string1.split(v_value2[1]);
-												v_list1 = [];
-												v_len = v_stringList.length;
-												v_i = 0;
-												while ((v_i < v_len)) {
-													v_list1.push(v_buildString(v_stringList[v_i]));
-													v_i += 1;
+												stringList = string1.split(value2[1]);
+												_len = stringList.length;
+												list1 = makeEmptyList(globals[14], _len);
+												i = 0;
+												while ((i < _len)) {
+													list1[2].push(buildString(globals, stringList[i]));
+													i += 1;
 												}
-												v_output = [6, v_list1];
+												list1[1] = _len;
+												output = [6, list1];
 											}
 										}
 										break;
 									case 31:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string startsWith method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string startsWith method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 5)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "string startsWith method requires another string as input.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 5)) {
+												hasInterrupt = EX_InvalidArgument(ec, "string startsWith method requires another string as input.");
+											} else if ((string1.indexOf(value2[1]) == 0)) {
+												output = VALUE_TRUE;
 											} else {
-												if ((v_string1.indexOf(v_value2[1]) == 0)) {
-													v_output = v_VALUE_TRUE;
-												} else {
-													v_output = v_VALUE_FALSE;
-												}
+												output = VALUE_FALSE;
 											}
 										}
 										break;
 									case 32:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string trim method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string trim method", 0, argCount));
 										} else {
-											v_output = v_buildString(v_string1.trim());
+											output = buildString(globals, string1.trim());
 										}
 										break;
 									case 33:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("string upper method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("string upper method", 0, argCount));
 										} else {
-											v_output = v_buildString(v_string1.toUpperCase());
+											output = buildString(globals, string1.toUpperCase());
 										}
 										break;
 									default:
-										v_output = null;
+										output = null;
 										break;
 								}
 								break;
 							case 6:
 								// ...on a list;
-								v_list1 = v_value[1];
-								switch (v_functionId) {
+								list1 = value[1];
+								switch (functionId) {
 									case 0:
-										if ((v_argCount == 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, "List add method requires at least one argument.");
+										if ((argCount == 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, "List add method requires at least one argument.");
 										} else {
-											v_i = 0;
-											while ((v_i < v_argCount)) {
-												v_list1.push(v_funcArgs[v_i]);
-												v_i += 1;
+											intArray1 = list1[0];
+											i = 0;
+											while ((i < argCount)) {
+												value = funcArgs[i];
+												if ((intArray1 != null)) {
+													value2 = canAssignTypeToGeneric(vm, value, intArray1, 0);
+													if ((value2 == null)) {
+														hasInterrupt = EX_InvalidArgument(ec, ["Cannot convert a ", typeToStringFromValue(vm, value), " into a ", typeToString(vm, list1[0], 0)].join(''));
+													}
+													list1[2].push(value2);
+												} else {
+													list1[2].push(value);
+												}
+												i += 1;
 											}
-											v_output = v_VALUE_NULL;
+											list1[1] += argCount;
+											output = VALUE_NULL;
 										}
 										break;
 									case 3:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list choice method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list choice method", 0, argCount));
 										} else {
-											v_len = v_list1.length;
-											if ((v_len == 0)) {
-												v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, "Cannot use list.choice() method on an empty list.");
+											_len = list1[1];
+											if ((_len == 0)) {
+												hasInterrupt = EX_UnsupportedOperation(ec, "Cannot use list.choice() method on an empty list.");
 											} else {
-												v_output = v_list1[Math.floor(((Math.random() * v_len)))];
+												i = Math.floor(((Math.random() * _len)));
+												output = list1[2][i];
 											}
 										}
 										break;
 									case 4:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list clear method", 0, v_argCount));
-										} else {
-											C$common$clearList((v_list1));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list clear method", 0, argCount));
+										} else if ((list1[1] > 0)) {
+											PST$clearList(list1[2]);
+											list1[1] = 0;
 										}
 										break;
 									case 5:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list clone method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list clone method", 0, argCount));
 										} else {
-											v_list2 = [];
-											v_len = v_list1.length;
-											v_i = 0;
-											while ((v_i < v_len)) {
-												v_list2.push(v_list1[v_i]);
-												v_i += 1;
+											_len = list1[1];
+											list2 = makeEmptyList(list1[0], _len);
+											i = 0;
+											while ((i < _len)) {
+												list2[2].push(list1[2][i]);
+												i += 1;
 											}
-											v_output = [6, v_list2];
+											list2[1] = _len;
+											output = [6, list2];
 										}
 										break;
 									case 6:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list concat method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list concat method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 6)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "list concat methods requires a list as an argument.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 6)) {
+												hasInterrupt = EX_InvalidArgument(ec, "list concat methods requires a list as an argument.");
 											} else {
-												v_list2 = v_value2[1];
-												v_len = v_list2.length;
-												v_i = 0;
-												while ((v_i < v_len)) {
-													v_list1.push(v_list2[v_i]);
-													v_i += 1;
+												list2 = value2[1];
+												intArray1 = list1[0];
+												if (((intArray1 != null) && !canAssignGenericToGeneric(vm, list2[0], 0, intArray1, 0, intBuffer))) {
+													hasInterrupt = EX_InvalidArgument(ec, "Cannot concat a list: incompatible types.");
+												} else {
+													if (((intArray1 != null) && (intArray1[0] == 4) && (list2[0][0] == 3))) {
+														bool1 = true;
+													} else {
+														bool1 = false;
+													}
+													_len = list2[1];
+													i = 0;
+													while ((i < _len)) {
+														value = list2[2][i];
+														if (bool1) {
+															value = buildFloat(globals, (0.0 + value[1]));
+														}
+														list1[2].push(value);
+														i += 1;
+													}
+													list1[1] += _len;
 												}
 											}
 										}
 										break;
 									case 7:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list contains method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list contains method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											v_len = v_list1.length;
-											v_output = v_VALUE_FALSE;
-											v_i = 0;
-											while ((v_i < v_len)) {
-												if ((v_doEqualityComparisonAndReturnCode(v_value2, v_list1[v_i]) == 1)) {
-													v_output = v_VALUE_TRUE;
-													v_i = v_len;
+											value2 = funcArgs[0];
+											_len = list1[1];
+											output = VALUE_FALSE;
+											i = 0;
+											while ((i < _len)) {
+												value = list1[2][i];
+												if ((doEqualityComparisonAndReturnCode(value2, value) == 1)) {
+													output = VALUE_TRUE;
+													i = _len;
 												}
-												v_i += 1;
+												i += 1;
 											}
 										}
 										break;
 									case 10:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list filter method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list filter method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 9)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "list filter method requires a function pointer as its argument.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 9)) {
+												hasInterrupt = EX_InvalidArgument(ec, "list filter method requires a function pointer as its argument.");
 											} else {
-												v_primitiveMethodToCoreLibraryFallback = true;
-												v_functionId = v_p[26][0];
-												v_funcArgs[1] = v_value;
-												v_argCount = 2;
-												v_output = null;
+												primitiveMethodToCoreLibraryFallback = true;
+												functionId = metadata[15][0];
+												funcArgs[1] = value;
+												argCount = 2;
+												output = null;
 											}
 										}
 										break;
 									case 14:
-										if ((v_argCount != 2)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list insert method", 1, v_argCount));
+										if ((argCount != 2)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list insert method", 1, argCount));
 										} else {
-											v_value = v_funcArgs[0];
-											v_value2 = v_funcArgs[1];
-											if ((v_value[0] != 3)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "First argument of list.insert must be an integer index.");
+											value = funcArgs[0];
+											value2 = funcArgs[1];
+											if ((value[0] != 3)) {
+												hasInterrupt = EX_InvalidArgument(ec, "First argument of list.insert must be an integer index.");
 											} else {
-												v_int1 = v_value[1];
-												v_len = v_list1.length;
-												if ((v_int1 < 0)) {
-													v_int1 += v_len;
+												intArray1 = list1[0];
+												if ((intArray1 != null)) {
+													value3 = canAssignTypeToGeneric(vm, value2, intArray1, 0);
+													if ((value3 == null)) {
+														hasInterrupt = EX_InvalidArgument(ec, "Cannot insert this type into this type of list.");
+													}
+													value2 = value3;
 												}
-												if ((v_int1 == v_len)) {
-													v_list1.push(v_value2);
-												} else {
-													if (((v_int1 < 0) || (v_int1 >= v_len))) {
-														v_hasInterrupt = v_EX_IndexOutOfRange(v_ec, "Index out of range.");
+												if (!hasInterrupt) {
+													int1 = value[1];
+													_len = list1[1];
+													if ((int1 < 0)) {
+														int1 += _len;
+													}
+													if ((int1 == _len)) {
+														list1[2].push(value2);
+														list1[1] += 1;
+													} else if (((int1 < 0) || (int1 >= _len))) {
+														hasInterrupt = EX_IndexOutOfRange(ec, "Index out of range.");
 													} else {
-														v_list1.splice(v_int1, 0, v_value2);
+														list1[2].splice(int1, 0, value2);
+														list1[1] += 1;
 													}
 												}
 											}
 										}
 										break;
 									case 17:
-										if ((v_argCount != 1)) {
-											if ((v_argCount == 0)) {
-												v_value2 = v_VALUE_EMPTY_STRING;
+										if ((argCount != 1)) {
+											if ((argCount == 0)) {
+												value2 = globals[8];
 											} else {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list join method", 1, v_argCount));
+												hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list join method", 1, argCount));
 											}
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 5)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Argument of list.join needs to be a string.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 5)) {
+												hasInterrupt = EX_InvalidArgument(ec, "Argument of list.join needs to be a string.");
 											}
 										}
-										if (!v_hasInterrupt) {
-											v_stringList1 = [];
-											v_string1 = v_value2[1];
-											v_len = v_list1.length;
-											v_i = 0;
-											while ((v_i < v_len)) {
-												v_stringList1.push(v_valueToString(v_list1[v_i]));
-												v_i += 1;
+										if (!hasInterrupt) {
+											stringList1 = [];
+											string1 = value2[1];
+											_len = list1[1];
+											i = 0;
+											while ((i < _len)) {
+												value = list1[2][i];
+												if ((value[0] != 5)) {
+													string2 = valueToString(vm, value);
+												} else {
+													string2 = value[1];
+												}
+												stringList1.push(string2);
+												i += 1;
 											}
-											v_string1 = v_stringList1.join(v_string1);
-											v_output = v_buildString(v_string1);
+											output = buildString(globals, stringList1.join(string1));
 										}
 										break;
 									case 21:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list map method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list map method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 9)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "list map method requires a function pointer as its argument.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 9)) {
+												hasInterrupt = EX_InvalidArgument(ec, "list map method requires a function pointer as its argument.");
 											} else {
-												v_primitiveMethodToCoreLibraryFallback = true;
-												v_functionId = v_p[26][1];
-												v_funcArgs[1] = v_value;
-												v_argCount = 2;
-												v_output = null;
+												primitiveMethodToCoreLibraryFallback = true;
+												functionId = metadata[15][1];
+												funcArgs[1] = value;
+												argCount = 2;
+												output = null;
 											}
 										}
 										break;
 									case 23:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list pop method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list pop method", 0, argCount));
 										} else {
-											v_len = v_list1.length;
-											if ((v_len < 1)) {
-												v_hasInterrupt = v_EX_IndexOutOfRange(v_ec, "Cannot pop from an empty list.");
+											_len = list1[1];
+											if ((_len < 1)) {
+												hasInterrupt = EX_IndexOutOfRange(ec, "Cannot pop from an empty list.");
 											} else {
-												if (v_returnValueUsed) {
-													v_output = v_list1[(v_len - 1)];
+												_len -= 1;
+												value = list1[2].pop();
+												if (returnValueUsed) {
+													output = value;
 												}
-												v_list1.pop();
+												list1[1] = _len;
 											}
 										}
 										break;
 									case 24:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list remove method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list remove method", 1, argCount));
 										} else {
-											v_value = v_funcArgs[0];
-											if ((v_value[0] != 3)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Argument of list.remove must be an integer index.");
+											value = funcArgs[0];
+											if ((value[0] != 3)) {
+												hasInterrupt = EX_InvalidArgument(ec, "Argument of list.remove must be an integer index.");
 											} else {
-												v_int1 = v_value[1];
-												v_len = v_list1.length;
-												if ((v_int1 < 0)) {
-													v_int1 += v_len;
+												int1 = value[1];
+												_len = list1[1];
+												if ((int1 < 0)) {
+													int1 += _len;
 												}
-												if (((v_int1 < 0) || (v_int1 >= v_len))) {
-													v_hasInterrupt = v_EX_IndexOutOfRange(v_ec, "Index out of range.");
+												if (((int1 < 0) || (int1 >= _len))) {
+													hasInterrupt = EX_IndexOutOfRange(ec, "Index out of range.");
 												} else {
-													if (v_returnValueUsed) {
-														v_output = v_list1[v_int1];
+													if (returnValueUsed) {
+														output = list1[2][int1];
 													}
-													v_list1.splice(v_int1, 1);
+													_len = (list1[1] - 1);
+													list1[1] = _len;
+													list1[2].splice(int1, 1);
 												}
 											}
 										}
 										break;
 									case 26:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list reverse method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list reverse method", 0, argCount));
 										} else {
-											v_list1.reverse();
+											list1[2].reverse();
 										}
 										break;
 									case 28:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("list shuffle method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("list shuffle method", 0, argCount));
 										} else {
-											C$common$shuffle(v_list1);
+											PST$shuffle(list1[2]);
 										}
 										break;
 									case 29:
-										if ((v_argCount == 0)) {
-											v_sortLists(v_list1, v_list1, C$common$intBuffer16);
-											if ((C$common$intBuffer16[0] > 0)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Invalid list to sort. All items must be numbers or all strings, but not mixed.");
+										if ((argCount == 0)) {
+											sortLists(list1, list1, PST$intBuffer16);
+											if ((PST$intBuffer16[0] > 0)) {
+												hasInterrupt = EX_InvalidArgument(ec, "Invalid list to sort. All items must be numbers or all strings, but not mixed.");
 											}
-										} else {
-											if ((v_argCount == 1)) {
-												v_value2 = v_funcArgs[0];
-												if ((v_value2[0] == 9)) {
-													v_primitiveMethodToCoreLibraryFallback = true;
-													v_functionId = v_p[26][2];
-													v_funcArgs[1] = v_value;
-													v_argCount = 2;
-												} else {
-													v_hasInterrupt = v_EX_InvalidArgument(v_ec, "list.sort(get_key_function) requires a function pointer as its argument.");
-												}
-												v_output = null;
+										} else if ((argCount == 1)) {
+											value2 = funcArgs[0];
+											if ((value2[0] == 9)) {
+												primitiveMethodToCoreLibraryFallback = true;
+												functionId = metadata[15][2];
+												funcArgs[1] = value;
+												argCount = 2;
+											} else {
+												hasInterrupt = EX_InvalidArgument(ec, "list.sort(get_key_function) requires a function pointer as its argument.");
 											}
+											output = null;
 										}
 										break;
 									default:
-										v_output = null;
+										output = null;
 										break;
 								}
 								break;
 							case 7:
 								// ...on a dictionary;
-								v_dictImpl = v_value[1];
-								switch (v_functionId) {
+								dictImpl = value[1];
+								switch (functionId) {
 									case 4:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("dictionary clear method", 0, v_argCount));
-										} else {
-											if ((v_dictImpl[4] > 0)) {
-												v_dictImpl[0] = {};
-												v_dictImpl[1] = {};
-												v_dictImpl[2] = {};
-												v_dictImpl[3] = {};
-												v_dictImpl[4] = 0;
-											}
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("dictionary clear method", 0, argCount));
+										} else if ((dictImpl[0] > 0)) {
+											dictImpl[4] = {};
+											dictImpl[5] = {};
+											PST$clearList(dictImpl[6]);
+											PST$clearList(dictImpl[7]);
+											dictImpl[0] = 0;
 										}
 										break;
 									case 5:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("dictionary clone method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("dictionary clone method", 0, argCount));
 										} else {
-											v_output = [7, v_cloneDictionary(v_dictImpl, null)];
+											output = [7, cloneDictionary(dictImpl, null)];
 										}
 										break;
 									case 7:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("dictionary contains method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("dictionary contains method", 1, argCount));
 										} else {
-											v_value = v_funcArgs[0];
-											v_output = v_VALUE_FALSE;
-											if ((v_value[0] == 5)) {
-												if ((v_dictImpl[2][v_value[1]] !== undefined)) {
-													v_output = v_VALUE_TRUE;
+											value = funcArgs[0];
+											output = VALUE_FALSE;
+											if ((value[0] == 5)) {
+												if ((dictImpl[5][value[1]] !== undefined)) {
+													output = VALUE_TRUE;
 												}
 											} else {
-												if ((v_value[0] == 3)) {
-													if ((v_dictImpl[0][v_value[1]] !== undefined)) {
-														v_output = v_VALUE_TRUE;
-													}
+												if ((value[0] == 3)) {
+													i = value[1];
+												} else {
+													i = (value[1])[1];
+												}
+												if ((dictImpl[4][i] !== undefined)) {
+													output = VALUE_TRUE;
 												}
 											}
 										}
 										break;
 									case 11:
-										if (((v_argCount != 1) && (v_argCount != 2))) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Dictionary get method requires 1 or 2 arguments.");
+										if (((argCount != 1) && (argCount != 2))) {
+											hasInterrupt = EX_InvalidArgument(ec, "Dictionary get method requires 1 or 2 arguments.");
 										} else {
-											if ((v_argCount == 2)) {
-												v_output = v_funcArgs[1];
-											} else {
-												v_output = v_VALUE_NULL;
-											}
-											v_value = v_funcArgs[0];
-											switch (v_value[0]) {
+											value = funcArgs[0];
+											switch (value[0]) {
 												case 3:
-													v_int1 = v_value[1];
-													if ((v_dictImpl[0][v_int1] !== undefined)) {
-														v_output = v_dictImpl[1][v_int1];
-													}
+													int1 = value[1];
+													i = dictImpl[4][int1];
+													if (i === undefined) i = -1;
 													break;
 												case 8:
-													v_objInstance1 = v_value[1];
-													v_int1 = v_objInstance1[1];
-													if ((v_dictImpl[0][v_int1] !== undefined)) {
-														v_output = v_dictImpl[1][v_int1];
-													}
+													int1 = (value[1])[1];
+													i = dictImpl[4][int1];
+													if (i === undefined) i = -1;
 													break;
 												case 5:
-													v_string1 = v_value[1];
-													if ((v_dictImpl[2][v_string1] !== undefined)) {
-														v_output = v_dictImpl[3][v_string1];
-													}
+													string1 = value[1];
+													i = dictImpl[5][string1];
+													if (i === undefined) i = -1;
 													break;
-												default:
-													v_int1 = 0;
-													break;
+											}
+											if ((i == -1)) {
+												if ((argCount == 2)) {
+													output = funcArgs[1];
+												} else {
+													output = VALUE_NULL;
+												}
+											} else {
+												output = dictImpl[7][i];
 											}
 										}
 										break;
 									case 18:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("dictionary keys method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("dictionary keys method", 0, argCount));
 										} else {
-											if ((v_dictImpl[5] == 5)) {
-												v_output = [6, C$common$dictionaryValues(v_dictImpl[2])];
+											valueList1 = dictImpl[6];
+											_len = valueList1.length;
+											if ((dictImpl[1] == 8)) {
+												intArray1 = PST$createNewArray(2);
+												intArray1[0] = 8;
+												intArray1[0] = dictImpl[2];
 											} else {
-												v_output = [6, C$common$dictionaryValues(v_dictImpl[0])];
+												intArray1 = PST$createNewArray(1);
+												intArray1[0] = dictImpl[1];
 											}
+											list1 = makeEmptyList(intArray1, _len);
+											i = 0;
+											while ((i < _len)) {
+												list1[2].push(valueList1[i]);
+												i += 1;
+											}
+											list1[1] = _len;
+											output = [6, list1];
 										}
 										break;
 									case 22:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("dictionary merge method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("dictionary merge method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											if ((v_value2[0] != 7)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "dictionary merge method requires another dictionary as a parameeter.");
+											value2 = funcArgs[0];
+											if ((value2[0] != 7)) {
+												hasInterrupt = EX_InvalidArgument(ec, "dictionary merge method requires another dictionary as a parameeter.");
 											} else {
-												v_dictImpl2 = v_value2[1];
-												if ((v_dictImpl2[4] > 0)) {
-													if ((v_dictImpl[4] == 0)) {
-														v_value[1] = v_cloneDictionary(v_dictImpl2, null);
+												dictImpl2 = value2[1];
+												if ((dictImpl2[0] > 0)) {
+													if ((dictImpl[0] == 0)) {
+														value[1] = cloneDictionary(dictImpl2, null);
+													} else if ((dictImpl2[1] != dictImpl[1])) {
+														hasInterrupt = EX_InvalidKey(ec, "Dictionaries with different key types cannot be merged.");
+													} else if (((dictImpl2[1] == 8) && (dictImpl2[2] != dictImpl[2]) && (dictImpl[2] != 0) && !isClassASubclassOf(vm, dictImpl2[2], dictImpl[2]))) {
+														hasInterrupt = EX_InvalidKey(ec, "Dictionary key types are incompatible.");
 													} else {
-														if ((v_dictImpl2[5] != v_dictImpl[5])) {
-															v_hasInterrupt = v_EX_InvalidKey(v_ec, "dictionaries with different key types cannot be merged.");
-														} else {
-															v_cloneDictionary(v_dictImpl2, v_dictImpl);
+														if ((dictImpl[3] == null)) {
+														} else if ((dictImpl2[3] == null)) {
+															hasInterrupt = EX_InvalidKey(ec, "Dictionaries with different value types cannot be merged.");
+														} else if (!canAssignGenericToGeneric(vm, dictImpl2[3], 0, dictImpl[3], 0, intBuffer)) {
+															hasInterrupt = EX_InvalidKey(ec, "The dictionary value types are incompatible.");
+														}
+														if (!hasInterrupt) {
+															cloneDictionary(dictImpl2, dictImpl);
 														}
 													}
 												}
-												v_output = v_VALUE_NULL;
+												output = VALUE_NULL;
 											}
 										}
 										break;
 									case 24:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("dictionary remove method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("dictionary remove method", 1, argCount));
 										} else {
-											v_value2 = v_funcArgs[0];
-											v_bool2 = true;
-											if (((v_dictImpl[4] > 0) && (v_dictImpl[5] == v_value2[0]))) {
-												switch (v_value2[0]) {
-													case 3:
-														v_int1 = v_value2[1];
-														if ((v_dictImpl[0][v_int1] !== undefined)) {
-															v_bool2 = false;
-															delete v_dictImpl[0][v_int1];
-															delete v_dictImpl[1][v_int1];
-															v_dictImpl[4] -= 1;
+											value2 = funcArgs[0];
+											bool2 = false;
+											keyType = dictImpl[1];
+											if (((dictImpl[0] > 0) && (keyType == value2[0]))) {
+												if ((keyType == 5)) {
+													stringKey = value2[1];
+													if ((dictImpl[5][stringKey] !== undefined)) {
+														i = dictImpl[5][stringKey];
+														bool2 = true;
+													}
+												} else {
+													if ((keyType == 3)) {
+														intKey = value2[1];
+													} else {
+														intKey = (value2[1])[1];
+													}
+													if ((dictImpl[4][intKey] !== undefined)) {
+														i = dictImpl[4][intKey];
+														bool2 = true;
+													}
+												}
+												if (bool2) {
+													_len = (dictImpl[0] - 1);
+													dictImpl[0] = _len;
+													if ((i == _len)) {
+														if ((keyType == 5)) {
+															delete dictImpl[5][stringKey];
+														} else {
+															delete dictImpl[4][intKey];
 														}
-														break;
-													case 8:
-														v_objInstance1 = v_value2[1];
-														v_int1 = v_objInstance1[1];
-														if ((v_dictImpl[0][v_int1] !== undefined)) {
-															v_bool2 = false;
-															delete v_dictImpl[0][v_int1];
-															delete v_dictImpl[1][v_int1];
-															v_dictImpl[4] -= 1;
+														dictImpl[6].splice(i, 1);
+														dictImpl[7].splice(i, 1);
+													} else {
+														value = dictImpl[6][_len];
+														dictImpl[6][i] = value;
+														dictImpl[7][i] = dictImpl[7][_len];
+														dictImpl[6].pop();
+														dictImpl[7].pop();
+														if ((keyType == 5)) {
+															delete dictImpl[5][stringKey];
+															stringKey = value[1];
+															dictImpl[5][stringKey] = i;
+														} else {
+															delete dictImpl[4][intKey];
+															if ((keyType == 3)) {
+																intKey = value[1];
+															} else {
+																intKey = (value[1])[1];
+															}
+															dictImpl[4][intKey] = i;
 														}
-														break;
-													case 5:
-														v_string1 = v_value2[1];
-														if ((v_dictImpl[2][v_string1] !== undefined)) {
-															v_bool2 = false;
-															delete v_dictImpl[2][v_string1];
-															delete v_dictImpl[3][v_string1];
-															v_dictImpl[4] -= 1;
-														}
-														break;
-													default:
-														v_int1 = 0;
-														break;
+													}
 												}
 											}
-											if (v_bool2) {
-												v_hasInterrupt = v_EX_KeyNotFound(v_ec, "dictionary does not contain the given key.");
+											if (!bool2) {
+												hasInterrupt = EX_KeyNotFound(ec, "dictionary does not contain the given key.");
 											}
 										}
 										break;
 									case 34:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("dictionary values method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("dictionary values method", 0, argCount));
 										} else {
-											if ((v_dictImpl[5] == 5)) {
-												v_output = [6, C$common$dictionaryValues(v_dictImpl[3])];
-											} else {
-												v_output = [6, C$common$dictionaryValues(v_dictImpl[1])];
+											valueList1 = dictImpl[7];
+											_len = valueList1.length;
+											list1 = makeEmptyList(dictImpl[3], _len);
+											i = 0;
+											while ((i < _len)) {
+												addToList(list1, valueList1[i]);
+												i += 1;
 											}
+											output = [6, list1];
 										}
 										break;
 									default:
-										v_output = null;
+										output = null;
 										break;
 								}
 								break;
 							case 9:
 								// ...on a function pointer;
-								v_functionPointer1 = v_value[1];
-								switch (v_functionId) {
+								functionPointer1 = value[1];
+								switch (functionId) {
 									case 1:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("argCountMax method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("argCountMax method", 0, argCount));
 										} else {
-											v_functionId = v_functionPointer1[3];
-											v_functionInfo = v_p[21][v_functionId];
-											v_output = v_buildInteger(v_functionInfo[4]);
+											functionId = functionPointer1[3];
+											functionInfo = metadata[10][functionId];
+											output = buildInteger(globals, functionInfo[4]);
 										}
 										break;
 									case 2:
-										if ((v_argCount > 0)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("argCountMin method", 0, v_argCount));
+										if ((argCount > 0)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("argCountMin method", 0, argCount));
 										} else {
-											v_functionId = v_functionPointer1[3];
-											v_functionInfo = v_p[21][v_functionId];
-											v_output = v_buildInteger(v_functionInfo[3]);
+											functionId = functionPointer1[3];
+											functionInfo = metadata[10][functionId];
+											output = buildInteger(globals, functionInfo[3]);
 										}
 										break;
 									case 12:
-										v_functionInfo = v_p[21][v_functionPointer1[3]];
-										v_output = v_buildString(v_functionInfo[9]);
+										functionInfo = metadata[10][functionPointer1[3]];
+										output = buildString(globals, functionInfo[9]);
 										break;
 									case 15:
-										if ((v_argCount == 1)) {
-											v_funcArgs[1] = v_funcArgs[0];
+										if ((argCount == 1)) {
+											funcArgs[1] = funcArgs[0];
+										} else if ((argCount == 0)) {
+											funcArgs[1] = VALUE_NULL;
 										} else {
-											if ((v_argCount == 0)) {
-												v_funcArgs[1] = v_VALUE_NULL;
-											} else {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "invoke requires a list of arguments.");
-											}
+											hasInterrupt = EX_InvalidArgument(ec, "invoke requires a list of arguments.");
 										}
-										v_funcArgs[0] = v_value;
-										v_argCount = 2;
-										v_primitiveMethodToCoreLibraryFallback = true;
-										v_functionId = v_p[26][3];
-										v_output = null;
+										funcArgs[0] = value;
+										argCount = 2;
+										primitiveMethodToCoreLibraryFallback = true;
+										functionId = metadata[15][3];
+										output = null;
 										break;
 									default:
-										v_output = null;
+										output = null;
 										break;
 								}
 								break;
 							case 10:
 								// ...on a class definition;
-								v_classValue = v_value[1];
-								switch (v_functionId) {
+								classValue = value[1];
+								switch (functionId) {
 									case 12:
-										v_classInfo = v_p[20][v_classValue[1]];
-										v_output = v_buildString(v_classInfo[12]);
+										classInfo = metadata[9][classValue[1]];
+										output = buildString(globals, classInfo[16]);
 										break;
 									case 16:
-										if ((v_argCount != 1)) {
-											v_hasInterrupt = v_EX_InvalidArgument(v_ec, v_primitiveMethodWrongArgCountError("class isA method", 1, v_argCount));
+										if ((argCount != 1)) {
+											hasInterrupt = EX_InvalidArgument(ec, primitiveMethodWrongArgCountError("class isA method", 1, argCount));
 										} else {
-											v_int1 = v_classValue[1];
-											v_value = v_funcArgs[0];
-											if ((v_value[0] != 10)) {
-												v_hasInterrupt = v_EX_InvalidArgument(v_ec, "class isA method requires another class reference.");
+											int1 = classValue[1];
+											value = funcArgs[0];
+											if ((value[0] != 10)) {
+												hasInterrupt = EX_InvalidArgument(ec, "class isA method requires another class reference.");
 											} else {
-												v_classValue = v_value[1];
-												v_int2 = v_classValue[1];
-												v_output = v_VALUE_FALSE;
-												if (v_isClassASubclassOf(v_int1, v_int2)) {
-													v_output = v_VALUE_TRUE;
+												classValue = value[1];
+												int2 = classValue[1];
+												output = VALUE_FALSE;
+												if (isClassASubclassOf(vm, int1, int2)) {
+													output = VALUE_TRUE;
 												}
 											}
 										}
 										break;
 									default:
-										v_output = null;
+										output = null;
 										break;
 								}
 								break;
 						}
-						if (!v_hasInterrupt) {
-							if ((v_output == null)) {
-								if (v_primitiveMethodToCoreLibraryFallback) {
-									v_type = 1;
-									v_bool1 = true;
+						if (!hasInterrupt) {
+							if ((output == null)) {
+								if (primitiveMethodToCoreLibraryFallback) {
+									type = 1;
+									bool1 = true;
 								} else {
-									v_hasInterrupt = v_EX_InvalidInvocation(v_ec, "primitive method not found.");
+									hasInterrupt = EX_InvalidInvocation(ec, "primitive method not found.");
 								}
 							} else {
-								if (v_returnValueUsed) {
-									if ((v_valueStackSize == v_valueStackCapacity)) {
-										v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-										v_valueStackCapacity = v_valueStack.length;
+								if (returnValueUsed) {
+									if ((valueStackSize == valueStackCapacity)) {
+										valueStack = valueStackIncreaseCapacity(ec);
+										valueStackCapacity = valueStack.length;
 									}
-									v_valueStack[v_valueStackSize] = v_output;
-									v_valueStackSize += 1;
+									valueStack[valueStackSize] = output;
+									valueStackSize += 1;
 								}
-								v_bool1 = false;
+								bool1 = false;
 							}
 						}
 					}
-					if ((v_bool1 && !v_hasInterrupt)) {
+					if ((bool1 && !hasInterrupt)) {
 						// push a new frame to the stack;
-						v_stack[0] = v_pc;
-						v_bool1 = false;
-						switch (v_type) {
+						stack[0] = pc;
+						bool1 = false;
+						switch (type) {
 							case 1:
 								// function;
-								v_functionInfo = v_functionTable[v_functionId];
-								v_pc = v_functionInfo[2];
-								v_value = null;
-								v_classId = 0;
+								functionInfo = functionTable[functionId];
+								pc = functionInfo[2];
+								value = null;
+								classId = 0;
+								break;
+							case 10:
+								// lambda;
+								pc = functionId;
+								functionInfo = metadata[11][functionId];
+								value = null;
+								classId = 0;
 								break;
 							case 2:
 								// static method;
-								v_functionInfo = v_functionTable[v_functionId];
-								v_pc = v_functionInfo[2];
-								v_value = null;
-								v_classId = 0;
+								functionInfo = functionTable[functionId];
+								pc = functionInfo[2];
+								value = null;
+								classId = 0;
 								break;
 							case 3:
 								// non-static method;
-								v_functionInfo = v_functionTable[v_functionId];
-								v_pc = v_functionInfo[2];
-								v_classId = 0;
+								functionInfo = functionTable[functionId];
+								pc = functionInfo[2];
+								classId = 0;
 								break;
 							case 6:
 								// constructor;
-								v_p[18] += 1;
-								v_classInfo = v_classTable[v_classId];
-								v_valueArray1 = C$common$createNewArray(v_classInfo[7]);
-								v_i = (v_valueArray1.length - 1);
-								while ((v_i >= 0)) {
-									switch (v_classInfo[9][v_i]) {
+								vm[5] += 1;
+								classInfo = classTable[classId];
+								valueArray1 = PST$createNewArray(classInfo[8]);
+								i = (valueArray1.length - 1);
+								while ((i >= 0)) {
+									switch (classInfo[10][i]) {
 										case 0:
-											v_valueArray1[v_i] = v_classInfo[10][v_i];
+											valueArray1[i] = classInfo[11][i];
 											break;
 										case 1:
-											v_valueArray1[v_i] = [6, []];
 											break;
 										case 2:
-											v_valueArray1[v_i] = [7, [{}, {}, {}, {}, 0, 3]];
 											break;
 									}
-									v_i -= 1;
+									i -= 1;
 								}
-								v_objInstance1 = [v_classId, v_p[18], v_valueArray1, null, null];
-								v_value = [8, v_objInstance1];
-								v_functionId = v_classInfo[6];
-								v_functionInfo = v_functionTable[v_functionId];
-								v_pc = v_functionInfo[2];
-								v_classId = 0;
-								if (v_returnValueUsed) {
-									v_returnValueUsed = false;
-									if ((v_valueStackSize == v_valueStackCapacity)) {
-										v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-										v_valueStackCapacity = v_valueStack.length;
+								objInstance1 = [classId, vm[5], valueArray1, null, null];
+								value = [8, objInstance1];
+								functionId = classInfo[7];
+								functionInfo = functionTable[functionId];
+								pc = functionInfo[2];
+								classId = 0;
+								if (returnValueUsed) {
+									returnValueUsed = false;
+									if ((valueStackSize == valueStackCapacity)) {
+										valueStack = valueStackIncreaseCapacity(ec);
+										valueStackCapacity = valueStack.length;
 									}
-									v_valueStack[v_valueStackSize] = v_value;
-									v_valueStackSize += 1;
+									valueStack[valueStackSize] = value;
+									valueStackSize += 1;
 								}
 								break;
 							case 7:
 								// base constructor;
-								v_value = v_stack[6];
-								v_classInfo = v_classTable[v_classId];
-								v_functionId = v_classInfo[6];
-								v_functionInfo = v_functionTable[v_functionId];
-								v_pc = v_functionInfo[2];
-								v_classId = 0;
+								value = stack[6];
+								classInfo = classTable[classId];
+								functionId = classInfo[7];
+								functionInfo = functionTable[functionId];
+								pc = functionInfo[2];
+								classId = 0;
 								break;
 						}
-						if (((v_argCount < v_functionInfo[3]) || (v_argCount > v_functionInfo[4]))) {
-							v_pc = v_stack[0];
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Incorrect number of args were passed to this function.");
+						if (((argCount < functionInfo[3]) || (argCount > functionInfo[4]))) {
+							pc = stack[0];
+							hasInterrupt = EX_InvalidArgument(ec, "Incorrect number of args were passed to this function.");
 						} else {
-							v_int1 = v_functionInfo[7];
-							v_int2 = v_stack[3];
-							if ((v_localsStackCapacity <= (v_int2 + v_int1))) {
-								v_increaseLocalsStackCapacity(v_ec, v_int1);
-								v_localsStack = v_ec[5];
-								v_localsStackSet = v_ec[6];
-								v_localsStackCapacity = v_localsStack.length;
+							int1 = functionInfo[7];
+							int2 = stack[3];
+							if ((localsStackCapacity <= (int2 + int1))) {
+								increaseLocalsStackCapacity(ec, int1);
+								localsStack = ec[5];
+								localsStackSet = ec[6];
+								localsStackCapacity = localsStack.length;
 							}
-							v_localsStackSetToken += 1;
-							if ((v_localsStackSetToken > 2000000000)) {
-								v_resetLocalsStackTokens(v_ec, v_stack);
-								v_localsStackSetToken = 2;
+							localsStackSetToken = (ec[7] + 1);
+							ec[7] = localsStackSetToken;
+							if ((localsStackSetToken > 2000000000)) {
+								resetLocalsStackTokens(ec, stack);
+								localsStackSetToken = 2;
 							}
-							v_localsStackOffset = v_int2;
+							localsStackOffset = int2;
+							if ((type == 10)) {
+								value = closure[-1][0];
+							} else {
+								closure = null;
+							}
 							// invoke the function;
-							v_stack = [v_pc, v_localsStackSetToken, v_localsStackOffset, (v_localsStackOffset + v_int1), v_stack, v_returnValueUsed, v_value, v_valueStackSize, 0, (v_stack[9] + 1), 0, null];
-							v_i = 0;
-							while ((v_i < v_argCount)) {
-								v_int1 = (v_localsStackOffset + v_i);
-								v_localsStack[v_int1] = v_funcArgs[v_i];
-								v_localsStackSet[v_int1] = v_localsStackSetToken;
-								v_i += 1;
+							stack = [pc, localsStackSetToken, localsStackOffset, (localsStackOffset + int1), stack, returnValueUsed, value, valueStackSize, 0, (stack[9] + 1), 0, null, closure, null];
+							i = 0;
+							while ((i < argCount)) {
+								int1 = (localsStackOffset + i);
+								localsStack[int1] = funcArgs[i];
+								localsStackSet[int1] = localsStackSetToken;
+								i += 1;
 							}
-							if ((v_argCount != v_functionInfo[3])) {
-								v_int1 = (v_argCount - v_functionInfo[3]);
-								if ((v_int1 > 0)) {
-									v_pc += v_functionInfo[8][v_int1];
-									v_stack[0] = v_pc;
+							if ((argCount != functionInfo[3])) {
+								int1 = (argCount - functionInfo[3]);
+								if ((int1 > 0)) {
+									pc += functionInfo[8][int1];
+									stack[0] = pc;
 								}
 							}
-							if ((v_stack[9] > 1000)) {
-								v_hasInterrupt = v_EX_Fatal(v_ec, "Stack overflow.");
+							if ((stack[9] > 1000)) {
+								hasInterrupt = EX_Fatal(ec, "Stack overflow.");
 							}
 						}
 					}
+				}
+				break;
+			case 13:
+				// CAST;
+				value = valueStack[(valueStackSize - 1)];
+				value2 = canAssignTypeToGeneric(vm, value, row, 0);
+				if ((value2 == null)) {
+					if (((value[0] == 4) && (row[0] == 3))) {
+						if ((row[1] == 1)) {
+							float1 = value[1];
+							i = Math.floor(float1);
+							if ((i < 0)) {
+								if ((i > -257)) {
+									value2 = globals[10][-i];
+								} else {
+									value2 = [3, i];
+								}
+							} else if ((i < 2049)) {
+								value2 = globals[9][i];
+							} else {
+								value2 = [3, i];
+							}
+						}
+					} else if (((value[0] == 3) && (row[0] == 4))) {
+						int1 = value[1];
+						if ((int1 == 0)) {
+							value2 = VALUE_FLOAT_ZERO;
+						} else {
+							value2 = [4, (0.0 + int1)];
+						}
+					}
+					if ((value2 != null)) {
+						valueStack[(valueStackSize - 1)] = value2;
+					}
+				}
+				if ((value2 == null)) {
+					hasInterrupt = EX_InvalidArgument(ec, ["Cannot convert a ", typeToStringFromValue(vm, value), " to a ", typeToString(vm, row, 0)].join(''));
+				} else {
+					valueStack[(valueStackSize - 1)] = value2;
 				}
 				break;
 			case 14:
-				// CALL_LIB_FUNCTION_DYNAMIC;
-				v_int1 = v_row[0];
-				v_argCount = v_row[2];
-				v_object1 = v_libFunctionPointers[v_pc];
-				v_i = (v_argCount - 1);
-				while ((v_i >= 0)) {
-					v_valueStackSize -= 1;
-					v_funcArgs[v_i] = v_valueStack[v_valueStackSize];
-					v_i -= 1;
-				}
-				v_prepareToSuspend(v_ec, v_stack, v_valueStackSize, v_pc);
-				v_value = v_object1(v_funcArgs);
-				if (v_ec[11]) {
-					v_ec[11] = false;
-					if ((v_ec[12] == 1)) {
-						return v_suspendInterpreter();
-					}
-				}
-				if ((v_row[3] == 1)) {
-					if ((v_valueStackSize == v_valueStackCapacity)) {
-						v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-						v_valueStackCapacity = v_valueStack.length;
-					}
-					v_valueStack[v_valueStackSize] = v_value;
-					v_valueStackSize += 1;
-				}
+				// CLASS_DEFINITION;
+				initializeClass(pc, vm, row, stringArgs[pc]);
+				classTable = metadata[9];
 				break;
 			case 15:
-				// CLASS_DEFINITION;
-				v_initializeClass(v_pc, v_p, v_row, v_stringArgs[v_pc]);
-				v_classTable = v_p[20];
+				// CNI_INVOKE;
+				nativeFp = metadata[13][row[0]];
+				if ((nativeFp == null)) {
+					hasInterrupt = EX_InvalidInvocation(ec, "CNI method could not be found.");
+				} else {
+					_len = row[1];
+					valueStackSize -= _len;
+					valueArray1 = PST$createNewArray(_len);
+					i = 0;
+					while ((i < _len)) {
+						valueArray1[i] = valueStack[(valueStackSize + i)];
+						i += 1;
+					}
+					prepareToSuspend(ec, stack, valueStackSize, pc);
+					value = nativeFp(vm, valueArray1);
+					if ((row[2] == 1)) {
+						if ((valueStackSize == valueStackCapacity)) {
+							valueStack = valueStackIncreaseCapacity(ec);
+							valueStackCapacity = valueStack.length;
+						}
+						valueStack[valueStackSize] = value;
+						valueStackSize += 1;
+					}
+					if (ec[11]) {
+						prepareToSuspend(ec, stack, valueStackSize, pc);
+						ec[11] = false;
+						if ((ec[12] == 1)) {
+							return suspendInterpreter();
+						}
+					}
+				}
 				break;
 			case 16:
-				// COMMAND_LINE_ARGS;
-				if ((v_valueStackSize == v_valueStackCapacity)) {
-					v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-					v_valueStackCapacity = v_valueStack.length;
-				}
-				v_valueStack[v_valueStackSize] = v_buildStringList(C$common$commandLineArgs);
-				v_valueStackSize += 1;
+				// CNI_REGISTER;
+				nativeFp = C$common$getFunction(stringArgs[pc]);
+				metadata[13][row[0]] = nativeFp;
 				break;
 			case 17:
-				// CONTINUE;
-				if ((v_row[0] == 1)) {
-					v_pc += v_row[1];
-				} else {
-					v_intArray1 = v_esfData[v_pc];
-					v_pc = (v_intArray1[1] - 1);
-					v_valueStackSize = (v_stack[7] + v_p[31][v_pc]);
-					v_stack[10] = 2;
+				// COMMAND_LINE_ARGS;
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
 				}
+				list1 = makeEmptyList(globals[14], 3);
+				i = 0;
+				while ((i < vm[11][0].length)) {
+					addToList(list1, buildString(globals, vm[11][0][i]));
+					i += 1;
+				}
+				valueStack[valueStackSize] = [6, list1];
+				valueStackSize += 1;
 				break;
 			case 18:
+				// CONTINUE;
+				if ((row[0] == 1)) {
+					pc += row[1];
+				} else {
+					intArray1 = esfData[pc];
+					pc = (intArray1[1] - 1);
+					valueStackSize = stack[7];
+					stack[10] = 2;
+				}
+				break;
+			case 19:
 				// CORE_FUNCTION;
-				switch (v_row[0]) {
+				switch (row[0]) {
 					case 1:
 						// parseInt;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = v_VALUE_NULL;
-						if ((v_arg1[0] == 5)) {
-							v_string1 = (v_arg1[1]).trim();
-							if (C$common$is_valid_integer(v_string1)) {
-								v_output = v_buildInteger(parseInt(v_string1));
+						arg1 = valueStack[--valueStackSize];
+						output = VALUE_NULL;
+						if ((arg1[0] == 5)) {
+							string1 = (arg1[1]).trim();
+							if (PST$is_valid_integer(string1)) {
+								output = buildInteger(globals, parseInt(string1));
 							}
 						} else {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "parseInt requires a string argument.");
+							hasInterrupt = EX_InvalidArgument(ec, "parseInt requires a string argument.");
 						}
 						break;
 					case 2:
 						// parseFloat;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = v_VALUE_NULL;
-						if ((v_arg1[0] == 5)) {
-							v_string1 = (v_arg1[1]).trim();
-							C$common$floatParseHelper(v_floatList1, v_string1);
-							if ((v_floatList1[0] >= 0)) {
-								v_output = v_buildFloat(v_floatList1[1]);
+						arg1 = valueStack[--valueStackSize];
+						output = VALUE_NULL;
+						if ((arg1[0] == 5)) {
+							string1 = (arg1[1]).trim();
+							PST$floatParseHelper(floatList1, string1);
+							if ((floatList1[0] >= 0)) {
+								output = buildFloat(globals, floatList1[1]);
 							}
 						} else {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "parseFloat requires a string argument.");
+							hasInterrupt = EX_InvalidArgument(ec, "parseFloat requires a string argument.");
 						}
 						break;
 					case 3:
 						// print;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = v_VALUE_NULL;
-						C$common$print(v_valueToString(v_arg1));
+						arg1 = valueStack[--valueStackSize];
+						output = VALUE_NULL;
+						printToStdOut(vm[11][2], valueToString(vm, arg1));
 						break;
 					case 4:
 						// typeof;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = v_buildInteger((v_arg1[0] - 1));
+						arg1 = valueStack[--valueStackSize];
+						output = buildInteger(globals, (arg1[0] - 1));
 						break;
 					case 5:
 						// typeis;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_int1 = v_arg1[0];
-						v_int2 = v_row[2];
-						v_output = v_VALUE_FALSE;
-						while ((v_int2 > 0)) {
-							if ((v_row[(2 + v_int2)] == v_int1)) {
-								v_output = v_VALUE_TRUE;
-								v_int2 = 0;
+						arg1 = valueStack[--valueStackSize];
+						int1 = arg1[0];
+						int2 = row[2];
+						output = VALUE_FALSE;
+						while ((int2 > 0)) {
+							if ((row[(2 + int2)] == int1)) {
+								output = VALUE_TRUE;
+								int2 = 0;
 							} else {
-								v_int2 -= 1;
+								int2 -= 1;
 							}
 						}
 						break;
 					case 6:
 						// execId;
-						v_output = v_buildInteger(v_ec[0]);
+						output = buildInteger(globals, ec[0]);
 						break;
 					case 7:
 						// assert;
-						v_valueStackSize -= 3;
-						v_arg3 = v_valueStack[(v_valueStackSize + 2)];
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						if ((v_arg1[0] != 2)) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Assertion expression must be a boolean.");
+						valueStackSize -= 3;
+						arg3 = valueStack[(valueStackSize + 2)];
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						if ((arg1[0] != 2)) {
+							hasInterrupt = EX_InvalidArgument(ec, "Assertion expression must be a boolean.");
+						} else if (arg1[1]) {
+							output = VALUE_NULL;
 						} else {
-							if (v_arg1[1]) {
-								v_output = v_VALUE_NULL;
-							} else {
-								v_string1 = v_valueToString(v_arg2);
-								if (v_arg3[1]) {
-									v_string1 = "Assertion failed: " + v_string1;
-								}
-								v_hasInterrupt = v_EX_AssertionFailed(v_ec, v_string1);
+							string1 = valueToString(vm, arg2);
+							if (arg3[1]) {
+								string1 = "Assertion failed: " + string1;
 							}
+							hasInterrupt = EX_AssertionFailed(ec, string1);
 						}
 						break;
 					case 8:
 						// chr;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = null;
-						if ((v_arg1[0] == 3)) {
-							v_int1 = v_arg1[1];
-							if (((v_int1 >= 0) && (v_int1 < 256))) {
-								v_output = v_buildCommonString(String.fromCharCode(v_int1));
+						arg1 = valueStack[--valueStackSize];
+						output = null;
+						if ((arg1[0] == 3)) {
+							int1 = arg1[1];
+							if (((int1 >= 0) && (int1 < 256))) {
+								output = buildCommonString(globals, String.fromCharCode(int1));
 							}
 						}
-						if ((v_output == null)) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "chr requires an integer between 0 and 255.");
+						if ((output == null)) {
+							hasInterrupt = EX_InvalidArgument(ec, "chr requires an integer between 0 and 255.");
 						}
 						break;
 					case 9:
 						// ord;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = null;
-						if ((v_arg1[0] == 5)) {
-							v_string1 = v_arg1[1];
-							if ((v_string1.length == 1)) {
-								v_output = v_buildInteger(v_string1.charCodeAt(0));
+						arg1 = valueStack[--valueStackSize];
+						output = null;
+						if ((arg1[0] == 5)) {
+							string1 = arg1[1];
+							if ((string1.length == 1)) {
+								output = buildInteger(globals, string1.charCodeAt(0));
 							}
 						}
-						if ((v_output == null)) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "ord requires a 1 character string.");
+						if ((output == null)) {
+							hasInterrupt = EX_InvalidArgument(ec, "ord requires a 1 character string.");
 						}
 						break;
 					case 10:
 						// currentTime;
-						v_output = v_buildFloat(C$common$now());
+						output = buildFloat(globals, ((Date.now ? Date.now() : new Date().getTime()) / 1000.0));
 						break;
 					case 11:
 						// sortList;
-						v_valueStackSize -= 2;
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_output = v_VALUE_NULL;
-						v_list1 = v_arg1[1];
-						v_list2 = v_arg2[1];
-						v_sortLists(v_list2, v_list1, C$common$intBuffer16);
-						if ((C$common$intBuffer16[0] > 0)) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Invalid sort keys. Keys must be all numbers or all strings, but not mixed.");
+						valueStackSize -= 2;
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						output = VALUE_NULL;
+						list1 = arg1[1];
+						list2 = arg2[1];
+						sortLists(list2, list1, PST$intBuffer16);
+						if ((PST$intBuffer16[0] > 0)) {
+							hasInterrupt = EX_InvalidArgument(ec, "Invalid sort keys. Keys must be all numbers or all strings, but not mixed.");
 						}
 						break;
 					case 12:
 						// abs;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = v_arg1;
-						if ((v_arg1[0] == 3)) {
-							if ((v_arg1[1] < 0)) {
-								v_output = v_buildInteger(-v_arg1[1]);
+						arg1 = valueStack[--valueStackSize];
+						output = arg1;
+						if ((arg1[0] == 3)) {
+							if ((arg1[1] < 0)) {
+								output = buildInteger(globals, -arg1[1]);
+							}
+						} else if ((arg1[0] == 4)) {
+							if ((arg1[1] < 0)) {
+								output = buildFloat(globals, -arg1[1]);
 							}
 						} else {
-							if ((v_arg1[0] == 4)) {
-								if ((v_arg1[1] < 0)) {
-									v_output = v_buildFloat(-v_arg1[1]);
-								}
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "abs requires a number as input.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "abs requires a number as input.");
 						}
 						break;
 					case 13:
 						// arcCos;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "arccos requires a number as input.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "arccos requires a number as input.");
 						}
-						if (!v_hasInterrupt) {
-							if (((v_float1 < -1) || (v_float1 > 1))) {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "arccos requires a number in the range of -1 to 1.");
+						if (!hasInterrupt) {
+							if (((float1 < -1) || (float1 > 1))) {
+								hasInterrupt = EX_InvalidArgument(ec, "arccos requires a number in the range of -1 to 1.");
 							} else {
-								v_output = v_buildFloat(Math.acos(v_float1));
+								output = buildFloat(globals, Math.acos(float1));
 							}
 						}
 						break;
 					case 14:
 						// arcSin;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "arcsin requires a number as input.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "arcsin requires a number as input.");
 						}
-						if (!v_hasInterrupt) {
-							if (((v_float1 < -1) || (v_float1 > 1))) {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "arcsin requires a number in the range of -1 to 1.");
+						if (!hasInterrupt) {
+							if (((float1 < -1) || (float1 > 1))) {
+								hasInterrupt = EX_InvalidArgument(ec, "arcsin requires a number in the range of -1 to 1.");
 							} else {
-								v_output = v_buildFloat(Math.asin(v_float1));
+								output = buildFloat(globals, Math.asin(float1));
 							}
 						}
 						break;
 					case 15:
 						// arcTan;
-						v_valueStackSize -= 2;
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_bool1 = false;
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						valueStackSize -= 2;
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						bool1 = false;
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if ((v_arg2[0] == 4)) {
-							v_float2 = v_arg2[1];
+						if ((arg2[0] == 4)) {
+							float2 = arg2[1];
+						} else if ((arg2[0] == 3)) {
+							float2 = (0.0 + arg2[1]);
 						} else {
-							if ((v_arg2[0] == 3)) {
-								v_float2 = (0.0 + v_arg2[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if (v_bool1) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "arctan requires numeric arguments.");
+						if (bool1) {
+							hasInterrupt = EX_InvalidArgument(ec, "arctan requires numeric arguments.");
 						} else {
-							v_output = v_buildFloat(Math.atan2(v_float1, v_float2));
+							output = buildFloat(globals, Math.atan2(float1, float2));
 						}
 						break;
 					case 16:
 						// cos;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
-							v_output = v_buildFloat(Math.cos(v_float1));
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+							output = buildFloat(globals, Math.cos(float1));
+						} else if ((arg1[0] == 3)) {
+							int1 = arg1[1];
+							output = buildFloat(globals, Math.cos(int1));
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_int1 = v_arg1[1];
-								v_output = v_buildFloat(Math.cos(v_int1));
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "cos requires a number argument.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "cos requires a number argument.");
 						}
 						break;
 					case 17:
 						// ensureRange;
-						v_valueStackSize -= 3;
-						v_arg3 = v_valueStack[(v_valueStackSize + 2)];
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_bool1 = false;
-						if ((v_arg2[0] == 4)) {
-							v_float2 = v_arg2[1];
+						valueStackSize -= 3;
+						arg3 = valueStack[(valueStackSize + 2)];
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						bool1 = false;
+						if ((arg2[0] == 4)) {
+							float2 = arg2[1];
+						} else if ((arg2[0] == 3)) {
+							float2 = (0.0 + arg2[1]);
 						} else {
-							if ((v_arg2[0] == 3)) {
-								v_float2 = (0.0 + v_arg2[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if ((v_arg3[0] == 4)) {
-							v_float3 = v_arg3[1];
+						if ((arg3[0] == 4)) {
+							float3 = arg3[1];
+						} else if ((arg3[0] == 3)) {
+							float3 = (0.0 + arg3[1]);
 						} else {
-							if ((v_arg3[0] == 3)) {
-								v_float3 = (0.0 + v_arg3[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if ((!v_bool1 && (v_float3 < v_float2))) {
-							v_float1 = v_float3;
-							v_float3 = v_float2;
-							v_float2 = v_float1;
-							v_value = v_arg2;
-							v_arg2 = v_arg3;
-							v_arg3 = v_value;
+						if ((!bool1 && (float3 < float2))) {
+							float1 = float3;
+							float3 = float2;
+							float2 = float1;
+							value = arg2;
+							arg2 = arg3;
+							arg3 = value;
 						}
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if (v_bool1) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "ensureRange requires numeric arguments.");
+						if (bool1) {
+							hasInterrupt = EX_InvalidArgument(ec, "ensureRange requires numeric arguments.");
+						} else if ((float1 < float2)) {
+							output = arg2;
+						} else if ((float1 > float3)) {
+							output = arg3;
 						} else {
-							if ((v_float1 < v_float2)) {
-								v_output = v_arg2;
-							} else {
-								if ((v_float1 > v_float3)) {
-									v_output = v_arg3;
-								} else {
-									v_output = v_arg1;
-								}
-							}
+							output = arg1;
 						}
 						break;
 					case 18:
 						// floor;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
-							v_int1 = Math.floor(v_float1);
-							if ((v_int1 < 2049)) {
-								if ((v_int1 >= 0)) {
-									v_output = v_INTEGER_POSITIVE_CACHE[v_int1];
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+							int1 = Math.floor(float1);
+							if ((int1 < 2049)) {
+								if ((int1 >= 0)) {
+									output = INTEGER_POSITIVE_CACHE[int1];
+								} else if ((int1 > -257)) {
+									output = INTEGER_NEGATIVE_CACHE[-int1];
 								} else {
-									if ((v_int1 > -257)) {
-										v_output = v_INTEGER_NEGATIVE_CACHE[-v_int1];
-									} else {
-										v_output = [3, v_int1];
-									}
+									output = [3, int1];
 								}
 							} else {
-								v_output = [3, v_int1];
+								output = [3, int1];
 							}
+						} else if ((arg1[0] == 3)) {
+							output = arg1;
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_output = v_arg1;
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "floor expects a numeric argument.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "floor expects a numeric argument.");
 						}
 						break;
 					case 19:
 						// max;
-						v_valueStackSize -= 2;
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_bool1 = false;
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						valueStackSize -= 2;
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						bool1 = false;
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if ((v_arg2[0] == 4)) {
-							v_float2 = v_arg2[1];
+						if ((arg2[0] == 4)) {
+							float2 = arg2[1];
+						} else if ((arg2[0] == 3)) {
+							float2 = (0.0 + arg2[1]);
 						} else {
-							if ((v_arg2[0] == 3)) {
-								v_float2 = (0.0 + v_arg2[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if (v_bool1) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "max requires numeric arguments.");
+						if (bool1) {
+							hasInterrupt = EX_InvalidArgument(ec, "max requires numeric arguments.");
+						} else if ((float1 >= float2)) {
+							output = arg1;
 						} else {
-							if ((v_float1 >= v_float2)) {
-								v_output = v_arg1;
-							} else {
-								v_output = v_arg2;
-							}
+							output = arg2;
 						}
 						break;
 					case 20:
 						// min;
-						v_valueStackSize -= 2;
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_bool1 = false;
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						valueStackSize -= 2;
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						bool1 = false;
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if ((v_arg2[0] == 4)) {
-							v_float2 = v_arg2[1];
+						if ((arg2[0] == 4)) {
+							float2 = arg2[1];
+						} else if ((arg2[0] == 3)) {
+							float2 = (0.0 + arg2[1]);
 						} else {
-							if ((v_arg2[0] == 3)) {
-								v_float2 = (0.0 + v_arg2[1]);
-							} else {
-								v_bool1 = true;
-							}
+							bool1 = true;
 						}
-						if (v_bool1) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "min requires numeric arguments.");
+						if (bool1) {
+							hasInterrupt = EX_InvalidArgument(ec, "min requires numeric arguments.");
+						} else if ((float1 <= float2)) {
+							output = arg1;
 						} else {
-							if ((v_float1 <= v_float2)) {
-								v_output = v_arg1;
-							} else {
-								v_output = v_arg2;
-							}
+							output = arg2;
 						}
 						break;
 					case 21:
 						// nativeInt;
-						v_valueStackSize -= 2;
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_output = v_buildInteger((v_arg1[1])[3][v_arg2[1]]);
+						valueStackSize -= 2;
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						output = buildInteger(globals, (arg1[1])[3][arg2[1]]);
 						break;
 					case 22:
 						// nativeString;
-						v_valueStackSize -= 3;
-						v_arg3 = v_valueStack[(v_valueStackSize + 2)];
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_string1 = (v_arg1[1])[3][v_arg2[1]];
-						if (v_arg3[1]) {
-							v_output = v_buildCommonString(v_string1);
+						valueStackSize -= 3;
+						arg3 = valueStack[(valueStackSize + 2)];
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						string1 = (arg1[1])[3][arg2[1]];
+						if (arg3[1]) {
+							output = buildCommonString(globals, string1);
 						} else {
-							v_output = v_buildString(v_string1);
+							output = buildString(globals, string1);
 						}
 						break;
 					case 23:
 						// sign;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] == 3)) {
-							v_float1 = (0.0 + (v_arg1[1]));
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] == 3)) {
+							float1 = (0.0 + (arg1[1]));
+						} else if ((arg1[0] == 4)) {
+							float1 = arg1[1];
 						} else {
-							if ((v_arg1[0] == 4)) {
-								v_float1 = v_arg1[1];
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "sign requires a number as input.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "sign requires a number as input.");
 						}
-						if ((v_float1 == 0)) {
-							v_output = v_VALUE_INT_ZERO;
+						if ((float1 == 0)) {
+							output = VALUE_INT_ZERO;
+						} else if ((float1 > 0)) {
+							output = VALUE_INT_ONE;
 						} else {
-							if ((v_float1 > 0)) {
-								v_output = v_VALUE_INT_ONE;
-							} else {
-								v_output = v_VALUE_INT_NEG_ONE;
-							}
+							output = INTEGER_NEGATIVE_CACHE[1];
 						}
 						break;
 					case 24:
 						// sin;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "sin requires a number argument.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "sin requires a number argument.");
 						}
-						v_output = v_buildFloat(Math.sin(v_float1));
+						output = buildFloat(globals, Math.sin(float1));
 						break;
 					case 25:
 						// tan;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "tan requires a number argument.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "tan requires a number argument.");
 						}
-						if (!v_hasInterrupt) {
-							v_float2 = Math.cos(v_float1);
-							if ((v_float2 < 0)) {
-								v_float2 = -v_float2;
+						if (!hasInterrupt) {
+							float2 = Math.cos(float1);
+							if ((float2 < 0)) {
+								float2 = -float2;
 							}
-							if ((v_float2 < 0.00000000015)) {
-								v_hasInterrupt = v_EX_DivisionByZero(v_ec, "Tangent is undefined.");
+							if ((float2 < 0.00000000015)) {
+								hasInterrupt = EX_DivisionByZero(ec, "Tangent is undefined.");
 							} else {
-								v_output = v_buildFloat(Math.tan(v_float1));
+								output = buildFloat(globals, Math.tan(float1));
 							}
 						}
 						break;
 					case 26:
 						// log;
-						v_valueStackSize -= 2;
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						if ((v_arg1[0] == 4)) {
-							v_float1 = v_arg1[1];
+						valueStackSize -= 2;
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						if ((arg1[0] == 4)) {
+							float1 = arg1[1];
+						} else if ((arg1[0] == 3)) {
+							float1 = (0.0 + arg1[1]);
 						} else {
-							if ((v_arg1[0] == 3)) {
-								v_float1 = (0.0 + v_arg1[1]);
-							} else {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "logarithms require a number argument.");
-							}
+							hasInterrupt = EX_InvalidArgument(ec, "logarithms require a number argument.");
 						}
-						if (!v_hasInterrupt) {
-							if ((v_float1 <= 0)) {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "logarithms require positive inputs.");
+						if (!hasInterrupt) {
+							if ((float1 <= 0)) {
+								hasInterrupt = EX_InvalidArgument(ec, "logarithms require positive inputs.");
 							} else {
-								v_output = v_buildFloat(v_fixFuzzyFloatPrecision((Math.log(v_float1) * v_arg2[1])));
+								output = buildFloat(globals, fixFuzzyFloatPrecision((Math.log(float1) * arg2[1])));
 							}
 						}
 						break;
 					case 27:
 						// intQueueClear;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = v_VALUE_NULL;
-						v_objInstance1 = v_arg1[1];
-						if ((v_objInstance1[3] != null)) {
-							v_objInstance1[3][1] = 0;
+						arg1 = valueStack[--valueStackSize];
+						output = VALUE_NULL;
+						objInstance1 = arg1[1];
+						if ((objInstance1[3] != null)) {
+							objInstance1[3][1] = 0;
 						}
 						break;
 					case 28:
 						// intQueueWrite16;
-						v_output = v_VALUE_NULL;
-						v_int1 = v_row[2];
-						v_valueStackSize -= (v_int1 + 1);
-						v_value = v_valueStack[v_valueStackSize];
-						v_objArray1 = (v_value[1])[3];
-						v_intArray1 = v_objArray1[0];
-						v_len = v_objArray1[1];
-						if ((v_len >= v_intArray1.length)) {
-							v_intArray2 = C$common$createNewArray(((v_len * 2) + 16));
-							v_j = 0;
-							while ((v_j < v_len)) {
-								v_intArray2[v_j] = v_intArray1[v_j];
-								v_j += 1;
+						output = VALUE_NULL;
+						int1 = row[2];
+						valueStackSize -= (int1 + 1);
+						value = valueStack[valueStackSize];
+						objArray1 = (value[1])[3];
+						intArray1 = objArray1[0];
+						_len = objArray1[1];
+						if ((_len >= intArray1.length)) {
+							intArray2 = PST$createNewArray(((_len * 2) + 16));
+							j = 0;
+							while ((j < _len)) {
+								intArray2[j] = intArray1[j];
+								j += 1;
 							}
-							v_intArray1 = v_intArray2;
-							v_objArray1[0] = v_intArray1;
+							intArray1 = intArray2;
+							objArray1[0] = intArray1;
 						}
-						v_objArray1[1] = (v_len + 16);
-						v_i = (v_int1 - 1);
-						while ((v_i >= 0)) {
-							v_value = v_valueStack[((v_valueStackSize + 1) + v_i)];
-							if ((v_value[0] == 3)) {
-								v_intArray1[(v_len + v_i)] = v_value[1];
+						objArray1[1] = (_len + 16);
+						i = (int1 - 1);
+						while ((i >= 0)) {
+							value = valueStack[((valueStackSize + 1) + i)];
+							if ((value[0] == 3)) {
+								intArray1[(_len + i)] = value[1];
+							} else if ((value[0] == 4)) {
+								float1 = (0.5 + value[1]);
+								intArray1[(_len + i)] = Math.floor(float1);
 							} else {
-								if ((v_value[0] == 4)) {
-									v_float1 = (0.5 + v_value[1]);
-									v_intArray1[(v_len + v_i)] = Math.floor(v_float1);
-								} else {
-									v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Input must be integers.");
-									v_i = -1;
-								}
+								hasInterrupt = EX_InvalidArgument(ec, "Input must be integers.");
+								i = -1;
 							}
-							v_i -= 1;
+							i -= 1;
 						}
 						break;
 					case 29:
 						// execCounter;
-						v_output = v_buildInteger(v_ec[8]);
+						output = buildInteger(globals, ec[8]);
 						break;
 					case 30:
 						// sleep;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_float1 = v_getFloat(v_arg1);
-						if ((v_row[1] == 1)) {
-							if ((v_valueStackSize == v_valueStackCapacity)) {
-								v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-								v_valueStackCapacity = v_valueStack.length;
+						arg1 = valueStack[--valueStackSize];
+						float1 = getFloat(arg1);
+						if ((row[1] == 1)) {
+							if ((valueStackSize == valueStackCapacity)) {
+								valueStack = valueStackIncreaseCapacity(ec);
+								valueStackCapacity = valueStack.length;
 							}
-							v_valueStack[v_valueStackSize] = v_VALUE_NULL;
-							v_valueStackSize += 1;
+							valueStack[valueStackSize] = VALUE_NULL;
+							valueStackSize += 1;
 						}
-						v_prepareToSuspend(v_ec, v_stack, v_valueStackSize, v_pc);
-						C$common$enqueueVmResume(v_float1, v_ec[0]);
-						if ((v_ec[0] > -1)) {
-							// If statement to circumvent unreachable code error in translator.;
-							return v_suspendInterpreterWithLock();
-						}
+						prepareToSuspend(ec, stack, valueStackSize, pc);
+						ec[13] = [3, 0, "", float1, null];
+						hasInterrupt = true;
 						break;
 					case 31:
 						// projectId;
-						v_output = v_buildCommonString(v_p[28]);
+						output = buildCommonString(globals, metadata[17]);
 						break;
 					case 32:
 						// isJavaScript;
-						v_output = v_VALUE_TRUE;
+						output = VALUE_TRUE;
 						break;
 					case 33:
 						// isAndroid;
-						v_output = v_VALUE_FALSE;
+						output = VALUE_FALSE;
 						break;
 					case 34:
 						// allocNativeData;
-						v_valueStackSize -= 2;
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						v_objInstance1 = v_arg1[1];
-						v_int1 = v_arg2[1];
-						v_objArray1 = C$common$createNewArray(v_int1);
-						v_objInstance1[3] = v_objArray1;
+						valueStackSize -= 2;
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						objInstance1 = arg1[1];
+						int1 = arg2[1];
+						objArray1 = PST$createNewArray(int1);
+						objInstance1[3] = objArray1;
 						break;
 					case 35:
 						// setNativeData;
-						v_valueStackSize -= 3;
-						v_arg3 = v_valueStack[(v_valueStackSize + 2)];
-						v_arg2 = v_valueStack[(v_valueStackSize + 1)];
-						v_arg1 = v_valueStack[v_valueStackSize];
-						(v_arg1[1])[3][v_arg2[1]] = v_arg3[1];
+						valueStackSize -= 3;
+						arg3 = valueStack[(valueStackSize + 2)];
+						arg2 = valueStack[(valueStackSize + 1)];
+						arg1 = valueStack[valueStackSize];
+						(arg1[1])[3][arg2[1]] = arg3[1];
 						break;
 					case 36:
 						// getExceptionTrace;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_intList1 = v_getNativeDataItem(v_arg1, 1);
-						v_list1 = [];
-						v_output = [6, v_list1];
-						if ((v_intList1 != null)) {
-							v_stringList1 = v_tokenHelperConvertPcsToStackTraceStrings(v_intList1);
-							v_i = 0;
-							while ((v_i < v_stringList1.length)) {
-								v_list1.push(v_buildString(v_stringList1[v_i]));
-								v_i += 1;
+						arg1 = valueStack[--valueStackSize];
+						intList1 = getNativeDataItem(arg1, 1);
+						list1 = makeEmptyList(globals[14], 20);
+						output = [6, list1];
+						if ((intList1 != null)) {
+							stringList1 = tokenHelperConvertPcsToStackTraceStrings(vm, intList1);
+							i = 0;
+							while ((i < stringList1.length)) {
+								addToList(list1, buildString(globals, stringList1[i]));
+								i += 1;
 							}
-							v_list1.reverse();
+							reverseList(list1);
 						}
 						break;
 					case 37:
 						// reflectAllClasses;
-						v_output = v_Reflect_allClasses();
+						output = Reflect_allClasses(vm);
 						break;
 					case 38:
 						// reflectGetMethods;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_output = v_Reflect_getMethods(v_ec, v_arg1);
-						v_hasInterrupt = (v_ec[13] != null);
+						arg1 = valueStack[--valueStackSize];
+						output = Reflect_getMethods(vm, ec, arg1);
+						hasInterrupt = (ec[13] != null);
 						break;
 					case 39:
 						// reflectGetClass;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						if ((v_arg1[0] != 8)) {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Cannot get class from non-instance types.");
+						arg1 = valueStack[--valueStackSize];
+						if ((arg1[0] != 8)) {
+							hasInterrupt = EX_InvalidArgument(ec, "Cannot get class from non-instance types.");
 						} else {
-							v_objInstance1 = v_arg1[1];
-							v_output = [10, [false, v_objInstance1[0]]];
+							objInstance1 = arg1[1];
+							output = [10, [false, objInstance1[0]]];
 						}
 						break;
 					case 40:
 						// convertFloatArgsToInts;
-						v_int1 = v_stack[3];
-						v_i = v_localsStackOffset;
-						while ((v_i < v_int1)) {
-							v_value = v_localsStack[v_i];
-							if ((v_localsStackSet[v_i] != v_localsStackSetToken)) {
-								v_i += v_int1;
-							} else {
-								if ((v_value[0] == 4)) {
-									v_float1 = v_value[1];
-									v_int2 = Math.floor(v_float1);
-									if (((v_int2 >= 0) && (v_int2 < 2049))) {
-										v_localsStack[v_i] = v_INTEGER_POSITIVE_CACHE[v_int2];
-									} else {
-										v_localsStack[v_i] = v_buildInteger(v_int2);
-									}
+						int1 = stack[3];
+						i = localsStackOffset;
+						while ((i < int1)) {
+							value = localsStack[i];
+							if ((localsStackSet[i] != localsStackSetToken)) {
+								i += int1;
+							} else if ((value[0] == 4)) {
+								float1 = value[1];
+								int2 = Math.floor(float1);
+								if (((int2 >= 0) && (int2 < 2049))) {
+									localsStack[i] = INTEGER_POSITIVE_CACHE[int2];
+								} else {
+									localsStack[i] = buildInteger(globals, int2);
 								}
 							}
-							v_i += 1;
+							i += 1;
 						}
 						break;
 					case 41:
 						// addShutdownHandler;
-						v_arg1 = v_valueStack[--v_valueStackSize];
-						v_p[39].push(v_arg1);
+						arg1 = valueStack[--valueStackSize];
+						vm[10].push(arg1);
 						break;
 				}
-				if ((v_row[1] == 1)) {
-					if ((v_valueStackSize == v_valueStackCapacity)) {
-						v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-						v_valueStackCapacity = v_valueStack.length;
+				if ((row[1] == 1)) {
+					if ((valueStackSize == valueStackCapacity)) {
+						valueStack = valueStackIncreaseCapacity(ec);
+						valueStackCapacity = valueStack.length;
 					}
-					v_valueStack[v_valueStackSize] = v_output;
-					v_valueStackSize += 1;
+					valueStack[valueStackSize] = output;
+					valueStackSize += 1;
 				}
 				break;
 			case 20:
-				// DEF_DICT;
-				v_dictIntKeyLookup = {};
-				v_dictIntValueLookup = {};
-				v_dictStringKeyLookup = {};
-				v_dictStringValueLookup = {};
-				v_len = v_row[0];
-				v_type = 3;
-				v_first = true;
-				v_i = v_len;
-				while ((v_i > 0)) {
-					v_valueStackSize -= 2;
-					v_value = v_valueStack[(v_valueStackSize + 1)];
-					v_value2 = v_valueStack[v_valueStackSize];
-					if (v_first) {
-						v_type = v_value2[0];
-						v_first = false;
-					} else {
-						if ((v_type != v_value2[0])) {
-							v_hasInterrupt = v_EX_InvalidKey(v_ec, "Cannot have multiple key types in one dictionary.");
-						}
-					}
-					if (!v_hasInterrupt) {
-						if ((v_type == 3)) {
-							v_intKey = v_value2[1];
-						} else {
-							if ((v_type == 5)) {
-								v_stringKey = v_value2[1];
-							} else {
-								if ((v_type == 8)) {
-									v_objInstance1 = v_value2[1];
-									v_intKey = v_objInstance1[1];
-								} else {
-									v_hasInterrupt = v_EX_InvalidKey(v_ec, "Only integers, strings, and objects can be used as dictionary keys.");
-								}
-							}
-						}
-					}
-					if (!v_hasInterrupt) {
-						if ((v_type == 5)) {
-							v_dictStringKeyLookup[v_stringKey] = v_value2;
-							v_dictStringValueLookup[v_stringKey] = v_value;
-						} else {
-							v_dictIntKeyLookup[v_intKey] = v_value2;
-							v_dictIntValueLookup[v_intKey] = v_value;
-						}
-						v_i -= 1;
-					}
-				}
-				if (!v_hasInterrupt) {
-					if ((v_type == 5)) {
-						if ((Object.keys(v_dictStringKeyLookup).length != v_len)) {
-							v_hasInterrupt = v_EX_InvalidKey(v_ec, "Key collision");
-						}
-					} else {
-						if ((Object.keys(v_dictIntKeyLookup).length != v_len)) {
-							v_hasInterrupt = v_EX_InvalidKey(v_ec, "Key collision");
-						}
-					}
-				}
-				if (!v_hasInterrupt) {
-					v_value = [7, [v_dictIntKeyLookup, v_dictIntValueLookup, v_dictStringKeyLookup, v_dictStringValueLookup, v_len, v_type]];
-					if ((v_valueStackSize == v_valueStackCapacity)) {
-						v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-						v_valueStackCapacity = v_valueStack.length;
-					}
-					v_valueStack[v_valueStackSize] = v_value;
-					v_valueStackSize += 1;
-				}
+				// DEBUG_SYMBOLS;
+				applyDebugSymbolData(vm, row, stringArgs[pc], metadata[22]);
 				break;
 			case 21:
-				// DEF_LIST;
-				v_int1 = v_row[0];
-				v_list1 = [];
-				while ((v_int1 > 0)) {
-					v_valueStackSize -= 1;
-					v_list1.push(v_valueStack[v_valueStackSize]);
-					v_int1 -= 1;
+				// DEF_DICT;
+				intIntDict1 = {};
+				stringIntDict1 = {};
+				valueList2 = [];
+				valueList1 = [];
+				_len = row[0];
+				type = 3;
+				first = true;
+				i = _len;
+				while ((i > 0)) {
+					valueStackSize -= 2;
+					value = valueStack[(valueStackSize + 1)];
+					value2 = valueStack[valueStackSize];
+					if (first) {
+						type = value2[0];
+						first = false;
+					} else if ((type != value2[0])) {
+						hasInterrupt = EX_InvalidKey(ec, "Dictionary keys must be of the same type.");
+					}
+					if (!hasInterrupt) {
+						if ((type == 3)) {
+							intKey = value2[1];
+						} else if ((type == 5)) {
+							stringKey = value2[1];
+						} else if ((type == 8)) {
+							objInstance1 = value2[1];
+							intKey = objInstance1[1];
+						} else {
+							hasInterrupt = EX_InvalidKey(ec, "Only integers, strings, and objects can be used as dictionary keys.");
+						}
+					}
+					if (!hasInterrupt) {
+						if ((type == 5)) {
+							stringIntDict1[stringKey] = valueList1.length;
+						} else {
+							intIntDict1[intKey] = valueList1.length;
+						}
+						valueList2.push(value2);
+						valueList1.push(value);
+						i -= 1;
+					}
 				}
-				v_list1.reverse();
-				v_value = [6, v_list1];
-				if ((v_valueStackSize == v_valueStackCapacity)) {
-					v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-					v_valueStackCapacity = v_valueStack.length;
+				if (!hasInterrupt) {
+					if ((type == 5)) {
+						i = Object.keys(stringIntDict1).length;
+					} else {
+						i = Object.keys(intIntDict1).length;
+					}
+					if ((i != _len)) {
+						hasInterrupt = EX_InvalidKey(ec, "Key collision");
+					}
 				}
-				v_valueStack[v_valueStackSize] = v_value;
-				v_valueStackSize += 1;
-				break;
-			case 19:
-				// DEF_ORIGINAL_CODE;
-				v_defOriginalCodeImpl(v_row, v_p[4][v_pc]);
+				if (!hasInterrupt) {
+					i = row[1];
+					classId = 0;
+					if ((i > 0)) {
+						type = row[2];
+						if ((type == 8)) {
+							classId = row[3];
+						}
+						int1 = row.length;
+						intArray1 = PST$createNewArray((int1 - i));
+						while ((i < int1)) {
+							intArray1[(i - row[1])] = row[i];
+							i += 1;
+						}
+					} else {
+						intArray1 = null;
+					}
+					if ((valueStackSize == valueStackCapacity)) {
+						valueStack = valueStackIncreaseCapacity(ec);
+						valueStackCapacity = valueStack.length;
+					}
+					valueStack[valueStackSize] = [7, [_len, type, classId, intArray1, intIntDict1, stringIntDict1, valueList2, valueList1]];
+					valueStackSize += 1;
+				}
 				break;
 			case 22:
-				// DEREF_DOT;
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				v_nameId = v_row[0];
-				switch (v_value[0]) {
-					case 8:
-						v_objInstance1 = v_value[1];
-						v_classInfo = v_classTable[v_objInstance1[0]];
-						v_intIntDict1 = v_classInfo[11];
-						if ((v_intIntDict1[v_nameId] !== undefined)) {
-							v_int1 = v_intIntDict1[v_nameId];
-							v_functionId = v_classInfo[8][v_int1];
-							if ((v_functionId == -1)) {
-								v_output = v_objInstance1[2][v_int1];
-							} else {
-								v_output = [9, [2, v_value, v_objInstance1[0], v_functionId]];
-							}
-						} else {
-							v_output = null;
-						}
-						break;
-					case 5:
-						if ((v_p[25] == v_nameId)) {
-							v_int2 = (v_value[1]).length;
-							v_output = v_buildInteger(v_int2);
-						} else {
-							v_output = null;
-						}
-						break;
-					case 6:
-						if ((v_p[25] == v_nameId)) {
-							v_int2 = (v_value[1]).length;
-							v_output = v_buildInteger(v_int2);
-						} else {
-							v_output = null;
-						}
-						break;
-					case 7:
-						if ((v_p[25] == v_nameId)) {
-							v_dictImpl = v_value[1];
-							v_output = v_buildInteger(v_dictImpl[4]);
-						} else {
-							v_output = null;
-						}
-						break;
-					default:
-						if ((v_value[0] == 1)) {
-							v_hasInterrupt = v_EX_NullReference(v_ec, "Derferenced a field from null.");
-							v_output = v_VALUE_NULL;
-						} else {
-							v_output = null;
-						}
-						break;
-				}
-				if ((v_output == null)) {
-					v_output = v_generatePrimitiveMethodReference(v_globalNameIdToPrimitiveMethodName, v_nameId, v_value);
-					if ((v_output == null)) {
-						if ((v_value[0] == 1)) {
-							v_hasInterrupt = v_EX_NullReference(v_ec, "Tried to dereference a field on null.");
-						} else {
-							if ((v_value[0] == 8)) {
-								v_objInstance1 = v_value[1];
-								v_classId = v_objInstance1[0];
-								v_classInfo = v_classTable[v_classId];
-								v_string1 = v_classInfo[12] + " instance";
-							} else {
-								v_string1 = v_getTypeFromId(v_value[0]);
-							}
-							v_hasInterrupt = v_EX_UnknownField(v_ec, v_string1 + " does not have that field.");
-						}
+				// DEF_LIST;
+				int1 = row[0];
+				list1 = makeEmptyList(null, int1);
+				if ((row[1] != 0)) {
+					list1[0] = PST$createNewArray((row.length - 1));
+					i = 1;
+					while ((i < row.length)) {
+						list1[0][(i - 1)] = row[i];
+						i += 1;
 					}
 				}
-				v_valueStack[(v_valueStackSize - 1)] = v_output;
+				list1[1] = int1;
+				while ((int1 > 0)) {
+					valueStackSize -= 1;
+					list1[2].push(valueStack[valueStackSize]);
+					int1 -= 1;
+				}
+				list1[2].reverse();
+				value = [6, list1];
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
+				}
+				valueStack[valueStackSize] = value;
+				valueStackSize += 1;
 				break;
 			case 23:
-				// DEREF_INSTANCE_FIELD;
-				v_value = v_stack[6];
-				v_objInstance1 = v_value[1];
-				v_value = v_objInstance1[2][v_row[0]];
-				if ((v_valueStackSize == v_valueStackCapacity)) {
-					v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-					v_valueStackCapacity = v_valueStack.length;
-				}
-				v_valueStack[v_valueStackSize++] = v_value;
+				// DEF_ORIGINAL_CODE;
+				defOriginalCodeImpl(vm, row, stringArgs[pc]);
 				break;
 			case 24:
-				// DEREF_STATIC_FIELD;
-				v_classInfo = v_classTable[v_row[0]];
-				v_staticConstructorNotInvoked = true;
-				if ((v_classInfo[3] < 2)) {
-					v_stack[0] = v_pc;
-					v_stackFrame2 = v_maybeInvokeStaticConstructor(v_p, v_ec, v_stack, v_classInfo, v_valueStackSize, C$common$intBuffer16);
-					if ((C$common$intBuffer16[0] == 1)) {
-						return v_generateException(v_stack, v_pc, v_valueStackSize, v_ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
-					}
-					if ((v_stackFrame2 != null)) {
-						v_staticConstructorNotInvoked = false;
-						v_stack = v_stackFrame2;
-						v_pc = v_stack[0];
-						v_localsStackSetToken = v_stack[1];
-						v_localsStackOffset = v_stack[2];
+				// DEREF_CLOSURE;
+				bool1 = true;
+				closure = stack[12];
+				i = row[0];
+				if (((closure != null) && (closure[i] !== undefined))) {
+					value = closure[i][0];
+					if ((value != null)) {
+						bool1 = false;
+						if ((valueStackSize == valueStackCapacity)) {
+							valueStack = valueStackIncreaseCapacity(ec);
+							valueStackCapacity = valueStack.length;
+						}
+						valueStack[valueStackSize++] = value;
 					}
 				}
-				if (v_staticConstructorNotInvoked) {
-					if ((v_valueStackSize == v_valueStackCapacity)) {
-						v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-						v_valueStackCapacity = v_valueStack.length;
-					}
-					v_valueStack[v_valueStackSize++] = v_classInfo[4][v_row[1]];
+				if (bool1) {
+					hasInterrupt = EX_UnassignedVariable(ec, "Variable used before it was set.");
 				}
 				break;
 			case 25:
-				// DUPLICATE_STACK_TOP;
-				if ((v_row[0] == 1)) {
-					v_value = v_valueStack[(v_valueStackSize - 1)];
-					if ((v_valueStackSize == v_valueStackCapacity)) {
-						v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-						v_valueStackCapacity = v_valueStack.length;
-					}
-					v_valueStack[v_valueStackSize++] = v_value;
-				} else {
-					if ((v_row[0] == 2)) {
-						if (((v_valueStackSize + 1) > v_valueStackCapacity)) {
-							v_valueStackIncreaseCapacity(v_ec);
-							v_valueStack = v_ec[4];
-							v_valueStackCapacity = v_valueStack.length;
-						}
-						v_valueStack[v_valueStackSize] = v_valueStack[(v_valueStackSize - 2)];
-						v_valueStack[(v_valueStackSize + 1)] = v_valueStack[(v_valueStackSize - 1)];
-						v_valueStackSize += 2;
-					} else {
-						v_hasInterrupt = v_EX_Fatal(v_ec, "?");
-					}
-				}
-				break;
-			case 26:
-				// EQUALS;
-				v_valueStackSize -= 2;
-				v_rightValue = v_valueStack[(v_valueStackSize + 1)];
-				v_leftValue = v_valueStack[v_valueStackSize];
-				if ((v_leftValue[0] == v_rightValue[0])) {
-					switch (v_leftValue[0]) {
-						case 1:
-							v_bool1 = true;
-							break;
-						case 2:
-							v_bool1 = (v_leftValue[1] == v_rightValue[1]);
-							break;
-						case 3:
-							v_bool1 = (v_leftValue[1] == v_rightValue[1]);
-							break;
-						case 5:
-							v_bool1 = (v_leftValue[1] == v_rightValue[1]);
-							break;
-						default:
-							v_bool1 = (v_doEqualityComparisonAndReturnCode(v_leftValue, v_rightValue) == 1);
-							break;
-					}
-				} else {
-					v_int1 = v_doEqualityComparisonAndReturnCode(v_leftValue, v_rightValue);
-					if ((v_int1 == 0)) {
-						v_bool1 = false;
-					} else {
-						if ((v_int1 == 1)) {
-							v_bool1 = true;
+				// DEREF_DOT;
+				value = valueStack[(valueStackSize - 1)];
+				nameId = row[0];
+				int2 = row[1];
+				switch (value[0]) {
+					case 8:
+						objInstance1 = value[1];
+						classId = objInstance1[0];
+						classInfo = classTable[classId];
+						if ((classId == row[4])) {
+							int1 = row[5];
 						} else {
-							v_hasInterrupt = v_EX_UnsupportedOperation(v_ec, "== and != not defined here.");
-						}
-					}
-				}
-				if ((v_valueStackSize == v_valueStackCapacity)) {
-					v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-					v_valueStackCapacity = v_valueStack.length;
-				}
-				if ((v_bool1 != ((v_row[0] == 1)))) {
-					v_valueStack[v_valueStackSize] = v_VALUE_TRUE;
-				} else {
-					v_valueStack[v_valueStackSize] = v_VALUE_FALSE;
-				}
-				v_valueStackSize += 1;
-				break;
-			case 27:
-				// ESF_LOOKUP;
-				v_esfData = v_generateEsfData(v_args.length, v_row);
-				v_p[29] = v_esfData;
-				break;
-			case 28:
-				// EXCEPTION_HANDLED_TOGGLE;
-				v_ec[9] = (v_row[0] == 1);
-				break;
-			case 29:
-				// FINALIZE_INITIALIZATION;
-				v_finalizeInitializationImpl(v_p[4][v_pc]);
-				v_libFunctionPointers = v_p[38];
-				v_identifiers = v_p[5];
-				v_literalTable = v_p[8];
-				v_integerSwitches = v_p[14];
-				v_stringSwitches = v_p[16];
-				v_globalNameIdToPrimitiveMethodName = v_p[23];
-				v_funcArgs = v_p[24];
-				break;
-			case 30:
-				// FINALLY_END;
-				v_value = v_ec[10];
-				if (((v_value == null) || v_ec[9])) {
-					switch (v_stack[10]) {
-						case 0:
-							v_ec[10] = null;
-							break;
-						case 1:
-							v_ec[10] = null;
-							v_int1 = v_row[0];
-							if ((v_int1 == 1)) {
-								v_pc += v_row[1];
-							} else {
-								if ((v_int1 == 2)) {
-									v_intArray1 = v_esfData[v_pc];
-									v_pc = v_intArray1[1];
-								} else {
-									v_hasInterrupt = v_EX_Fatal(v_ec, "break exists without a loop");
-								}
-							}
-							break;
-						case 2:
-							v_ec[10] = null;
-							v_int1 = v_row[2];
-							if ((v_int1 == 1)) {
-								v_pc += v_row[3];
-							} else {
-								if ((v_int1 == 2)) {
-									v_intArray1 = v_esfData[v_pc];
-									v_pc = v_intArray1[1];
-								} else {
-									v_hasInterrupt = v_EX_Fatal(v_ec, "continue exists without a loop");
-								}
-							}
-							break;
-						case 3:
-							if ((v_stack[8] != 0)) {
-								v_markClassAsInitialized(v_stack, v_stack[8]);
-							}
-							if (v_stack[5]) {
-								v_valueStackSize = v_stack[7];
-								v_value = v_stack[11];
-								v_stack = v_stack[4];
-								if ((v_valueStackSize == v_valueStackCapacity)) {
-									v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-									v_valueStackCapacity = v_valueStack.length;
-								}
-								v_valueStack[v_valueStackSize] = v_value;
-								v_valueStackSize += 1;
-							} else {
-								v_valueStackSize = v_stack[7];
-								v_stack = v_stack[4];
-							}
-							v_pc = v_stack[0];
-							v_localsStackOffset = v_stack[2];
-							v_localsStackSetToken = v_stack[1];
-							break;
-					}
-				} else {
-					v_ec[9] = false;
-					v_stack[0] = v_pc;
-					v_intArray1 = v_esfData[v_pc];
-					v_value = v_ec[10];
-					v_objInstance1 = v_value[1];
-					v_objArray1 = v_objInstance1[3];
-					v_bool1 = v_objArray1[0];
-					v_intList1 = v_objArray1[1];
-					while (((v_stack != null) && ((v_intArray1 == null) || v_bool1))) {
-						v_stack = v_stack[4];
-						if ((v_stack != null)) {
-							v_pc = v_stack[0];
-							v_intList1.push(v_pc);
-							v_intArray1 = v_esfData[v_pc];
-						}
-					}
-					if ((v_stack == null)) {
-						return v_uncaughtExceptionResult(v_value);
-					}
-					v_int1 = v_intArray1[0];
-					if ((v_int1 < v_pc)) {
-						v_int1 = v_intArray1[1];
-					}
-					v_pc = (v_int1 - 1);
-					v_stack[0] = v_pc;
-					v_localsStackOffset = v_stack[2];
-					v_localsStackSetToken = v_stack[1];
-					v_ec[1] = v_stack;
-					v_stack[10] = 0;
-					v_ec[2] = v_valueStackSize;
-				}
-				break;
-			case 31:
-				// FUNCTION_DEFINITION;
-				v_pc += v_initializeFunction(v_p, v_row, v_pc, v_stringArgs[v_pc]);
-				v_functionTable = v_p[21];
-				break;
-			case 32:
-				// INDEX;
-				v_value = v_valueStack[--v_valueStackSize];
-				v_root = v_valueStack[(v_valueStackSize - 1)];
-				if ((v_root[0] == 6)) {
-					if ((v_value[0] != 3)) {
-						v_hasInterrupt = v_EX_InvalidArgument(v_ec, "List index must be an integer.");
-					} else {
-						v_i = v_value[1];
-						v_list1 = v_root[1];
-						if ((v_i < 0)) {
-							v_i += v_list1.length;
-						}
-						if (((v_i < 0) || (v_i >= v_list1.length))) {
-							v_hasInterrupt = v_EX_IndexOutOfRange(v_ec, "List index is out of bounds");
-						} else {
-							v_valueStack[(v_valueStackSize - 1)] = v_list1[v_i];
-						}
-					}
-				} else {
-					if ((v_root[0] == 7)) {
-						v_dictImpl = v_root[1];
-						v_keyType = v_value[0];
-						if ((v_keyType != v_dictImpl[5])) {
-							if ((v_dictImpl[4] == 0)) {
-								v_hasInterrupt = v_EX_KeyNotFound(v_ec, "Key not found. Dictionary is empty.");
-							} else {
-								v_hasInterrupt = v_EX_InvalidKey(v_ec, ["Incorrect key type. This dictionary contains ", v_getTypeFromId(v_dictImpl[5]), " keys. Provided key is a ", v_getTypeFromId(v_keyType), "."].join(''));
-							}
-						} else {
-							if ((v_keyType == 3)) {
-								v_intKey = v_value[1];
-							} else {
-								if ((v_keyType == 5)) {
-									v_stringKey = v_value[1];
-								} else {
-									if ((v_keyType == 8)) {
-										v_objInstance1 = v_value[1];
-										v_intKey = v_objInstance1[1];
+							intIntDict1 = classInfo[14];
+							int1 = intIntDict1[int2];
+							if (int1 === undefined) int1 = -1;
+							if ((int1 != -1)) {
+								int3 = classInfo[12][int1];
+								if ((int3 > 1)) {
+									if ((int3 == 2)) {
+										if ((classId != row[2])) {
+											int1 = -2;
+										}
 									} else {
-										if ((v_dictImpl[4] == 0)) {
-											v_hasInterrupt = v_EX_KeyNotFound(v_ec, "Key not found. Dictionary is empty.");
-										} else {
-											v_hasInterrupt = v_EX_KeyNotFound(v_ec, "Key not found.");
+										if (((int3 == 3) || (int3 == 5))) {
+											if ((classInfo[3] != row[3])) {
+												int1 = -3;
+											}
+										}
+										if (((int3 == 4) || (int3 == 5))) {
+											i = row[2];
+											if ((classId == i)) {
+											} else {
+												classInfo = classTable[classInfo[0]];
+												while (((classInfo[2] != -1) && (int1 < classTable[classInfo[2]][12].length))) {
+													classInfo = classTable[classInfo[2]];
+												}
+												j = classInfo[0];
+												if ((j != i)) {
+													bool1 = false;
+													while (((i != -1) && (classTable[i][2] != -1))) {
+														i = classTable[i][2];
+														if ((i == j)) {
+															bool1 = true;
+															i = -1;
+														}
+													}
+													if (!bool1) {
+														int1 = -4;
+													}
+												}
+											}
+											classInfo = classTable[classId];
 										}
 									}
 								}
-							}
-							if (!v_hasInterrupt) {
-								if ((v_keyType == 5)) {
-									v_dictStringValueLookup = v_dictImpl[3];
-									if ((v_dictStringValueLookup[v_stringKey] !== undefined)) {
-										v_output = v_dictStringValueLookup[v_stringKey];
-									} else {
-										v_hasInterrupt = v_EX_KeyNotFound(v_ec, ["Key not found: '", v_stringKey, "'"].join(''));
-									}
-								} else {
-									v_dictIntValueLookup = v_dictImpl[1];
-									if ((v_dictIntValueLookup[v_intKey] !== undefined)) {
-										v_output = v_dictIntValueLookup[v_intKey];
-									} else {
-										v_hasInterrupt = v_EX_KeyNotFound(v_ec, "Key not found.");
-									}
-								}
-								if (!v_hasInterrupt) {
-									if ((v_output == null)) {
-										v_hasInterrupt = v_EX_KeyNotFound(v_ec, "Key not found.");
-									} else {
-										v_valueStack[(v_valueStackSize - 1)] = v_output;
-									}
-								}
+								row[4] = objInstance1[0];
+								row[5] = int1;
 							}
 						}
-					} else {
-						if ((v_root[0] == 5)) {
-							v_string1 = v_root[1];
-							if ((v_value[0] != 3)) {
-								v_hasInterrupt = v_EX_InvalidArgument(v_ec, "String indices must be integers.");
+						if ((int1 > -1)) {
+							functionId = classInfo[9][int1];
+							if ((functionId == -1)) {
+								output = objInstance1[2][int1];
 							} else {
-								v_int1 = v_value[1];
-								if ((v_int1 < 0)) {
-									v_int1 += v_string1.length;
-								}
-								if (((v_int1 < 0) || (v_int1 >= v_string1.length))) {
-									v_hasInterrupt = v_EX_IndexOutOfRange(v_ec, "String index out of range.");
-								} else {
-									v_valueStack[(v_valueStackSize - 1)] = v_buildCommonString(v_string1.charAt(v_int1));
-								}
+								output = [9, [2, value, objInstance1[0], functionId, null]];
 							}
 						} else {
-							v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Cannot index into this type: " + v_getTypeFromId(v_root[0]));
+							output = null;
+						}
+						break;
+					case 5:
+						if ((metadata[14] == nameId)) {
+							output = buildInteger(globals, (value[1]).length);
+						} else {
+							output = null;
+						}
+						break;
+					case 6:
+						if ((metadata[14] == nameId)) {
+							output = buildInteger(globals, (value[1])[1]);
+						} else {
+							output = null;
+						}
+						break;
+					case 7:
+						if ((metadata[14] == nameId)) {
+							output = buildInteger(globals, (value[1])[0]);
+						} else {
+							output = null;
+						}
+						break;
+					default:
+						if ((value[0] == 1)) {
+							hasInterrupt = EX_NullReference(ec, "Derferenced a field from null.");
+							output = VALUE_NULL;
+						} else {
+							output = null;
+						}
+						break;
+				}
+				if ((output == null)) {
+					output = generatePrimitiveMethodReference(globalNameIdToPrimitiveMethodName, nameId, value);
+					if ((output == null)) {
+						if ((value[0] == 1)) {
+							hasInterrupt = EX_NullReference(ec, "Tried to dereference a field on null.");
+						} else if (((value[0] == 8) && (int1 < -1))) {
+							string1 = identifiers[row[0]];
+							if ((int1 == -2)) {
+								string2 = "private";
+							} else if ((int1 == -3)) {
+								string2 = "internal";
+							} else {
+								string2 = "protected";
+							}
+							hasInterrupt = EX_UnknownField(ec, ["The field '", string1, "' is marked as ", string2, " and cannot be accessed from here."].join(''));
+						} else {
+							if ((value[0] == 8)) {
+								classId = (value[1])[0];
+								classInfo = classTable[classId];
+								string1 = classInfo[16] + " instance";
+							} else {
+								string1 = getTypeFromId(value[0]);
+							}
+							hasInterrupt = EX_UnknownField(ec, string1 + " does not have that field.");
 						}
 					}
 				}
+				valueStack[(valueStackSize - 1)] = output;
+				break;
+			case 26:
+				// DEREF_INSTANCE_FIELD;
+				objInstance1 = stack[6][1];
+				value = objInstance1[2][row[0]];
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
+				}
+				valueStack[valueStackSize++] = value;
+				break;
+			case 27:
+				// DEREF_STATIC_FIELD;
+				classInfo = classTable[row[0]];
+				staticConstructorNotInvoked = true;
+				if ((classInfo[4] < 2)) {
+					stack[0] = pc;
+					stackFrame2 = maybeInvokeStaticConstructor(vm, ec, stack, classInfo, valueStackSize, PST$intBuffer16);
+					if ((PST$intBuffer16[0] == 1)) {
+						return generateException(vm, stack, pc, valueStackSize, ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
+					}
+					if ((stackFrame2 != null)) {
+						staticConstructorNotInvoked = false;
+						stack = stackFrame2;
+						pc = stack[0];
+						localsStackSetToken = stack[1];
+						localsStackOffset = stack[2];
+					}
+				}
+				if (staticConstructorNotInvoked) {
+					if ((valueStackSize == valueStackCapacity)) {
+						valueStack = valueStackIncreaseCapacity(ec);
+						valueStackCapacity = valueStack.length;
+					}
+					valueStack[valueStackSize++] = classInfo[5][row[1]];
+				}
+				break;
+			case 28:
+				// DUPLICATE_STACK_TOP;
+				if ((row[0] == 1)) {
+					value = valueStack[(valueStackSize - 1)];
+					if ((valueStackSize == valueStackCapacity)) {
+						valueStack = valueStackIncreaseCapacity(ec);
+						valueStackCapacity = valueStack.length;
+					}
+					valueStack[valueStackSize++] = value;
+				} else if ((row[0] == 2)) {
+					if (((valueStackSize + 1) > valueStackCapacity)) {
+						valueStackIncreaseCapacity(ec);
+						valueStack = ec[4];
+						valueStackCapacity = valueStack.length;
+					}
+					valueStack[valueStackSize] = valueStack[(valueStackSize - 2)];
+					valueStack[(valueStackSize + 1)] = valueStack[(valueStackSize - 1)];
+					valueStackSize += 2;
+				} else {
+					hasInterrupt = EX_Fatal(ec, "?");
+				}
+				break;
+			case 29:
+				// EQUALS;
+				valueStackSize -= 2;
+				rightValue = valueStack[(valueStackSize + 1)];
+				leftValue = valueStack[valueStackSize];
+				if ((leftValue[0] == rightValue[0])) {
+					switch (leftValue[0]) {
+						case 1:
+							bool1 = true;
+							break;
+						case 2:
+							bool1 = (leftValue[1] == rightValue[1]);
+							break;
+						case 3:
+							bool1 = (leftValue[1] == rightValue[1]);
+							break;
+						case 5:
+							bool1 = (leftValue[1] == rightValue[1]);
+							break;
+						default:
+							bool1 = (doEqualityComparisonAndReturnCode(leftValue, rightValue) == 1);
+							break;
+					}
+				} else {
+					int1 = doEqualityComparisonAndReturnCode(leftValue, rightValue);
+					if ((int1 == 0)) {
+						bool1 = false;
+					} else if ((int1 == 1)) {
+						bool1 = true;
+					} else {
+						hasInterrupt = EX_UnsupportedOperation(ec, "== and != not defined here.");
+					}
+				}
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
+				}
+				if ((bool1 != ((row[0] == 1)))) {
+					valueStack[valueStackSize] = VALUE_TRUE;
+				} else {
+					valueStack[valueStackSize] = VALUE_FALSE;
+				}
+				valueStackSize += 1;
+				break;
+			case 30:
+				// ESF_LOOKUP;
+				esfData = generateEsfData(args.length, row);
+				metadata[18] = esfData;
+				break;
+			case 31:
+				// EXCEPTION_HANDLED_TOGGLE;
+				ec[9] = (row[0] == 1);
+				break;
+			case 32:
+				// FIELD_TYPE_INFO;
+				initializeClassFieldTypeInfo(vm, row);
 				break;
 			case 33:
-				// IS_COMPARISON;
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				v_output = v_VALUE_FALSE;
-				if ((v_value[0] == 8)) {
-					v_objInstance1 = v_value[1];
-					if (v_isClassASubclassOf(v_objInstance1[0], v_row[0])) {
-						v_output = v_VALUE_TRUE;
-					}
-				}
-				v_valueStack[(v_valueStackSize - 1)] = v_output;
+				// FINALIZE_INITIALIZATION;
+				finalizeInitializationImpl(vm, stringArgs[pc], row[0]);
+				identifiers = vm[4][0];
+				literalTable = vm[4][3];
+				globalNameIdToPrimitiveMethodName = vm[4][12];
+				funcArgs = vm[8];
 				break;
 			case 34:
-				// ITERATION_STEP;
-				v_value3 = v_valueStack[(v_valueStackSize - 3)];
-				v_value2 = v_valueStack[(v_valueStackSize - 2)];
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				v_int1 = v_value3[1];
-				v_int2 = v_value2[1];
-				if ((v_value[0] == 6)) {
-					v_list1 = v_value[1];
-					v_len = v_list1.length;
-					v_bool1 = true;
-				} else {
-					v_string2 = v_value[1];
-					v_len = v_string2.length;
-					v_bool1 = false;
-				}
-				if ((v_int1 < v_len)) {
-					if (v_bool1) {
-						v_value = v_list1[v_int1];
-					} else {
-						v_value = v_buildCommonString(v_string2.charAt(v_int1));
+				// FINALLY_END;
+				value = ec[10];
+				if (((value == null) || ec[9])) {
+					switch (stack[10]) {
+						case 0:
+							ec[10] = null;
+							break;
+						case 1:
+							ec[10] = null;
+							int1 = row[0];
+							if ((int1 == 1)) {
+								pc += row[1];
+							} else if ((int1 == 2)) {
+								intArray1 = esfData[pc];
+								pc = intArray1[1];
+							} else {
+								hasInterrupt = EX_Fatal(ec, "break exists without a loop");
+							}
+							break;
+						case 2:
+							ec[10] = null;
+							int1 = row[2];
+							if ((int1 == 1)) {
+								pc += row[3];
+							} else if ((int1 == 2)) {
+								intArray1 = esfData[pc];
+								pc = intArray1[1];
+							} else {
+								hasInterrupt = EX_Fatal(ec, "continue exists without a loop");
+							}
+							break;
+						case 3:
+							if ((stack[8] != 0)) {
+								markClassAsInitialized(vm, stack, stack[8]);
+							}
+							if (stack[5]) {
+								valueStackSize = stack[7];
+								value = stack[11];
+								stack = stack[4];
+								if ((valueStackSize == valueStackCapacity)) {
+									valueStack = valueStackIncreaseCapacity(ec);
+									valueStackCapacity = valueStack.length;
+								}
+								valueStack[valueStackSize] = value;
+								valueStackSize += 1;
+							} else {
+								valueStackSize = stack[7];
+								stack = stack[4];
+							}
+							pc = stack[0];
+							localsStackOffset = stack[2];
+							localsStackSetToken = stack[1];
+							break;
 					}
-					v_int3 = (v_localsStackOffset + v_int2);
-					v_localsStackSet[v_int3] = v_localsStackSetToken;
-					v_localsStack[v_int3] = v_value;
 				} else {
-					v_pc += v_row[0];
-				}
-				v_int1 += 1;
-				if ((v_int1 < 2049)) {
-					v_value = v_INTEGER_POSITIVE_CACHE[v_int1];
-				} else {
-					v_value = [3, v_int1];
-				}
-				v_valueStack[(v_valueStackSize - 3)] = v_value;
-				break;
-			case 35:
-				// JUMP;
-				v_pc += v_row[0];
-				break;
-			case 36:
-				// JUMP_IF_EXCEPTION_OF_TYPE;
-				v_value = v_ec[10];
-				v_objInstance1 = v_value[1];
-				v_int1 = v_objInstance1[0];
-				v_i = (v_row.length - 1);
-				while ((v_i >= 2)) {
-					if (v_isClassASubclassOf(v_int1, v_row[v_i])) {
-						v_i = 0;
-						v_pc += v_row[0];
-						v_int2 = v_row[1];
-						if ((v_int2 > -1)) {
-							v_int1 = (v_localsStackOffset + v_int2);
-							v_localsStack[v_int1] = v_value;
-							v_localsStackSet[v_int1] = v_localsStackSetToken;
+					ec[9] = false;
+					stack[0] = pc;
+					intArray1 = esfData[pc];
+					value = ec[10];
+					objInstance1 = value[1];
+					objArray1 = objInstance1[3];
+					bool1 = true;
+					if ((objArray1[0] != null)) {
+						bool1 = objArray1[0];
+					}
+					intList1 = objArray1[1];
+					while (((stack != null) && ((intArray1 == null) || bool1))) {
+						stack = stack[4];
+						if ((stack != null)) {
+							pc = stack[0];
+							intList1.push(pc);
+							intArray1 = esfData[pc];
 						}
 					}
-					v_i -= 1;
+					if ((stack == null)) {
+						return uncaughtExceptionResult(vm, value);
+					}
+					int1 = intArray1[0];
+					if ((int1 < pc)) {
+						int1 = intArray1[1];
+					}
+					pc = (int1 - 1);
+					stack[0] = pc;
+					localsStackOffset = stack[2];
+					localsStackSetToken = stack[1];
+					ec[1] = stack;
+					stack[10] = 0;
+					ec[2] = valueStackSize;
+				}
+				break;
+			case 35:
+				// FUNCTION_DEFINITION;
+				initializeFunction(vm, row, pc, stringArgs[pc]);
+				pc += row[7];
+				functionTable = metadata[10];
+				break;
+			case 36:
+				// INDEX;
+				value = valueStack[--valueStackSize];
+				root = valueStack[(valueStackSize - 1)];
+				if ((root[0] == 6)) {
+					if ((value[0] != 3)) {
+						hasInterrupt = EX_InvalidArgument(ec, "List index must be an integer.");
+					} else {
+						i = value[1];
+						list1 = root[1];
+						if ((i < 0)) {
+							i += list1[1];
+						}
+						if (((i < 0) || (i >= list1[1]))) {
+							hasInterrupt = EX_IndexOutOfRange(ec, "List index is out of bounds");
+						} else {
+							valueStack[(valueStackSize - 1)] = list1[2][i];
+						}
+					}
+				} else if ((root[0] == 7)) {
+					dictImpl = root[1];
+					keyType = value[0];
+					if ((keyType != dictImpl[1])) {
+						if ((dictImpl[0] == 0)) {
+							hasInterrupt = EX_KeyNotFound(ec, "Key not found. Dictionary is empty.");
+						} else {
+							hasInterrupt = EX_InvalidKey(ec, ["Incorrect key type. This dictionary contains ", getTypeFromId(dictImpl[1]), " keys. Provided key is a ", getTypeFromId(keyType), "."].join(''));
+						}
+					} else {
+						if ((keyType == 3)) {
+							intKey = value[1];
+						} else if ((keyType == 5)) {
+							stringKey = value[1];
+						} else if ((keyType == 8)) {
+							intKey = (value[1])[1];
+						} else if ((dictImpl[0] == 0)) {
+							hasInterrupt = EX_KeyNotFound(ec, "Key not found. Dictionary is empty.");
+						} else {
+							hasInterrupt = EX_KeyNotFound(ec, "Key not found.");
+						}
+						if (!hasInterrupt) {
+							if ((keyType == 5)) {
+								stringIntDict1 = dictImpl[5];
+								int1 = stringIntDict1[stringKey];
+								if (int1 === undefined) int1 = -1;
+								if ((int1 == -1)) {
+									hasInterrupt = EX_KeyNotFound(ec, ["Key not found: '", stringKey, "'"].join(''));
+								} else {
+									valueStack[(valueStackSize - 1)] = dictImpl[7][int1];
+								}
+							} else {
+								intIntDict1 = dictImpl[4];
+								int1 = intIntDict1[intKey];
+								if (int1 === undefined) int1 = -1;
+								if ((int1 == -1)) {
+									hasInterrupt = EX_KeyNotFound(ec, "Key not found.");
+								} else {
+									valueStack[(valueStackSize - 1)] = dictImpl[7][intIntDict1[intKey]];
+								}
+							}
+						}
+					}
+				} else if ((root[0] == 5)) {
+					string1 = root[1];
+					if ((value[0] != 3)) {
+						hasInterrupt = EX_InvalidArgument(ec, "String indices must be integers.");
+					} else {
+						int1 = value[1];
+						if ((int1 < 0)) {
+							int1 += string1.length;
+						}
+						if (((int1 < 0) || (int1 >= string1.length))) {
+							hasInterrupt = EX_IndexOutOfRange(ec, "String index out of range.");
+						} else {
+							valueStack[(valueStackSize - 1)] = buildCommonString(globals, string1.charAt(int1));
+						}
+					}
+				} else {
+					hasInterrupt = EX_InvalidArgument(ec, "Cannot index into this type: " + getTypeFromId(root[0]));
 				}
 				break;
 			case 37:
-				// JUMP_IF_FALSE;
-				v_value = v_valueStack[--v_valueStackSize];
-				if ((v_value[0] != 2)) {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Boolean expected.");
-				} else {
-					if (!v_value[1]) {
-						v_pc += v_row[0];
+				// IS_COMPARISON;
+				value = valueStack[(valueStackSize - 1)];
+				output = VALUE_FALSE;
+				if ((value[0] == 8)) {
+					objInstance1 = value[1];
+					if (isClassASubclassOf(vm, objInstance1[0], row[0])) {
+						output = VALUE_TRUE;
 					}
 				}
+				valueStack[(valueStackSize - 1)] = output;
 				break;
 			case 38:
-				// JUMP_IF_FALSE_NON_POP;
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				if ((v_value[0] != 2)) {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Boolean expected.");
+				// ITERATION_STEP;
+				int1 = (localsStackOffset + row[2]);
+				value3 = localsStack[int1];
+				i = value3[1];
+				value = localsStack[(localsStackOffset + row[3])];
+				if ((value[0] == 6)) {
+					list1 = value[1];
+					_len = list1[1];
+					bool1 = true;
 				} else {
-					if (v_value[1]) {
-						v_valueStackSize -= 1;
+					string2 = value[1];
+					_len = string2.length;
+					bool1 = false;
+				}
+				if ((i < _len)) {
+					if (bool1) {
+						value = list1[2][i];
 					} else {
-						v_pc += v_row[0];
+						value = buildCommonString(globals, string2.charAt(i));
 					}
+					int3 = (localsStackOffset + row[1]);
+					localsStackSet[int3] = localsStackSetToken;
+					localsStack[int3] = value;
+				} else {
+					pc += row[0];
+				}
+				i += 1;
+				if ((i < 2049)) {
+					localsStack[int1] = INTEGER_POSITIVE_CACHE[i];
+				} else {
+					localsStack[int1] = [3, i];
 				}
 				break;
 			case 39:
-				// JUMP_IF_TRUE;
-				v_value = v_valueStack[--v_valueStackSize];
-				if ((v_value[0] != 2)) {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Boolean expected.");
-				} else {
-					if (v_value[1]) {
-						v_pc += v_row[0];
-					}
-				}
+				// JUMP;
+				pc += row[0];
 				break;
 			case 40:
-				// JUMP_IF_TRUE_NO_POP;
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				if ((v_value[0] != 2)) {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Boolean expected.");
-				} else {
-					if (v_value[1]) {
-						v_pc += v_row[0];
-					} else {
-						v_valueStackSize -= 1;
+				// JUMP_IF_EXCEPTION_OF_TYPE;
+				value = ec[10];
+				objInstance1 = value[1];
+				int1 = objInstance1[0];
+				i = (row.length - 1);
+				while ((i >= 2)) {
+					if (isClassASubclassOf(vm, int1, row[i])) {
+						i = 0;
+						pc += row[0];
+						int2 = row[1];
+						if ((int2 > -1)) {
+							int1 = (localsStackOffset + int2);
+							localsStack[int1] = value;
+							localsStackSet[int1] = localsStackSetToken;
+						}
 					}
+					i -= 1;
 				}
 				break;
 			case 41:
-				// LIB_DECLARATION;
-				v_declareLibrary(v_row[0], v_stringArgs[v_pc]);
+				// JUMP_IF_FALSE;
+				value = valueStack[--valueStackSize];
+				if ((value[0] != 2)) {
+					hasInterrupt = EX_InvalidArgument(ec, "Boolean expected.");
+				} else if (!value[1]) {
+					pc += row[0];
+				}
 				break;
 			case 42:
-				// LIST_SLICE;
-				v_ec[2] = v_valueStackSize;
-				v_value = v_performListSlice(v_ec, v_row);
-				v_valueStackSize = v_ec[2];
-				v_valueStack[(v_valueStackSize - 1)] = v_value;
-				v_hasInterrupt = (v_ec[13] != null);
-				v_valueStack[(v_valueStackSize - 1)] = v_value;
+				// JUMP_IF_FALSE_NON_POP;
+				value = valueStack[(valueStackSize - 1)];
+				if ((value[0] != 2)) {
+					hasInterrupt = EX_InvalidArgument(ec, "Boolean expected.");
+				} else if (value[1]) {
+					valueStackSize -= 1;
+				} else {
+					pc += row[0];
+				}
 				break;
 			case 43:
-				// LITERAL;
-				if ((v_valueStackSize == v_valueStackCapacity)) {
-					v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-					v_valueStackCapacity = v_valueStack.length;
+				// JUMP_IF_TRUE;
+				value = valueStack[--valueStackSize];
+				if ((value[0] != 2)) {
+					hasInterrupt = EX_InvalidArgument(ec, "Boolean expected.");
+				} else if (value[1]) {
+					pc += row[0];
 				}
-				v_valueStack[v_valueStackSize++] = v_literalTable[v_row[0]];
 				break;
 			case 44:
-				// LITERAL_STREAM;
-				v_int1 = v_row.length;
-				if (((v_valueStackSize + v_int1) > v_valueStackCapacity)) {
-					while (((v_valueStackSize + v_int1) > v_valueStackCapacity)) {
-						v_valueStackIncreaseCapacity(v_ec);
-						v_valueStack = v_ec[4];
-						v_valueStackCapacity = v_valueStack.length;
-					}
-				}
-				v_i = v_int1;
-				while ((--v_i >= 0)) {
-					v_valueStack[v_valueStackSize++] = v_literalTable[v_row[v_i]];
+				// JUMP_IF_TRUE_NO_POP;
+				value = valueStack[(valueStackSize - 1)];
+				if ((value[0] != 2)) {
+					hasInterrupt = EX_InvalidArgument(ec, "Boolean expected.");
+				} else if (value[1]) {
+					pc += row[0];
+				} else {
+					valueStackSize -= 1;
 				}
 				break;
 			case 45:
-				// LOCAL;
-				v_int1 = (v_localsStackOffset + v_row[0]);
-				if ((v_localsStackSet[v_int1] == v_localsStackSetToken)) {
-					if ((v_valueStackSize == v_valueStackCapacity)) {
-						v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-						v_valueStackCapacity = v_valueStack.length;
+				// LAMBDA;
+				if (!(metadata[11][pc] !== undefined)) {
+					int1 = (4 + row[4] + 1);
+					_len = row[int1];
+					intArray1 = PST$createNewArray(_len);
+					i = 0;
+					while ((i < _len)) {
+						intArray1[i] = row[(int1 + i + 1)];
+						i += 1;
 					}
-					v_valueStack[v_valueStackSize++] = v_localsStack[v_int1];
-				} else {
-					v_hasInterrupt = v_EX_UnassignedVariable(v_ec, "Variable used before it was set.");
+					_len = row[4];
+					intArray2 = PST$createNewArray(_len);
+					i = 0;
+					while ((i < _len)) {
+						intArray2[i] = row[(5 + i)];
+						i += 1;
+					}
+					metadata[11][pc] = [pc, 0, pc, row[0], row[1], 5, 0, row[2], intArray2, "lambda", intArray1];
 				}
+				closure = {};
+				parentClosure = stack[12];
+				if ((parentClosure == null)) {
+					parentClosure = {};
+					stack[12] = parentClosure;
+					parentClosure[-1] = [stack[6]];
+				}
+				closure[-1] = parentClosure[-1];
+				functionInfo = metadata[11][pc];
+				intArray1 = functionInfo[10];
+				_len = intArray1.length;
+				i = 0;
+				while ((i < _len)) {
+					j = intArray1[i];
+					if ((parentClosure[j] !== undefined)) {
+						closure[j] = parentClosure[j];
+					} else {
+						closure[j] = [null];
+						parentClosure[j] = closure[j];
+					}
+					i += 1;
+				}
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
+				}
+				valueStack[valueStackSize] = [9, [5, null, 0, pc, closure]];
+				valueStackSize += 1;
+				pc += row[3];
 				break;
 			case 46:
-				// NEGATIVE_SIGN;
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				v_type = v_value[0];
-				if ((v_type == 3)) {
-					v_valueStack[(v_valueStackSize - 1)] = v_buildInteger(-v_value[1]);
-				} else {
-					if ((v_type == 4)) {
-						v_valueStack[(v_valueStackSize - 1)] = v_buildFloat(-v_value[1]);
-					} else {
-						v_hasInterrupt = v_EX_InvalidArgument(v_ec, ["Negative sign can only be applied to numbers. Found ", v_getTypeFromId(v_type), " instead."].join(''));
-					}
-				}
+				// LIB_DECLARATION;
+				prepareToSuspend(ec, stack, valueStackSize, pc);
+				ec[13] = [4, row[0], stringArgs[pc], 0.0, null];
+				hasInterrupt = true;
 				break;
 			case 47:
-				// POP;
-				v_valueStackSize -= 1;
+				// LIST_SLICE;
+				if ((row[2] == 1)) {
+					valueStackSize -= 1;
+					arg3 = valueStack[valueStackSize];
+				} else {
+					arg3 = null;
+				}
+				if ((row[1] == 1)) {
+					valueStackSize -= 1;
+					arg2 = valueStack[valueStackSize];
+				} else {
+					arg2 = null;
+				}
+				if ((row[0] == 1)) {
+					valueStackSize -= 1;
+					arg1 = valueStack[valueStackSize];
+				} else {
+					arg1 = null;
+				}
+				value = valueStack[(valueStackSize - 1)];
+				value = performListSlice(globals, ec, value, arg1, arg2, arg3);
+				hasInterrupt = (ec[13] != null);
+				if (!hasInterrupt) {
+					valueStack[(valueStackSize - 1)] = value;
+				}
 				break;
 			case 48:
-				// POP_IF_NULL_OR_JUMP;
-				v_value = v_valueStack[(v_valueStackSize - 1)];
-				if ((v_value[0] == 1)) {
-					v_valueStackSize -= 1;
-				} else {
-					v_pc += v_row[0];
+				// LITERAL;
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
 				}
+				valueStack[valueStackSize++] = literalTable[row[0]];
 				break;
 			case 49:
-				// PUSH_FUNC_REF;
-				v_value = null;
-				switch (v_row[1]) {
-					case 0:
-						v_value = [9, [1, null, 0, v_row[0]]];
-						break;
-					case 1:
-						v_value = [9, [2, v_stack[6], v_row[2], v_row[0]]];
-						break;
-					case 2:
-						v_classId = v_row[2];
-						v_classInfo = v_classTable[v_classId];
-						v_staticConstructorNotInvoked = true;
-						if ((v_classInfo[3] < 2)) {
-							v_stack[0] = v_pc;
-							v_stackFrame2 = v_maybeInvokeStaticConstructor(v_p, v_ec, v_stack, v_classInfo, v_valueStackSize, C$common$intBuffer16);
-							if ((C$common$intBuffer16[0] == 1)) {
-								return v_generateException(v_stack, v_pc, v_valueStackSize, v_ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
-							}
-							if ((v_stackFrame2 != null)) {
-								v_staticConstructorNotInvoked = false;
-								v_stack = v_stackFrame2;
-								v_pc = v_stack[0];
-								v_localsStackSetToken = v_stack[1];
-								v_localsStackOffset = v_stack[2];
-							}
-						}
-						if (v_staticConstructorNotInvoked) {
-							v_value = [9, [3, null, v_classId, v_row[0]]];
-						} else {
-							v_value = null;
-						}
-						break;
-				}
-				if ((v_value != null)) {
-					if ((v_valueStackSize == v_valueStackCapacity)) {
-						v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-						v_valueStackCapacity = v_valueStack.length;
+				// LITERAL_STREAM;
+				int1 = row.length;
+				if (((valueStackSize + int1) > valueStackCapacity)) {
+					while (((valueStackSize + int1) > valueStackCapacity)) {
+						valueStackIncreaseCapacity(ec);
+						valueStack = ec[4];
+						valueStackCapacity = valueStack.length;
 					}
-					v_valueStack[v_valueStackSize] = v_value;
-					v_valueStackSize += 1;
+				}
+				i = int1;
+				while ((--i >= 0)) {
+					valueStack[valueStackSize++] = literalTable[row[i]];
 				}
 				break;
 			case 50:
-				// RETURN;
-				if ((v_esfData[v_pc] != null)) {
-					v_intArray1 = v_esfData[v_pc];
-					v_pc = (v_intArray1[1] - 1);
-					if ((v_row[0] == 0)) {
-						v_stack[11] = v_VALUE_NULL;
-					} else {
-						v_stack[11] = v_valueStack[(v_valueStackSize - 1)];
+				// LOCAL;
+				int1 = (localsStackOffset + row[0]);
+				if ((localsStackSet[int1] == localsStackSetToken)) {
+					if ((valueStackSize == valueStackCapacity)) {
+						valueStack = valueStackIncreaseCapacity(ec);
+						valueStackCapacity = valueStack.length;
 					}
-					v_valueStackSize = (v_stack[7] + v_p[31][v_pc]);
-					v_stack[10] = 3;
+					valueStack[valueStackSize++] = localsStack[int1];
 				} else {
-					if ((v_stack[4] == null)) {
-						return v_interpreterFinished(v_ec);
-					}
-					if ((v_stack[8] != 0)) {
-						v_markClassAsInitialized(v_stack, v_stack[8]);
-					}
-					if (v_stack[5]) {
-						if ((v_row[0] == 0)) {
-							v_valueStackSize = v_stack[7];
-							v_stack = v_stack[4];
-							if ((v_valueStackSize == v_valueStackCapacity)) {
-								v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-								v_valueStackCapacity = v_valueStack.length;
-							}
-							v_valueStack[v_valueStackSize] = v_VALUE_NULL;
-						} else {
-							v_value = v_valueStack[(v_valueStackSize - 1)];
-							v_valueStackSize = v_stack[7];
-							v_stack = v_stack[4];
-							v_valueStack[v_valueStackSize] = v_value;
-						}
-						v_valueStackSize += 1;
-					} else {
-						v_valueStackSize = v_stack[7];
-						v_stack = v_stack[4];
-					}
-					v_pc = v_stack[0];
-					v_localsStackOffset = v_stack[2];
-					v_localsStackSetToken = v_stack[1];
+					string1 = ["Variable used before it was set: '", vm[4][0][row[1]], "'"].join('');
+					hasInterrupt = EX_UnassignedVariable(ec, string1);
 				}
 				break;
 			case 51:
-				// STACK_INSERTION_FOR_INCREMENT;
-				if ((v_valueStackSize == v_valueStackCapacity)) {
-					v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-					v_valueStackCapacity = v_valueStack.length;
-				}
-				v_valueStack[v_valueStackSize] = v_valueStack[(v_valueStackSize - 1)];
-				v_valueStack[(v_valueStackSize - 1)] = v_valueStack[(v_valueStackSize - 2)];
-				v_valueStack[(v_valueStackSize - 2)] = v_valueStack[(v_valueStackSize - 3)];
-				v_valueStack[(v_valueStackSize - 3)] = v_valueStack[v_valueStackSize];
-				v_valueStackSize += 1;
+				// LOC_TABLE;
+				initLocTable(vm, row);
 				break;
 			case 52:
-				// STACK_SWAP_POP;
-				v_valueStackSize -= 1;
-				v_valueStack[(v_valueStackSize - 1)] = v_valueStack[v_valueStackSize];
-				break;
-			case 53:
-				// SWITCH_INT;
-				v_value = v_valueStack[--v_valueStackSize];
-				if ((v_value[0] == 3)) {
-					v_int1 = v_value[1];
-					v_integerSwitch = v_integerSwitches[v_row[0]];
-					if ((v_integerSwitch[v_int1] !== undefined)) {
-						v_pc += v_integerSwitch[v_int1];
-					} else {
-						v_pc += v_row[1];
-					}
+				// NEGATIVE_SIGN;
+				value = valueStack[(valueStackSize - 1)];
+				type = value[0];
+				if ((type == 3)) {
+					valueStack[(valueStackSize - 1)] = buildInteger(globals, -value[1]);
+				} else if ((type == 4)) {
+					valueStack[(valueStackSize - 1)] = buildFloat(globals, -value[1]);
 				} else {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Switch statement expects an integer.");
+					hasInterrupt = EX_InvalidArgument(ec, ["Negative sign can only be applied to numbers. Found ", getTypeFromId(type), " instead."].join(''));
 				}
 				break;
+			case 53:
+				// POP;
+				valueStackSize -= 1;
+				break;
 			case 54:
-				// SWITCH_STRING;
-				v_value = v_valueStack[--v_valueStackSize];
-				if ((v_value[0] == 5)) {
-					v_string1 = v_value[1];
-					v_stringSwitch = v_stringSwitches[v_row[0]];
-					if ((v_stringSwitch[v_string1] !== undefined)) {
-						v_pc += v_stringSwitch[v_string1];
-					} else {
-						v_pc += v_row[1];
-					}
+				// POP_IF_NULL_OR_JUMP;
+				value = valueStack[(valueStackSize - 1)];
+				if ((value[0] == 1)) {
+					valueStackSize -= 1;
 				} else {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Switch statement expects a string.");
+					pc += row[0];
 				}
 				break;
 			case 55:
-				// THIS;
-				if ((v_valueStackSize == v_valueStackCapacity)) {
-					v_valueStack = v_valueStackIncreaseCapacity(v_ec);
-					v_valueStackCapacity = v_valueStack.length;
+				// PUSH_FUNC_REF;
+				value = null;
+				switch (row[1]) {
+					case 0:
+						value = [9, [1, null, 0, row[0], null]];
+						break;
+					case 1:
+						value = [9, [2, stack[6], row[2], row[0], null]];
+						break;
+					case 2:
+						classId = row[2];
+						classInfo = classTable[classId];
+						staticConstructorNotInvoked = true;
+						if ((classInfo[4] < 2)) {
+							stack[0] = pc;
+							stackFrame2 = maybeInvokeStaticConstructor(vm, ec, stack, classInfo, valueStackSize, PST$intBuffer16);
+							if ((PST$intBuffer16[0] == 1)) {
+								return generateException(vm, stack, pc, valueStackSize, ec, 0, "Static initialization loop detected. The class this field is a member of is not done being initialized.");
+							}
+							if ((stackFrame2 != null)) {
+								staticConstructorNotInvoked = false;
+								stack = stackFrame2;
+								pc = stack[0];
+								localsStackSetToken = stack[1];
+								localsStackOffset = stack[2];
+							}
+						}
+						if (staticConstructorNotInvoked) {
+							value = [9, [3, null, classId, row[0], null]];
+						} else {
+							value = null;
+						}
+						break;
 				}
-				v_valueStack[v_valueStackSize] = v_stack[6];
-				v_valueStackSize += 1;
+				if ((value != null)) {
+					if ((valueStackSize == valueStackCapacity)) {
+						valueStack = valueStackIncreaseCapacity(ec);
+						valueStackCapacity = valueStack.length;
+					}
+					valueStack[valueStackSize] = value;
+					valueStackSize += 1;
+				}
 				break;
 			case 56:
-				// THROW;
-				v_valueStackSize -= 1;
-				v_value = v_valueStack[v_valueStackSize];
-				v_bool2 = (v_value[0] == 8);
-				if (v_bool2) {
-					v_objInstance1 = v_value[1];
-					if (!v_isClassASubclassOf(v_objInstance1[0], v_magicNumbers[0])) {
-						v_bool2 = false;
+				// RETURN;
+				if ((esfData[pc] != null)) {
+					intArray1 = esfData[pc];
+					pc = (intArray1[1] - 1);
+					if ((row[0] == 0)) {
+						stack[11] = VALUE_NULL;
+					} else {
+						stack[11] = valueStack[(valueStackSize - 1)];
 					}
-				}
-				if (v_bool2) {
-					v_objArray1 = v_objInstance1[3];
-					v_intList1 = [];
-					v_objArray1[1] = v_intList1;
-					if (!v_isPcFromCore(v_pc)) {
-						v_intList1.push(v_pc);
-					}
-					v_ec[10] = v_value;
-					v_ec[9] = false;
-					v_stack[0] = v_pc;
-					v_intArray1 = v_esfData[v_pc];
-					v_value = v_ec[10];
-					v_objInstance1 = v_value[1];
-					v_objArray1 = v_objInstance1[3];
-					v_bool1 = v_objArray1[0];
-					v_intList1 = v_objArray1[1];
-					while (((v_stack != null) && ((v_intArray1 == null) || v_bool1))) {
-						v_stack = v_stack[4];
-						if ((v_stack != null)) {
-							v_pc = v_stack[0];
-							v_intList1.push(v_pc);
-							v_intArray1 = v_esfData[v_pc];
-						}
-					}
-					if ((v_stack == null)) {
-						return v_uncaughtExceptionResult(v_value);
-					}
-					v_int1 = v_intArray1[0];
-					if ((v_int1 < v_pc)) {
-						v_int1 = v_intArray1[1];
-					}
-					v_pc = (v_int1 - 1);
-					v_stack[0] = v_pc;
-					v_localsStackOffset = v_stack[2];
-					v_localsStackSetToken = v_stack[1];
-					v_ec[1] = v_stack;
-					v_stack[10] = 0;
-					v_ec[2] = v_valueStackSize;
+					valueStackSize = stack[7];
+					stack[10] = 3;
 				} else {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, "Thrown value is not an exception.");
+					if ((stack[4] == null)) {
+						return interpreterFinished(vm, ec);
+					}
+					if ((stack[8] != 0)) {
+						markClassAsInitialized(vm, stack, stack[8]);
+					}
+					if (stack[5]) {
+						if ((row[0] == 0)) {
+							valueStackSize = stack[7];
+							stack = stack[4];
+							if ((valueStackSize == valueStackCapacity)) {
+								valueStack = valueStackIncreaseCapacity(ec);
+								valueStackCapacity = valueStack.length;
+							}
+							valueStack[valueStackSize] = VALUE_NULL;
+						} else {
+							value = valueStack[(valueStackSize - 1)];
+							valueStackSize = stack[7];
+							stack = stack[4];
+							valueStack[valueStackSize] = value;
+						}
+						valueStackSize += 1;
+					} else {
+						valueStackSize = stack[7];
+						stack = stack[4];
+					}
+					pc = stack[0];
+					localsStackOffset = stack[2];
+					localsStackSetToken = stack[1];
 				}
 				break;
 			case 57:
-				// TOKEN_DATA;
-				v_tokenDataImpl(v_row);
+				// STACK_INSERTION_FOR_INCREMENT;
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
+				}
+				valueStack[valueStackSize] = valueStack[(valueStackSize - 1)];
+				valueStack[(valueStackSize - 1)] = valueStack[(valueStackSize - 2)];
+				valueStack[(valueStackSize - 2)] = valueStack[(valueStackSize - 3)];
+				valueStack[(valueStackSize - 3)] = valueStack[valueStackSize];
+				valueStackSize += 1;
 				break;
 			case 58:
-				// USER_CODE_START;
-				v_p[11] = v_row[0];
+				// STACK_SWAP_POP;
+				valueStackSize -= 1;
+				valueStack[(valueStackSize - 1)] = valueStack[valueStackSize];
 				break;
 			case 59:
-				// VALUE_STACK_DEPTH;
-				v_valueStackDepthImpl(v_row);
+				// SWITCH_INT;
+				value = valueStack[--valueStackSize];
+				if ((value[0] == 3)) {
+					intKey = value[1];
+					integerSwitch = integerSwitchesByPc[pc];
+					if ((integerSwitch == null)) {
+						integerSwitch = initializeIntSwitchStatement(vm, pc, row);
+					}
+					i = integerSwitch[intKey];
+					if (i === undefined) i = -1;
+					if ((i == -1)) {
+						pc += row[0];
+					} else {
+						pc += i;
+					}
+				} else {
+					hasInterrupt = EX_InvalidArgument(ec, "Switch statement expects an integer.");
+				}
 				break;
 			case 60:
-				// VERIFY_TYPE_IS_ITERABLE;
-				v_int1 = v_valueStack[(v_valueStackSize - 1)][0];
-				if (((v_int1 != 6) && (v_int1 != 5))) {
-					v_hasInterrupt = v_EX_InvalidArgument(v_ec, ["Expected an iterable type, such as a list or string. Found ", v_getTypeFromId(v_int1), " instead."].join(''));
+				// SWITCH_STRING;
+				value = valueStack[--valueStackSize];
+				if ((value[0] == 5)) {
+					stringKey = value[1];
+					stringSwitch = stringSwitchesByPc[pc];
+					if ((stringSwitch == null)) {
+						stringSwitch = initializeStringSwitchStatement(vm, pc, row);
+					}
+					i = stringSwitch[stringKey];
+					if (i === undefined) i = -1;
+					if ((i == -1)) {
+						pc += row[0];
+					} else {
+						pc += i;
+					}
+				} else {
+					hasInterrupt = EX_InvalidArgument(ec, "Switch statement expects a string.");
 				}
+				break;
+			case 61:
+				// THIS;
+				if ((valueStackSize == valueStackCapacity)) {
+					valueStack = valueStackIncreaseCapacity(ec);
+					valueStackCapacity = valueStack.length;
+				}
+				valueStack[valueStackSize] = stack[6];
+				valueStackSize += 1;
+				break;
+			case 62:
+				// THROW;
+				valueStackSize -= 1;
+				value = valueStack[valueStackSize];
+				bool2 = (value[0] == 8);
+				if (bool2) {
+					objInstance1 = value[1];
+					if (!isClassASubclassOf(vm, objInstance1[0], magicNumbers[0])) {
+						bool2 = false;
+					}
+				}
+				if (bool2) {
+					objArray1 = objInstance1[3];
+					intList1 = [];
+					objArray1[1] = intList1;
+					if (!isPcFromCore(vm, pc)) {
+						intList1.push(pc);
+					}
+					ec[10] = value;
+					ec[9] = false;
+					stack[0] = pc;
+					intArray1 = esfData[pc];
+					value = ec[10];
+					objInstance1 = value[1];
+					objArray1 = objInstance1[3];
+					bool1 = true;
+					if ((objArray1[0] != null)) {
+						bool1 = objArray1[0];
+					}
+					intList1 = objArray1[1];
+					while (((stack != null) && ((intArray1 == null) || bool1))) {
+						stack = stack[4];
+						if ((stack != null)) {
+							pc = stack[0];
+							intList1.push(pc);
+							intArray1 = esfData[pc];
+						}
+					}
+					if ((stack == null)) {
+						return uncaughtExceptionResult(vm, value);
+					}
+					int1 = intArray1[0];
+					if ((int1 < pc)) {
+						int1 = intArray1[1];
+					}
+					pc = (int1 - 1);
+					stack[0] = pc;
+					localsStackOffset = stack[2];
+					localsStackSetToken = stack[1];
+					ec[1] = stack;
+					stack[10] = 0;
+					ec[2] = valueStackSize;
+				} else {
+					hasInterrupt = EX_InvalidArgument(ec, "Thrown value is not an exception.");
+				}
+				break;
+			case 63:
+				// TOKEN_DATA;
+				tokenDataImpl(vm, row);
+				break;
+			case 64:
+				// USER_CODE_START;
+				metadata[16] = row[0];
+				break;
+			case 65:
+				// VERIFY_TYPE_IS_ITERABLE;
+				value = valueStack[--valueStackSize];
+				i = (localsStackOffset + row[0]);
+				localsStack[i] = value;
+				localsStackSet[i] = localsStackSetToken;
+				int1 = value[0];
+				if (((int1 != 6) && (int1 != 5))) {
+					hasInterrupt = EX_InvalidArgument(ec, ["Expected an iterable type, such as a list or string. Found ", getTypeFromId(int1), " instead."].join(''));
+				}
+				i = (localsStackOffset + row[1]);
+				localsStack[i] = VALUE_INT_ZERO;
+				localsStackSet[i] = localsStackSetToken;
 				break;
 			default:
 				// THIS SHOULD NEVER HAPPEN;
-				return v_generateException(v_stack, v_pc, v_valueStackSize, v_ec, 0, "Bad op code: " + ('' + v_ops[v_pc]));
+				return generateException(vm, stack, pc, valueStackSize, ec, 0, "Bad op code: " + ('' + ops[pc]));
 		}
-		if (v_hasInterrupt) {
-			var v_interrupt = v_ec[13];
-			v_ec[13] = null;
-			if ((v_interrupt[0] == 1)) {
-				return v_generateException(v_stack, v_pc, v_valueStackSize, v_ec, v_interrupt[1], v_interrupt[2]);
+		if (hasInterrupt) {
+			var interrupt = ec[13];
+			ec[13] = null;
+			if ((interrupt[0] == 1)) {
+				return generateException(vm, stack, pc, valueStackSize, ec, interrupt[1], interrupt[2]);
+			}
+			if ((interrupt[0] == 3)) {
+				return [5, "", interrupt[3], 0, false, ""];
+			}
+			if ((interrupt[0] == 4)) {
+				return [6, "", 0.0, 0, false, interrupt[2]];
 			}
 		}
-		++v_pc;
+		++pc;
 	}
 };
 
+var invokeNamedCallback = function(vm, id, args) {
+	var cb = vm[12][0][id];
+	return cb(args);
+};
 
-var v_isClassASubclassOf = function(v_subClassId, v_parentClassId) {
-	if ((v_subClassId == v_parentClassId)) {
+var isClassASubclassOf = function(vm, subClassId, parentClassId) {
+	if ((subClassId == parentClassId)) {
 		return true;
 	}
-	var v_p = C$common$programData;
-	var v_classTable = v_p[20];
-	var v_classIdWalker = v_subClassId;
-	while ((v_classIdWalker != -1)) {
-		if ((v_classIdWalker == v_parentClassId)) {
+	var classTable = vm[4][9];
+	var classIdWalker = subClassId;
+	while ((classIdWalker != -1)) {
+		if ((classIdWalker == parentClassId)) {
 			return true;
 		}
-		var v_classInfo = v_classTable[v_classIdWalker];
-		v_classIdWalker = v_classInfo[2];
+		var classInfo = classTable[classIdWalker];
+		classIdWalker = classInfo[2];
 	}
 	return false;
 };
 
-
-var v_isPcFromCore = function(v_pc) {
-	var v_p = C$common$programData;
-	var v_tokens = v_p[10][v_pc];
-	if ((v_tokens == null)) {
+var isPcFromCore = function(vm, pc) {
+	if ((vm[3] == null)) {
 		return false;
 	}
-	var v_token = v_tokens[0];
-	var v_filename = v_tokenHelperGetFileLine(v_token[2], 0);
-	return "[Core]" == v_filename;
+	var tokens = vm[3][0][pc];
+	if ((tokens == null)) {
+		return false;
+	}
+	var token = tokens[0];
+	var filename = tokenHelperGetFileLine(vm, token[2], 0);
+	return "[Core]" == filename;
 };
 
-
-var v_loadByteCode = function() {
-	var v_raw = C$bytecode;
-	var v_index = C$common$createNewArray(1);
-	v_index[0] = 0;
-	var v_length = v_raw.length;
-	var v_header = v_read_till(v_index, v_raw, v_length, "@");
-	if ((v_header != "CRAYON")) {
+var isStringEqual = function(a, b) {
+	if ((a == b)) {
+		return true;
 	}
-	var v_alphaNums = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-	var v_opCount = v_read_integer(v_index, v_raw, v_length, v_alphaNums);
-	var v_ops = C$common$createNewArray(v_opCount);
-	var v_iargs = C$common$createNewArray(v_opCount);
-	var v_sargs = C$common$createNewArray(v_opCount);
-	var v_c = " ";
-	var v_argc = 0;
-	var v_j = 0;
-	var v_stringarg = null;
-	var v_stringPresent = false;
-	var v_iarg = 0;
-	var v_iarglist = null;
-	var v_i = 0;
-	while ((v_i < v_opCount)) {
-		v_c = v_raw.charAt(v_index[0]);
-		v_index[0] = (v_index[0] + 1);
-		v_argc = 0;
-		v_stringPresent = true;
-		if ((v_c == "!")) {
-			v_argc = 1;
-		} else {
-			if ((v_c == "&")) {
-				v_argc = 2;
-			} else {
-				if ((v_c == "*")) {
-					v_argc = 3;
-				} else {
-					if ((v_c != "~")) {
-						v_stringPresent = false;
-						v_index[0] = (v_index[0] - 1);
-					}
-					v_argc = v_read_integer(v_index, v_raw, v_length, v_alphaNums);
-				}
-			}
-		}
-		v_iarglist = C$common$createNewArray((v_argc - 1));
-		v_j = 0;
-		while ((v_j < v_argc)) {
-			v_iarg = v_read_integer(v_index, v_raw, v_length, v_alphaNums);
-			if ((v_j == 0)) {
-				v_ops[v_i] = v_iarg;
-			} else {
-				v_iarglist[(v_j - 1)] = v_iarg;
-			}
-			v_j += 1;
-		}
-		v_iargs[v_i] = v_iarglist;
-		if (v_stringPresent) {
-			v_stringarg = v_read_string(v_index, v_raw, v_length, v_alphaNums);
-		} else {
-			v_stringarg = null;
-		}
-		v_sargs[v_i] = v_stringarg;
-		v_i += 1;
-	}
-	return [v_ops, v_iargs, v_sargs];
+	return false;
 };
 
+var isVmResultRootExecContext = function(result) {
+	return result[4];
+};
 
-var v_main = function() {
-	v_initialize_constant_values();
-	var v_resources = v_resource_manager_initialize();
-	var v_byteCode = v_loadByteCode();
-	var v_ops = v_byteCode[0];
-	var v_opsLength = v_ops.length;
-	var v_opArgs = v_byteCode[1];
-	var v_stringArgs = v_byteCode[2];
-	var v_i = 0;
-	var v_localsStack = C$common$createNewArray(10);
-	var v_localsStackSet = C$common$createNewArray(10);
-	v_i = (v_localsStack.length - 1);
-	while ((v_i >= 0)) {
-		v_localsStack[v_i] = null;
-		v_localsStackSet[v_i] = 0;
-		v_i -= 1;
-	}
-	var v_stack = [0, 1, 0, 0, null, false, null, 0, 0, 1, 0, null];
-	var v_executionContext = [0, v_stack, 0, 100, C$common$createNewArray(100), v_localsStack, v_localsStackSet, 1, 0, false, null, false, 0, null];
-	var v_executionContexts = {};
-	v_executionContexts[0] = v_executionContext;
-	C$common$programData = [v_executionContexts, v_executionContext[0], v_ops, v_opArgs, v_stringArgs, null, [], {}, null, [], C$common$createNewArray(v_ops.length), 0, null, [], null, [], null, [], 0, false, C$common$createNewArray(100), C$common$createNewArray(100), [], null, null, -1, C$common$createNewArray(10), v_resources, null, null, [0, 0], null, {}, [], [], [], {}, -1, null, []];
-	v_runInterpreter(v_executionContext[0]);
+var makeEmptyList = function(type, capacity) {
+	return [type, 0, []];
+};
+
+var markClassAsInitialized = function(vm, stack, classId) {
+	var classInfo = vm[4][9][stack[8]];
+	classInfo[4] = 2;
+	vm[7].pop();
 	return 0;
 };
 
-
-var v_markClassAsInitialized = function(v_stack, v_classId) {
-	var v_p = C$common$programData;
-	var v_classInfo = v_p[20][v_stack[8]];
-	v_classInfo[3] = 2;
-	v_p[22].pop();
-	return 0;
-};
-
-
-var v_maybeInvokeStaticConstructor = function(v_p, v_ec, v_stack, v_classInfo, v_valueStackSize, v_intOutParam) {
-	C$common$intBuffer16[0] = 0;
-	var v_classId = v_classInfo[0];
-	if ((v_classInfo[3] == 1)) {
-		var v_classIdsBeingInitialized = v_p[22];
-		if ((v_classIdsBeingInitialized[(v_classIdsBeingInitialized.length - 1)] != v_classId)) {
-			C$common$intBuffer16[0] = 1;
+var maybeInvokeStaticConstructor = function(vm, ec, stack, classInfo, valueStackSize, intOutParam) {
+	PST$intBuffer16[0] = 0;
+	var classId = classInfo[0];
+	if ((classInfo[4] == 1)) {
+		var classIdsBeingInitialized = vm[7];
+		if ((classIdsBeingInitialized[(classIdsBeingInitialized.length - 1)] != classId)) {
+			PST$intBuffer16[0] = 1;
 		}
 		return null;
 	}
-	v_classInfo[3] = 1;
-	v_p[22].push(v_classId);
-	var v_functionInfo = v_p[21][v_classInfo[5]];
-	v_stack[0] -= 1;
-	var v_newFrameLocalsSize = v_functionInfo[7];
-	var v_currentFrameLocalsEnd = v_stack[3];
-	if ((v_ec[5].length <= (v_currentFrameLocalsEnd + v_newFrameLocalsSize))) {
-		v_increaseLocalsStackCapacity(v_ec, v_newFrameLocalsSize);
+	classInfo[4] = 1;
+	vm[7].push(classId);
+	var functionInfo = vm[4][10][classInfo[6]];
+	stack[0] -= 1;
+	var newFrameLocalsSize = functionInfo[7];
+	var currentFrameLocalsEnd = stack[3];
+	if ((ec[5].length <= (currentFrameLocalsEnd + newFrameLocalsSize))) {
+		increaseLocalsStackCapacity(ec, newFrameLocalsSize);
 	}
-	if ((v_ec[7] > 2000000000)) {
-		v_resetLocalsStackTokens(v_ec, v_stack);
+	if ((ec[7] > 2000000000)) {
+		resetLocalsStackTokens(ec, stack);
 	}
-	v_ec[7] += 1;
-	return [v_functionInfo[2], v_ec[7], v_currentFrameLocalsEnd, (v_currentFrameLocalsEnd + v_newFrameLocalsSize), v_stack, false, null, v_valueStackSize, v_classId, (v_stack[9] + 1), 0, null];
+	ec[7] += 1;
+	return [functionInfo[2], ec[7], currentFrameLocalsEnd, (currentFrameLocalsEnd + newFrameLocalsSize), stack, false, null, valueStackSize, classId, (stack[9] + 1), 0, null, null, null];
 };
 
-
-var v_multiplyString = function(v_strValue, v_str, v_n) {
-	if ((v_n <= 2)) {
-		if ((v_n == 1)) {
-			return v_strValue;
+var multiplyString = function(globals, strValue, str, n) {
+	if ((n <= 2)) {
+		if ((n == 1)) {
+			return strValue;
 		}
-		if ((v_n == 2)) {
-			return v_buildString(v_str + v_str);
+		if ((n == 2)) {
+			return buildString(globals, str + str);
 		}
-		return v_VALUE_EMPTY_STRING;
+		return globals[8];
 	}
-	var v_builder = [];
-	while ((v_n > 0)) {
-		v_n -= 1;
-		v_builder.push(v_str);
+	var builder = [];
+	while ((n > 0)) {
+		n -= 1;
+		builder.push(str);
 	}
-	v_str = v_builder.join("");
-	return v_buildString(v_str);
+	str = builder.join("");
+	return buildString(globals, str);
 };
 
-
-var v_nextPowerOf2 = function(v_value) {
-	if ((((v_value - 1) & v_value) == 0)) {
-		return v_value;
+var nextPowerOf2 = function(value) {
+	if ((((value - 1) & value) == 0)) {
+		return value;
 	}
-	var v_output = 1;
-	while ((v_output < v_value)) {
-		v_output *= 2;
+	var output = 1;
+	while ((output < value)) {
+		output *= 2;
 	}
-	return v_output;
+	return output;
 };
 
-
-var v_noop = function() {
+var noop = function() {
 	return 0;
 };
 
-
-var v_performListSlice = function(v_ec, v_row) {
-	var v_arg1 = null;
-	var v_arg2 = null;
-	var v_arg3 = null;
-	var v_value = null;
-	var v_int1 = 0;
-	var v_int2 = 0;
-	var v_int3 = 0;
-	var v_int4 = 0;
-	var v_int5 = 0;
-	var v_i = 0;
-	var v_bool1 = false;
-	var v_bool2 = false;
-	var v_string1 = "";
-	var v_list1 = null;
-	var v_list2 = null;
-	var v_stringList1 = null;
-	var v_valueStack = v_ec[4];
-	var v_valueStackSize = v_ec[2];
-	v_int5 = 0;
-	if ((v_row[2] == 1)) {
-		v_valueStackSize -= 1;
-		v_arg3 = v_valueStack[v_valueStackSize];
-		if ((v_arg3[0] == 3)) {
-			v_int3 = v_arg3[1];
-			if ((v_int3 == 0)) {
-				v_int5 = 2;
+var performListSlice = function(globals, ec, value, arg1, arg2, arg3) {
+	var begin = 0;
+	var end = 0;
+	var step = 0;
+	var length = 0;
+	var i = 0;
+	var isForward = false;
+	var isString = false;
+	var originalString = "";
+	var originalList = null;
+	var outputList = null;
+	var outputString = null;
+	var status = 0;
+	if ((arg3 != null)) {
+		if ((arg3[0] == 3)) {
+			step = arg3[1];
+			if ((step == 0)) {
+				status = 2;
 			}
 		} else {
-			v_int5 = 3;
-			v_int3 = 1;
+			status = 3;
+			step = 1;
 		}
 	} else {
-		v_int3 = 1;
+		step = 1;
 	}
-	v_bool1 = (v_int3 > 0);
-	if ((v_row[1] == 1)) {
-		v_valueStackSize -= 1;
-		v_arg2 = v_valueStack[v_valueStackSize];
-		if ((v_arg2[0] == 3)) {
-			v_int2 = v_arg2[1];
+	isForward = (step > 0);
+	if ((arg2 != null)) {
+		if ((arg2[0] == 3)) {
+			end = arg2[1];
 		} else {
-			v_int5 = 3;
+			status = 3;
 		}
+	}
+	if ((arg1 != null)) {
+		if ((arg1[0] == 3)) {
+			begin = arg1[1];
+		} else {
+			status = 3;
+		}
+	}
+	if ((value[0] == 5)) {
+		isString = true;
+		originalString = value[1];
+		length = originalString.length;
+	} else if ((value[0] == 6)) {
+		isString = false;
+		originalList = value[1];
+		length = originalList[1];
 	} else {
-		v_arg2 = null;
+		EX_InvalidArgument(ec, ["Cannot apply slicing to ", getTypeFromId(value[0]), ". Must be string or list."].join(''));
+		return globals[0];
 	}
-	if ((v_row[0] == 1)) {
-		v_valueStackSize -= 1;
-		v_arg1 = v_valueStack[v_valueStackSize];
-		if ((v_arg1[0] == 3)) {
-			v_int1 = v_arg1[1];
+	if ((status >= 2)) {
+		var msg = null;
+		if (isString) {
+			msg = "String";
 		} else {
-			v_int5 = 3;
+			msg = "List";
 		}
-	} else {
-		v_arg1 = null;
-	}
-	v_value = v_valueStack[(v_valueStackSize - 1)];
-	if ((v_value[0] == 5)) {
-		v_bool2 = true;
-		v_string1 = v_value[1];
-		v_int4 = v_string1.length;
-	} else {
-		if ((v_value[0] == 6)) {
-			v_bool2 = false;
-			v_list1 = v_value[1];
-			v_int4 = v_list1.length;
-		} else {
-			v_EX_InvalidArgument(v_ec, ["Cannot apply slicing to ", v_getTypeFromId(v_value[0]), ". Must be string or list."].join(''));
-			return v_VALUE_NULL;
-		}
-	}
-	if ((v_int5 >= 2)) {
-		if (v_bool2) {
-			v_string1 = "String";
-		} else {
-			v_string1 = "List";
-		}
-		if ((v_int5 == 3)) {
-			v_string1 += "slice indexes must be integers. Found ";
-			if (((v_arg1 != null) && (v_arg1[0] != 3))) {
-				v_EX_InvalidArgument(v_ec, [v_string1, v_getTypeFromId(v_arg1[0]), " for begin index."].join(''));
-				return v_VALUE_NULL;
+		if ((status == 3)) {
+			msg += " slice indexes must be integers. Found ";
+			if (((arg1 != null) && (arg1[0] != 3))) {
+				EX_InvalidArgument(ec, [msg, getTypeFromId(arg1[0]), " for begin index."].join(''));
+				return globals[0];
 			}
-			if (((v_arg2 != null) && (v_arg2[0] != 3))) {
-				v_EX_InvalidArgument(v_ec, [v_string1, v_getTypeFromId(v_arg2[0]), " for end index."].join(''));
-				return v_VALUE_NULL;
+			if (((arg2 != null) && (arg2[0] != 3))) {
+				EX_InvalidArgument(ec, [msg, getTypeFromId(arg2[0]), " for end index."].join(''));
+				return globals[0];
 			}
-			if (((v_arg3 != null) && (v_arg3[0] != 3))) {
-				v_EX_InvalidArgument(v_ec, [v_string1, v_getTypeFromId(v_arg3[0]), " for step amount."].join(''));
-				return v_VALUE_NULL;
+			if (((arg3 != null) && (arg3[0] != 3))) {
+				EX_InvalidArgument(ec, [msg, getTypeFromId(arg3[0]), " for step amount."].join(''));
+				return globals[0];
 			}
-			v_EX_InvalidArgument(v_ec, "Invalid slice arguments.");
-			return v_VALUE_NULL;
+			EX_InvalidArgument(ec, "Invalid slice arguments.");
+			return globals[0];
 		} else {
-			v_EX_InvalidArgument(v_ec, v_string1 + " slice step cannot be 0.");
-			return v_VALUE_NULL;
+			EX_InvalidArgument(ec, msg + " slice step cannot be 0.");
+			return globals[0];
 		}
 	}
-	v_int5 = v_canonicalizeListSliceArgs(C$common$intBuffer16, v_arg1, v_arg2, v_int1, v_int2, v_int3, v_int4, v_bool1);
-	if ((v_int5 == 1)) {
-		v_int1 = C$common$intBuffer16[0];
-		v_int2 = C$common$intBuffer16[1];
-		if (v_bool2) {
-			v_stringList1 = [];
-			if (v_bool1) {
-				while ((v_int1 < v_int2)) {
-					v_stringList1.push(v_string1.charAt(v_int1));
-					v_int1 += v_int3;
-				}
-			} else {
-				while ((v_int1 > v_int2)) {
-					v_stringList1.push(v_string1.charAt(v_int1));
-					v_int1 += v_int3;
-				}
-			}
-			v_value = v_buildString(v_stringList1.join(""));
-		} else {
-			v_list2 = [];
-			if (v_bool1) {
-				while ((v_int1 < v_int2)) {
-					v_list2.push(v_list1[v_int1]);
-					v_int1 += v_int3;
-				}
-			} else {
-				while ((v_int1 > v_int2)) {
-					v_list2.push(v_list1[v_int1]);
-					v_int1 += v_int3;
-				}
-			}
-			v_value = [6, v_list2];
-		}
-	} else {
-		if ((v_int5 == 0)) {
-			if (v_bool2) {
-				v_value = v_VALUE_EMPTY_STRING;
-			} else {
-				v_value = [6, []];
-			}
-		} else {
-			if ((v_int5 == 2)) {
-				if (!v_bool2) {
-					v_list2 = [];
-					v_i = 0;
-					while ((v_i < v_int4)) {
-						v_list2.push(v_list1[v_i]);
-						v_i += 1;
-					}
-					v_value = [6, v_list2];
-				}
-			} else {
-				if (v_bool2) {
-					v_string1 = "String";
+	status = canonicalizeListSliceArgs(PST$intBuffer16, arg1, arg2, begin, end, step, length, isForward);
+	if ((status == 1)) {
+		begin = PST$intBuffer16[0];
+		end = PST$intBuffer16[1];
+		if (isString) {
+			outputString = [];
+			if (isForward) {
+				if ((step == 1)) {
+					return buildString(globals, originalString.substring(begin, begin + (end - begin)));
 				} else {
-					v_string1 = "List";
-				}
-				if ((v_int5 == 3)) {
-					v_string1 += " slice begin index is out of range.";
-				} else {
-					if (v_bool1) {
-						v_string1 += " slice begin index must occur before the end index when step is positive.";
-					} else {
-						v_string1 += " slice begin index must occur after the end index when the step is negative.";
+					while ((begin < end)) {
+						outputString.push(originalString.charAt(begin));
+						begin += step;
 					}
 				}
-				v_EX_IndexOutOfRange(v_ec, v_string1);
-				return v_VALUE_NULL;
+			} else {
+				while ((begin > end)) {
+					outputString.push(originalString.charAt(begin));
+					begin += step;
+				}
 			}
+			value = buildString(globals, outputString.join(""));
+		} else {
+			outputList = makeEmptyList(originalList[0], 10);
+			if (isForward) {
+				while ((begin < end)) {
+					addToList(outputList, originalList[2][begin]);
+					begin += step;
+				}
+			} else {
+				while ((begin > end)) {
+					addToList(outputList, originalList[2][begin]);
+					begin += step;
+				}
+			}
+			value = [6, outputList];
 		}
+	} else if ((status == 0)) {
+		if (isString) {
+			value = globals[8];
+		} else {
+			value = [6, makeEmptyList(originalList[0], 0)];
+		}
+	} else if ((status == 2)) {
+		if (!isString) {
+			outputList = makeEmptyList(originalList[0], length);
+			i = 0;
+			while ((i < length)) {
+				addToList(outputList, originalList[2][i]);
+				i += 1;
+			}
+			value = [6, outputList];
+		}
+	} else {
+		var msg = null;
+		if (isString) {
+			msg = "String";
+		} else {
+			msg = "List";
+		}
+		if ((status == 3)) {
+			msg += " slice begin index is out of range.";
+		} else if (isForward) {
+			msg += " slice begin index must occur before the end index when step is positive.";
+		} else {
+			msg += " slice begin index must occur after the end index when the step is negative.";
+		}
+		EX_IndexOutOfRange(ec, msg);
+		return globals[0];
 	}
-	v_ec[2] = v_valueStackSize;
-	return v_value;
+	return value;
 };
 
-
-var v_prepareToSuspend = function(v_ec, v_stack, v_valueStackSize, v_currentPc) {
-	v_ec[1] = v_stack;
-	v_ec[2] = v_valueStackSize;
-	v_stack[0] = (v_currentPc + 1);
+var prepareToSuspend = function(ec, stack, valueStackSize, currentPc) {
+	ec[1] = stack;
+	ec[2] = valueStackSize;
+	stack[0] = (currentPc + 1);
 	return 0;
 };
 
-
-var v_primitiveMethodsInitializeLookup = function(v_nameLookups) {
-	var v_length = Object.keys(v_nameLookups).length;
-	var v_lookup = C$common$createNewArray(v_length);
-	var v_i = 0;
-	while ((v_i < v_length)) {
-		v_lookup[v_i] = -1;
-		v_i += 1;
+var primitiveMethodsInitializeLookup = function(nameLookups) {
+	var length = Object.keys(nameLookups).length;
+	var lookup = PST$createNewArray(length);
+	var i = 0;
+	while ((i < length)) {
+		lookup[i] = -1;
+		i += 1;
 	}
-	if ((v_nameLookups["add"] !== undefined)) {
-		v_lookup[v_nameLookups["add"]] = 0;
+	if ((nameLookups["add"] !== undefined)) {
+		lookup[nameLookups["add"]] = 0;
 	}
-	if ((v_nameLookups["argCountMax"] !== undefined)) {
-		v_lookup[v_nameLookups["argCountMax"]] = 1;
+	if ((nameLookups["argCountMax"] !== undefined)) {
+		lookup[nameLookups["argCountMax"]] = 1;
 	}
-	if ((v_nameLookups["argCountMin"] !== undefined)) {
-		v_lookup[v_nameLookups["argCountMin"]] = 2;
+	if ((nameLookups["argCountMin"] !== undefined)) {
+		lookup[nameLookups["argCountMin"]] = 2;
 	}
-	if ((v_nameLookups["choice"] !== undefined)) {
-		v_lookup[v_nameLookups["choice"]] = 3;
+	if ((nameLookups["choice"] !== undefined)) {
+		lookup[nameLookups["choice"]] = 3;
 	}
-	if ((v_nameLookups["clear"] !== undefined)) {
-		v_lookup[v_nameLookups["clear"]] = 4;
+	if ((nameLookups["clear"] !== undefined)) {
+		lookup[nameLookups["clear"]] = 4;
 	}
-	if ((v_nameLookups["clone"] !== undefined)) {
-		v_lookup[v_nameLookups["clone"]] = 5;
+	if ((nameLookups["clone"] !== undefined)) {
+		lookup[nameLookups["clone"]] = 5;
 	}
-	if ((v_nameLookups["concat"] !== undefined)) {
-		v_lookup[v_nameLookups["concat"]] = 6;
+	if ((nameLookups["concat"] !== undefined)) {
+		lookup[nameLookups["concat"]] = 6;
 	}
-	if ((v_nameLookups["contains"] !== undefined)) {
-		v_lookup[v_nameLookups["contains"]] = 7;
+	if ((nameLookups["contains"] !== undefined)) {
+		lookup[nameLookups["contains"]] = 7;
 	}
-	if ((v_nameLookups["createInstance"] !== undefined)) {
-		v_lookup[v_nameLookups["createInstance"]] = 8;
+	if ((nameLookups["createInstance"] !== undefined)) {
+		lookup[nameLookups["createInstance"]] = 8;
 	}
-	if ((v_nameLookups["endsWith"] !== undefined)) {
-		v_lookup[v_nameLookups["endsWith"]] = 9;
+	if ((nameLookups["endsWith"] !== undefined)) {
+		lookup[nameLookups["endsWith"]] = 9;
 	}
-	if ((v_nameLookups["filter"] !== undefined)) {
-		v_lookup[v_nameLookups["filter"]] = 10;
+	if ((nameLookups["filter"] !== undefined)) {
+		lookup[nameLookups["filter"]] = 10;
 	}
-	if ((v_nameLookups["get"] !== undefined)) {
-		v_lookup[v_nameLookups["get"]] = 11;
+	if ((nameLookups["get"] !== undefined)) {
+		lookup[nameLookups["get"]] = 11;
 	}
-	if ((v_nameLookups["getName"] !== undefined)) {
-		v_lookup[v_nameLookups["getName"]] = 12;
+	if ((nameLookups["getName"] !== undefined)) {
+		lookup[nameLookups["getName"]] = 12;
 	}
-	if ((v_nameLookups["indexOf"] !== undefined)) {
-		v_lookup[v_nameLookups["indexOf"]] = 13;
+	if ((nameLookups["indexOf"] !== undefined)) {
+		lookup[nameLookups["indexOf"]] = 13;
 	}
-	if ((v_nameLookups["insert"] !== undefined)) {
-		v_lookup[v_nameLookups["insert"]] = 14;
+	if ((nameLookups["insert"] !== undefined)) {
+		lookup[nameLookups["insert"]] = 14;
 	}
-	if ((v_nameLookups["invoke"] !== undefined)) {
-		v_lookup[v_nameLookups["invoke"]] = 15;
+	if ((nameLookups["invoke"] !== undefined)) {
+		lookup[nameLookups["invoke"]] = 15;
 	}
-	if ((v_nameLookups["isA"] !== undefined)) {
-		v_lookup[v_nameLookups["isA"]] = 16;
+	if ((nameLookups["isA"] !== undefined)) {
+		lookup[nameLookups["isA"]] = 16;
 	}
-	if ((v_nameLookups["join"] !== undefined)) {
-		v_lookup[v_nameLookups["join"]] = 17;
+	if ((nameLookups["join"] !== undefined)) {
+		lookup[nameLookups["join"]] = 17;
 	}
-	if ((v_nameLookups["keys"] !== undefined)) {
-		v_lookup[v_nameLookups["keys"]] = 18;
+	if ((nameLookups["keys"] !== undefined)) {
+		lookup[nameLookups["keys"]] = 18;
 	}
-	if ((v_nameLookups["lower"] !== undefined)) {
-		v_lookup[v_nameLookups["lower"]] = 19;
+	if ((nameLookups["lower"] !== undefined)) {
+		lookup[nameLookups["lower"]] = 19;
 	}
-	if ((v_nameLookups["ltrim"] !== undefined)) {
-		v_lookup[v_nameLookups["ltrim"]] = 20;
+	if ((nameLookups["ltrim"] !== undefined)) {
+		lookup[nameLookups["ltrim"]] = 20;
 	}
-	if ((v_nameLookups["map"] !== undefined)) {
-		v_lookup[v_nameLookups["map"]] = 21;
+	if ((nameLookups["map"] !== undefined)) {
+		lookup[nameLookups["map"]] = 21;
 	}
-	if ((v_nameLookups["merge"] !== undefined)) {
-		v_lookup[v_nameLookups["merge"]] = 22;
+	if ((nameLookups["merge"] !== undefined)) {
+		lookup[nameLookups["merge"]] = 22;
 	}
-	if ((v_nameLookups["pop"] !== undefined)) {
-		v_lookup[v_nameLookups["pop"]] = 23;
+	if ((nameLookups["pop"] !== undefined)) {
+		lookup[nameLookups["pop"]] = 23;
 	}
-	if ((v_nameLookups["remove"] !== undefined)) {
-		v_lookup[v_nameLookups["remove"]] = 24;
+	if ((nameLookups["remove"] !== undefined)) {
+		lookup[nameLookups["remove"]] = 24;
 	}
-	if ((v_nameLookups["replace"] !== undefined)) {
-		v_lookup[v_nameLookups["replace"]] = 25;
+	if ((nameLookups["replace"] !== undefined)) {
+		lookup[nameLookups["replace"]] = 25;
 	}
-	if ((v_nameLookups["reverse"] !== undefined)) {
-		v_lookup[v_nameLookups["reverse"]] = 26;
+	if ((nameLookups["reverse"] !== undefined)) {
+		lookup[nameLookups["reverse"]] = 26;
 	}
-	if ((v_nameLookups["rtrim"] !== undefined)) {
-		v_lookup[v_nameLookups["rtrim"]] = 27;
+	if ((nameLookups["rtrim"] !== undefined)) {
+		lookup[nameLookups["rtrim"]] = 27;
 	}
-	if ((v_nameLookups["shuffle"] !== undefined)) {
-		v_lookup[v_nameLookups["shuffle"]] = 28;
+	if ((nameLookups["shuffle"] !== undefined)) {
+		lookup[nameLookups["shuffle"]] = 28;
 	}
-	if ((v_nameLookups["sort"] !== undefined)) {
-		v_lookup[v_nameLookups["sort"]] = 29;
+	if ((nameLookups["sort"] !== undefined)) {
+		lookup[nameLookups["sort"]] = 29;
 	}
-	if ((v_nameLookups["split"] !== undefined)) {
-		v_lookup[v_nameLookups["split"]] = 30;
+	if ((nameLookups["split"] !== undefined)) {
+		lookup[nameLookups["split"]] = 30;
 	}
-	if ((v_nameLookups["startsWith"] !== undefined)) {
-		v_lookup[v_nameLookups["startsWith"]] = 31;
+	if ((nameLookups["startsWith"] !== undefined)) {
+		lookup[nameLookups["startsWith"]] = 31;
 	}
-	if ((v_nameLookups["trim"] !== undefined)) {
-		v_lookup[v_nameLookups["trim"]] = 32;
+	if ((nameLookups["trim"] !== undefined)) {
+		lookup[nameLookups["trim"]] = 32;
 	}
-	if ((v_nameLookups["upper"] !== undefined)) {
-		v_lookup[v_nameLookups["upper"]] = 33;
+	if ((nameLookups["upper"] !== undefined)) {
+		lookup[nameLookups["upper"]] = 33;
 	}
-	if ((v_nameLookups["values"] !== undefined)) {
-		v_lookup[v_nameLookups["values"]] = 34;
+	if ((nameLookups["values"] !== undefined)) {
+		lookup[nameLookups["values"]] = 34;
 	}
-	return v_lookup;
+	return lookup;
 };
 
-
-var v_primitiveMethodWrongArgCountError = function(v_name, v_expected, v_actual) {
-	var v_output = "";
-	if ((v_expected == 0)) {
-		v_output = v_name + " does not accept any arguments.";
+var primitiveMethodWrongArgCountError = function(name, expected, actual) {
+	var output = "";
+	if ((expected == 0)) {
+		output = name + " does not accept any arguments.";
+	} else if ((expected == 1)) {
+		output = name + " accepts exactly 1 argument.";
 	} else {
-		if ((v_expected == 1)) {
-			v_output = v_name + " accepts exactly 1 argument.";
-		} else {
-			v_output = [v_name, " requires ", ('' + v_expected), " arguments."].join('');
+		output = [name, " requires ", ('' + expected), " arguments."].join('');
+	}
+	return [output, " Found: ", ('' + actual)].join('');
+};
+
+var printToStdOut = function(prefix, line) {
+	if ((prefix == null)) {
+		C$common$print(line);
+	} else {
+		var canonical = line.split("\r\n").join("\n").split("\r").join("\n");
+		var lines = canonical.split("\n");
+		var i = 0;
+		while ((i < lines.length)) {
+			C$common$print([prefix, ": ", lines[i]].join(''));
+			i += 1;
 		}
 	}
-	return [v_output, " Found: ", ('' + v_actual)].join('');
+	return 0;
 };
 
-
-var v_qsortHelper = function(v_keyStringList, v_keyNumList, v_parallelList, v_isString, v_startIndex, v_endIndex) {
-	if (((v_endIndex - v_startIndex) <= 0)) {
+var qsortHelper = function(keyStringList, keyNumList, indices, isString, startIndex, endIndex) {
+	if (((endIndex - startIndex) <= 0)) {
 		return 0;
 	}
-	if (((v_endIndex - v_startIndex) == 1)) {
-		if (v_sortHelperIsRevOrder(v_keyStringList, v_keyNumList, v_isString, v_startIndex, v_endIndex)) {
-			v_sortHelperSwap(v_keyStringList, v_keyNumList, v_parallelList, v_isString, v_startIndex, v_endIndex);
+	if (((endIndex - startIndex) == 1)) {
+		if (sortHelperIsRevOrder(keyStringList, keyNumList, isString, startIndex, endIndex)) {
+			sortHelperSwap(keyStringList, keyNumList, indices, isString, startIndex, endIndex);
 		}
 		return 0;
 	}
-	var v_mid = ((v_endIndex + v_startIndex) >> 1);
-	v_sortHelperSwap(v_keyStringList, v_keyNumList, v_parallelList, v_isString, v_mid, v_startIndex);
-	var v_upperPointer = (v_endIndex + 1);
-	var v_lowerPointer = (v_startIndex + 1);
-	while ((v_upperPointer > v_lowerPointer)) {
-		if (v_sortHelperIsRevOrder(v_keyStringList, v_keyNumList, v_isString, v_startIndex, v_lowerPointer)) {
-			v_lowerPointer += 1;
+	var mid = ((endIndex + startIndex) >> 1);
+	sortHelperSwap(keyStringList, keyNumList, indices, isString, mid, startIndex);
+	var upperPointer = (endIndex + 1);
+	var lowerPointer = (startIndex + 1);
+	while ((upperPointer > lowerPointer)) {
+		if (sortHelperIsRevOrder(keyStringList, keyNumList, isString, startIndex, lowerPointer)) {
+			lowerPointer += 1;
 		} else {
-			v_upperPointer -= 1;
-			v_sortHelperSwap(v_keyStringList, v_keyNumList, v_parallelList, v_isString, v_lowerPointer, v_upperPointer);
+			upperPointer -= 1;
+			sortHelperSwap(keyStringList, keyNumList, indices, isString, lowerPointer, upperPointer);
 		}
 	}
-	var v_midIndex = (v_lowerPointer - 1);
-	v_sortHelperSwap(v_keyStringList, v_keyNumList, v_parallelList, v_isString, v_midIndex, v_startIndex);
-	v_qsortHelper(v_keyStringList, v_keyNumList, v_parallelList, v_isString, v_startIndex, (v_midIndex - 1));
-	v_qsortHelper(v_keyStringList, v_keyNumList, v_parallelList, v_isString, (v_midIndex + 1), v_endIndex);
+	var midIndex = (lowerPointer - 1);
+	sortHelperSwap(keyStringList, keyNumList, indices, isString, midIndex, startIndex);
+	qsortHelper(keyStringList, keyNumList, indices, isString, startIndex, (midIndex - 1));
+	qsortHelper(keyStringList, keyNumList, indices, isString, (midIndex + 1), endIndex);
 	return 0;
 };
 
-
-var v_read_integer = function(v_pindex, v_raw, v_length, v_alphaNums) {
-	var v_num = 0;
-	var v_c = v_raw.charAt(v_pindex[0]);
-	v_pindex[0] = (v_pindex[0] + 1);
-	if ((v_c == "%")) {
-		var v_value = v_read_till(v_pindex, v_raw, v_length, "%");
-		v_num = parseInt(v_value);
-	} else {
-		if ((v_c == "@")) {
-			v_num = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-			v_num *= 62;
-			v_num += v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-		} else {
-			if ((v_c == "#")) {
-				v_num = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-				v_num *= 62;
-				v_num += v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-				v_num *= 62;
-				v_num += v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-			} else {
-				if ((v_c == "^")) {
-					v_num = (-1 * v_read_integer(v_pindex, v_raw, v_length, v_alphaNums));
-				} else {
-					// TODO: string.IndexOfChar(c);
-					v_num = v_alphaNums.indexOf(v_c);
-					if ((v_num == -1)) {
+var queryValue = function(vm, execId, stackFrameOffset, steps) {
+	if ((execId == -1)) {
+		execId = vm[1];
+	}
+	var ec = vm[0][execId];
+	var stackFrame = ec[1];
+	while ((stackFrameOffset > 0)) {
+		stackFrameOffset -= 1;
+		stackFrame = stackFrame[4];
+	}
+	var current = null;
+	var i = 0;
+	var j = 0;
+	var len = steps.length;
+	i = 0;
+	while ((i < steps.length)) {
+		if (((current == null) && (i > 0))) {
+			return null;
+		}
+		var step = steps[i];
+		if (isStringEqual(".", step)) {
+			return null;
+		} else if (isStringEqual("this", step)) {
+			current = stackFrame[6];
+		} else if (isStringEqual("class", step)) {
+			return null;
+		} else if (isStringEqual("local", step)) {
+			i += 1;
+			step = steps[i];
+			var localNamesByFuncPc = vm[3][5];
+			var localNames = null;
+			if (((localNamesByFuncPc == null) || (Object.keys(localNamesByFuncPc).length == 0))) {
+				return null;
+			}
+			j = stackFrame[0];
+			while ((j >= 0)) {
+				if ((localNamesByFuncPc[j] !== undefined)) {
+					localNames = localNamesByFuncPc[j];
+					j = -1;
+				}
+				j -= 1;
+			}
+			if ((localNames == null)) {
+				return null;
+			}
+			var localId = -1;
+			if ((localNames != null)) {
+				j = 0;
+				while ((j < localNames.length)) {
+					if (isStringEqual(localNames[j], step)) {
+						localId = j;
+						j = localNames.length;
 					}
+					j += 1;
 				}
 			}
-		}
-	}
-	return v_num;
-};
-
-
-var v_read_string = function(v_pindex, v_raw, v_length, v_alphaNums) {
-	var v_output = [];
-	var v_cont = true;
-	var v_c = " ";
-	while (v_cont) {
-		v_c = v_raw.charAt(v_pindex[0]);
-		v_pindex[0] = (v_pindex[0] + 1);
-		if ((v_c == "@")) {
-			var v_repeat = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-			var v_last = v_output[(v_output.length - 1)];
-			while ((v_repeat > 0)) {
-				v_output.push(v_last);
-				v_repeat -= 1;
+			if ((localId == -1)) {
+				return null;
 			}
-		} else {
-			if ((v_c == "~")) {
-				var v_d1 = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-				var v_d2 = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-				var v_charcode = ((v_d1 * 62) + v_d2);
-				v_output.push(String.fromCharCode(v_charcode));
-			} else {
-				if ((v_c == "`")) {
-					var v_d1 = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-					var v_d2 = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-					var v_d3 = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-					var v_d4 = v_read_integer(v_pindex, v_raw, v_length, v_alphaNums);
-					var v_charcode = ((((((v_d1 * 62) + v_d2) * 62) + v_d3) * 62) + v_d4);
-					v_output.push(String.fromCharCode(v_charcode));
-				} else {
-					if ((v_c == "%")) {
-						v_cont = false;
-					} else {
-						v_output.push(v_c);
-					}
-				}
+			var localOffset = (localId + stackFrame[2]);
+			if ((ec[6][localOffset] != stackFrame[1])) {
+				return null;
 			}
-		}
-	}
-	return v_output.join("");
-};
-
-
-var v_read_till = function(v_index, v_raw, v_length, v_char) {
-	var v_output = [];
-	var v_ctn = true;
-	var v_c = " ";
-	while (v_ctn) {
-		v_c = v_raw.charAt(v_index[0]);
-		if ((v_c == v_char)) {
-			v_ctn = false;
+			current = ec[5][localOffset];
+		} else if (isStringEqual("index", step)) {
+			return null;
+		} else if (isStringEqual("key-int", step)) {
+			return null;
+		} else if (isStringEqual("key-str", step)) {
+			return null;
+		} else if (isStringEqual("key-obj", step)) {
+			return null;
 		} else {
-			v_output.push(v_c);
+			return null;
 		}
-		v_index[0] = (v_index[0] + 1);
+		i += 1;
 	}
-	return v_output.join('');
+	return current;
 };
 
-
-var v_reallocIntArray = function(v_original, v_requiredCapacity) {
-	var v_oldSize = v_original.length;
-	var v_size = v_oldSize;
-	while ((v_size < v_requiredCapacity)) {
-		v_size *= 2;
+var read_integer = function(pindex, raw, length, alphaNums) {
+	var num = 0;
+	var c = raw.charAt(pindex[0]);
+	pindex[0] = (pindex[0] + 1);
+	if ((c == "%")) {
+		var value = read_till(pindex, raw, length, "%");
+		num = parseInt(value);
+	} else if ((c == "@")) {
+		num = read_integer(pindex, raw, length, alphaNums);
+		num *= 62;
+		num += read_integer(pindex, raw, length, alphaNums);
+	} else if ((c == "#")) {
+		num = read_integer(pindex, raw, length, alphaNums);
+		num *= 62;
+		num += read_integer(pindex, raw, length, alphaNums);
+		num *= 62;
+		num += read_integer(pindex, raw, length, alphaNums);
+	} else if ((c == "^")) {
+		num = (-1 * read_integer(pindex, raw, length, alphaNums));
+	} else {
+		// TODO: string.IndexOfChar(c);
+		num = alphaNums.indexOf(c);
+		if ((num == -1)) {
+		}
 	}
-	var v_output = C$common$createNewArray(v_size);
-	var v_i = 0;
-	while ((v_i < v_oldSize)) {
-		v_output[v_i] = v_original[v_i];
-		v_i += 1;
-	}
-	return v_output;
+	return num;
 };
 
+var read_string = function(pindex, raw, length, alphaNums) {
+	var b64 = read_till(pindex, raw, length, "%");
+	return decodeURIComponent(Array.prototype.map.call(atob(b64), function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
+};
 
-var v_Reflect_allClasses = function() {
-	var v_p = C$common$programData;
-	var v_valueList = [];
-	var v_i = 1;
-	while ((v_i < v_p[20].length)) {
-		var v_classInfo = v_p[20][v_i];
-		if ((v_classInfo == null)) {
-			v_i = v_p[20].length;
+var read_till = function(index, raw, length, end) {
+	var output = [];
+	var ctn = true;
+	var c = " ";
+	while (ctn) {
+		c = raw.charAt(index[0]);
+		if ((c == end)) {
+			ctn = false;
 		} else {
-			v_valueList.push([10, [false, v_classInfo[0]]]);
+			output.push(c);
 		}
-		v_i += 1;
+		index[0] = (index[0] + 1);
 	}
-	return [6, v_valueList];
+	return output.join('');
 };
 
+var reallocIntArray = function(original, requiredCapacity) {
+	var oldSize = original.length;
+	var size = oldSize;
+	while ((size < requiredCapacity)) {
+		size *= 2;
+	}
+	var output = PST$createNewArray(size);
+	var i = 0;
+	while ((i < oldSize)) {
+		output[i] = original[i];
+		i += 1;
+	}
+	return output;
+};
 
-var v_Reflect_getMethods = function(v_ec, v_methodSource) {
-	var v_p = C$common$programData;
-	var v_methodList = [];
-	if ((v_methodSource[0] == 8)) {
-		var v_objInstance1 = v_methodSource[1];
-		var v_classInfo = v_p[20][v_objInstance1[0]];
-		var v_i = 0;
-		while ((v_i < v_classInfo[8].length)) {
-			var v_functionId = v_classInfo[8][v_i];
-			if ((v_functionId != -1)) {
-				v_methodList.push([9, [2, v_methodSource, v_objInstance1[0], v_functionId]]);
+var Reflect_allClasses = function(vm) {
+	var generics = PST$createNewArray(1);
+	generics[0] = 10;
+	var output = makeEmptyList(generics, 20);
+	var classTable = vm[4][9];
+	var i = 1;
+	while ((i < classTable.length)) {
+		var classInfo = classTable[i];
+		if ((classInfo == null)) {
+			i = classTable.length;
+		} else {
+			addToList(output, [10, [false, classInfo[0]]]);
+		}
+		i += 1;
+	}
+	return [6, output];
+};
+
+var Reflect_getMethods = function(vm, ec, methodSource) {
+	var output = makeEmptyList(null, 8);
+	if ((methodSource[0] == 8)) {
+		var objInstance1 = methodSource[1];
+		var classInfo = vm[4][9][objInstance1[0]];
+		var i = 0;
+		while ((i < classInfo[9].length)) {
+			var functionId = classInfo[9][i];
+			if ((functionId != -1)) {
+				addToList(output, [9, [2, methodSource, objInstance1[0], functionId, null]]);
 			}
-			v_i += 1;
+			i += 1;
 		}
 	} else {
-		var v_classValue = v_methodSource[1];
-		var v_classInfo = v_p[20][v_classValue[1]];
-		v_EX_UnsupportedOperation(v_ec, "static method reflection not implemented yet.");
+		var classValue = methodSource[1];
+		var classInfo = vm[4][9][classValue[1]];
+		EX_UnsupportedOperation(ec, "static method reflection not implemented yet.");
 	}
-	return [6, v_methodList];
+	return [6, output];
 };
 
-
-var v_registerLibraryFunction = function(v_functionPointer, v_libRegObjRaw, v_functionName, v_argCount) {
-	var v_libRegObj = v_libRegObjRaw;
-	var v_functionPointersById = v_libRegObj[0];
-	var v_functionNamesById = v_libRegObj[1];
-	var v_functionArgCountsById = v_libRegObj[2];
-	var v_index = v_functionPointersById.length;
-	v_functionPointersById.push(v_functionPointer);
-	v_functionNamesById.push(v_functionName);
-	v_functionArgCountsById.push(v_argCount);
-	var v_p = C$common$programData;
-	if ((v_p[36][v_functionName] !== undefined)) {
-		var v_functionNameReferenceId = v_p[36][v_functionName];
-		var v_lookupId = (v_p[37] + (4096 * v_functionNameReferenceId));
-		v_p[32][v_lookupId] = v_index;
-	}
-	return 0;
+var registerNamedCallback = function(vm, scope, functionName, callback) {
+	var id = getNamedCallbackIdImpl(vm, scope, functionName, true);
+	vm[12][0][id] = callback;
+	return id;
 };
 
-
-var v_resetLocalsStackTokens = function(v_ec, v_stack) {
-	var v_localsStack = v_ec[5];
-	var v_localsStackSet = v_ec[6];
-	var v_i = v_stack[3];
-	while ((v_i < v_localsStackSet.length)) {
-		v_localsStackSet[v_i] = 0;
-		v_localsStack[v_i] = null;
-		v_i += 1;
+var resetLocalsStackTokens = function(ec, stack) {
+	var localsStack = ec[5];
+	var localsStackSet = ec[6];
+	var i = stack[3];
+	while ((i < localsStackSet.length)) {
+		localsStackSet[i] = 0;
+		localsStack[i] = null;
+		i += 1;
 	}
-	var v_stackWalker = v_stack;
-	while ((v_stackWalker != null)) {
-		var v_token = v_stackWalker[1];
-		v_stackWalker[1] = 1;
-		v_i = v_stackWalker[2];
-		while ((v_i < v_stackWalker[3])) {
-			if ((v_localsStackSet[v_i] == v_token)) {
-				v_localsStackSet[v_i] = 1;
+	var stackWalker = stack;
+	while ((stackWalker != null)) {
+		var token = stackWalker[1];
+		stackWalker[1] = 1;
+		i = stackWalker[2];
+		while ((i < stackWalker[3])) {
+			if ((localsStackSet[i] == token)) {
+				localsStackSet[i] = 1;
 			} else {
-				v_localsStackSet[v_i] = 0;
-				v_localsStack[v_i] = null;
+				localsStackSet[i] = 0;
+				localsStack[i] = null;
 			}
-			v_i += 1;
+			i += 1;
 		}
-		v_stackWalker = v_stackWalker[4];
+		stackWalker = stackWalker[4];
 	}
-	v_ec[7] = 1;
+	ec[7] = 1;
 	return -1;
 };
 
-
-var v_resolvePrimitiveMethodName2 = function(v_lookup, v_type, v_globalNameId) {
-	var v_output = v_lookup[v_globalNameId];
-	if ((v_output != -1)) {
-		switch ((v_type + (11 * v_output))) {
+var resolvePrimitiveMethodName2 = function(lookup, type, globalNameId) {
+	var output = lookup[globalNameId];
+	if ((output != -1)) {
+		switch ((type + (11 * output))) {
 			case 82:
-				return v_output;
+				return output;
 			case 104:
-				return v_output;
+				return output;
 			case 148:
-				return v_output;
+				return output;
 			case 214:
-				return v_output;
+				return output;
 			case 225:
-				return v_output;
+				return output;
 			case 280:
-				return v_output;
+				return output;
 			case 291:
-				return v_output;
+				return output;
 			case 302:
-				return v_output;
+				return output;
 			case 335:
-				return v_output;
+				return output;
 			case 346:
-				return v_output;
+				return output;
 			case 357:
-				return v_output;
+				return output;
 			case 368:
-				return v_output;
+				return output;
 			case 6:
-				return v_output;
+				return output;
 			case 39:
-				return v_output;
+				return output;
 			case 50:
-				return v_output;
+				return output;
 			case 61:
-				return v_output;
+				return output;
 			case 72:
-				return v_output;
+				return output;
 			case 83:
-				return v_output;
+				return output;
 			case 116:
-				return v_output;
+				return output;
 			case 160:
-				return v_output;
+				return output;
 			case 193:
-				return v_output;
+				return output;
 			case 237:
-				return v_output;
+				return output;
 			case 259:
-				return v_output;
+				return output;
 			case 270:
-				return v_output;
+				return output;
 			case 292:
-				return v_output;
+				return output;
 			case 314:
-				return v_output;
+				return output;
 			case 325:
-				return v_output;
+				return output;
 			case 51:
-				return v_output;
+				return output;
 			case 62:
-				return v_output;
+				return output;
 			case 84:
-				return v_output;
+				return output;
 			case 128:
-				return v_output;
+				return output;
 			case 205:
-				return v_output;
+				return output;
 			case 249:
-				return v_output;
+				return output;
 			case 271:
-				return v_output;
+				return output;
 			case 381:
-				return v_output;
+				return output;
 			case 20:
-				return v_output;
+				return output;
 			case 31:
-				return v_output;
+				return output;
 			case 141:
-				return v_output;
+				return output;
 			case 174:
-				return v_output;
+				return output;
 			case 98:
-				return v_output;
+				return output;
 			case 142:
-				return v_output;
+				return output;
 			case 186:
-				return v_output;
+				return output;
 			default:
 				return -1;
 		}
@@ -5115,577 +5940,734 @@ var v_resolvePrimitiveMethodName2 = function(v_lookup, v_type, v_globalNameId) {
 	return -1;
 };
 
-
-var v_resource_manager_getResourceOfType = function(v_userPath, v_type) {
-	var v_p = C$common$programData;
-	var v_db = v_p[27];
-	var v_lookup = v_db[1];
-	if ((v_lookup[v_userPath] !== undefined)) {
-		var v_output = [];
-		var v_file = v_lookup[v_userPath];
-		if (v_file[3] == v_type) {
-			v_output.push(v_VALUE_TRUE);
-			v_output.push(v_buildString(v_file[1]));
+var resource_manager_getResourceOfType = function(vm, userPath, type) {
+	var db = vm[9];
+	var lookup = db[1];
+	if ((lookup[userPath] !== undefined)) {
+		var output = makeEmptyList(null, 2);
+		var file = lookup[userPath];
+		if (file[3] == type) {
+			addToList(output, vm[13][1]);
+			addToList(output, buildString(vm[13], file[1]));
 		} else {
-			v_output.push(v_VALUE_FALSE);
+			addToList(output, vm[13][2]);
 		}
-		return [6, v_output];
+		return [6, output];
 	}
-	return v_VALUE_NULL;
+	return vm[13][0];
 };
 
-
-var v_resource_manager_initialize = function() {
-	var v_filesPerDirectoryBuilder = {};
-	var v_fileInfo = {};
-	var v_dataList = [];
-	var v_manifest = C$common$resourceManifest;
-	var v_items = v_manifest.split("\n");
-	var v_resourceInfo = null;
-	var v_type = "";
-	var v_userPath = "";
-	var v_internalPath = "";
-	var v_argument = "";
-	var v_isText = false;
-	var v_intType = 0;
-	var v_i = 0;
-	while ((v_i < v_items.length)) {
-		var v_itemData = v_items[v_i].split(",");
-		if ((v_itemData.length >= 3)) {
-			v_type = v_itemData[0];
-			v_isText = "TXT" == v_type;
-			if (v_isText) {
-				v_intType = 1;
-			} else {
-				if (("IMGSH" == v_type || "IMG" == v_type)) {
-					v_intType = 2;
-				} else {
-					if ("SND" == v_type) {
-						v_intType = 3;
-					} else {
-						if ("TTF" == v_type) {
-							v_intType = 4;
-						} else {
-							v_intType = 5;
-						}
-					}
-				}
-			}
-			v_userPath = v_stringDecode(v_itemData[1]);
-			v_internalPath = v_itemData[2];
-			v_argument = "";
-			if ((v_itemData.length > 3)) {
-				v_argument = v_stringDecode(v_itemData[3]);
-			}
-			v_resourceInfo = [v_userPath, v_internalPath, v_isText, v_type, v_argument];
-			v_fileInfo[v_userPath] = v_resourceInfo;
-			v_resource_manager_populate_directory_lookup(v_filesPerDirectoryBuilder, v_userPath);
-			v_dataList.push(v_buildString(v_userPath));
-			v_dataList.push(v_buildInteger(v_intType));
-			if ((v_internalPath != null)) {
-				v_dataList.push(v_buildString(v_internalPath));
-			} else {
-				v_dataList.push(v_VALUE_NULL);
-			}
-		}
-		v_i += 1;
-	}
-	var v_dirs = C$common$dictionaryKeys(v_filesPerDirectoryBuilder);
-	var v_filesPerDirectorySorted = {};
-	v_i = 0;
-	while ((v_i < v_dirs.length)) {
-		var v_dir = v_dirs[v_i];
-		var v_unsortedDirs = v_filesPerDirectoryBuilder[v_dir];
-		var v_dirsSorted = C$common$multiplyList(v_unsortedDirs, 1);
-		v_dirsSorted = C$common$sortedCopyOfArray(v_dirsSorted);
-		v_filesPerDirectorySorted[v_dir] = v_dirsSorted;
-		v_i += 1;
-	}
-	return [v_filesPerDirectorySorted, v_fileInfo, v_dataList];
-};
-
-
-var v_resource_manager_populate_directory_lookup = function(v_dirs, v_path) {
-	var v_parts = v_path.split("/");
-	var v_pathBuilder = "";
-	var v_file = "";
-	var v_i = 0;
-	while ((v_i < v_parts.length)) {
-		v_file = v_parts[v_i];
-		var v_files = null;
-		if (!(v_dirs[v_pathBuilder] !== undefined)) {
-			v_files = [];
-			v_dirs[v_pathBuilder] = v_files;
+var resource_manager_populate_directory_lookup = function(dirs, path) {
+	var parts = path.split("/");
+	var pathBuilder = "";
+	var file = "";
+	var i = 0;
+	while ((i < parts.length)) {
+		file = parts[i];
+		var files = null;
+		if (!(dirs[pathBuilder] !== undefined)) {
+			files = [];
+			dirs[pathBuilder] = files;
 		} else {
-			v_files = v_dirs[v_pathBuilder];
+			files = dirs[pathBuilder];
 		}
-		v_files.push(v_file);
-		if ((v_i > 0)) {
-			v_pathBuilder = [v_pathBuilder, "/", v_file].join('');
+		files.push(file);
+		if ((i > 0)) {
+			pathBuilder = [pathBuilder, "/", file].join('');
 		} else {
-			v_pathBuilder = v_file;
+			pathBuilder = file;
 		}
-		v_i += 1;
+		i += 1;
 	}
 	return 0;
 };
 
-
-var v_runInterpreter = function(v_executionContextId) {
-	var v_p = C$common$programData;
-	var v_result = v_interpret(v_executionContextId);
-	var v_status = v_result[0];
-	if ((v_status == 1)) {
-		if ((v_p[0][v_executionContextId] !== undefined)) {
-			delete v_p[0][v_executionContextId];
+var resourceManagerInitialize = function(globals, manifest) {
+	var filesPerDirectoryBuilder = {};
+	var fileInfo = {};
+	var dataList = [];
+	var items = manifest.split("\n");
+	var resourceInfo = null;
+	var type = "";
+	var userPath = "";
+	var internalPath = "";
+	var argument = "";
+	var isText = false;
+	var intType = 0;
+	var i = 0;
+	while ((i < items.length)) {
+		var itemData = items[i].split(",");
+		if ((itemData.length >= 3)) {
+			type = itemData[0];
+			isText = "TXT" == type;
+			if (isText) {
+				intType = 1;
+			} else if (("IMGSH" == type || "IMG" == type)) {
+				intType = 2;
+			} else if ("SND" == type) {
+				intType = 3;
+			} else if ("TTF" == type) {
+				intType = 4;
+			} else {
+				intType = 5;
+			}
+			userPath = stringDecode(itemData[1]);
+			internalPath = itemData[2];
+			argument = "";
+			if ((itemData.length > 3)) {
+				argument = stringDecode(itemData[3]);
+			}
+			resourceInfo = [userPath, internalPath, isText, type, argument];
+			fileInfo[userPath] = resourceInfo;
+			resource_manager_populate_directory_lookup(filesPerDirectoryBuilder, userPath);
+			dataList.push(buildString(globals, userPath));
+			dataList.push(buildInteger(globals, intType));
+			if ((internalPath != null)) {
+				dataList.push(buildString(globals, internalPath));
+			} else {
+				dataList.push(globals[0]);
+			}
 		}
-		v_runShutdownHandlers();
-	} else {
-		if ((v_status == 3)) {
-			C$common$print(v_result[1]);
-			v_runShutdownHandlers();
-		}
+		i += 1;
 	}
-	return v_status;
+	var dirs = PST$dictionaryKeys(filesPerDirectoryBuilder);
+	var filesPerDirectorySorted = {};
+	i = 0;
+	while ((i < dirs.length)) {
+		var dir = dirs[i];
+		var unsortedDirs = filesPerDirectoryBuilder[dir];
+		var dirsSorted = PST$multiplyList(unsortedDirs, 1);
+		dirsSorted = PST$sortedCopyOfArray(dirsSorted);
+		filesPerDirectorySorted[dir] = dirsSorted;
+		i += 1;
+	}
+	return [filesPerDirectorySorted, fileInfo, dataList];
 };
 
-
-var v_runInterpreterWithFunctionPointer = function(v_fpValue, v_args) {
-	var v_p = C$common$programData;
-	var v_newId = (v_p[1] + 1);
-	v_p[1] = v_newId;
-	var v_argList = [];
-	var v_i = 0;
-	while ((v_i < v_args.length)) {
-		v_argList.push(v_args[v_i]);
-		v_i += 1;
-	}
-	var v_locals = C$common$createNewArray(0);
-	var v_localsSet = C$common$createNewArray(0);
-	var v_valueStack = C$common$createNewArray(100);
-	v_valueStack[0] = v_fpValue;
-	v_valueStack[1] = [6, v_argList];
-	var v_stack = [(v_p[2].length - 2), 1, 0, 0, null, false, null, 0, 0, 1, 0, null];
-	var v_executionContext = [v_newId, v_stack, 2, 100, v_valueStack, v_locals, v_localsSet, 1, 0, false, null, false, 0, null];
-	v_p[0][v_newId] = v_executionContext;
-	return v_runInterpreter(v_newId);
+var reverseList = function(list) {
+	list[2].reverse();
 };
 
+var runInterpreter = function(vm, executionContextId) {
+	var result = interpret(vm, executionContextId);
+	result[3] = executionContextId;
+	var status = result[0];
+	if ((status == 1)) {
+		if ((vm[0][executionContextId] !== undefined)) {
+			delete vm[0][executionContextId];
+		}
+		runShutdownHandlers(vm);
+	} else if ((status == 3)) {
+		printToStdOut(vm[11][3], result[1]);
+		runShutdownHandlers(vm);
+	}
+	if ((executionContextId == 0)) {
+		result[4] = true;
+	}
+	return result;
+};
 
-var v_runShutdownHandlers = function() {
-	var v_p = C$common$programData;
-	while ((v_p[39].length > 0)) {
-		var v_handler = v_p[39][0];
-		v_p[39].splice(0, 1);
-		v_runInterpreterWithFunctionPointer(v_handler, C$common$createNewArray(0));
+var runInterpreterWithFunctionPointer = function(vm, fpValue, args) {
+	var newId = (vm[1] + 1);
+	vm[1] = newId;
+	var argList = [];
+	var i = 0;
+	while ((i < args.length)) {
+		argList.push(args[i]);
+		i += 1;
+	}
+	var locals = PST$createNewArray(0);
+	var localsSet = PST$createNewArray(0);
+	var valueStack = PST$createNewArray(100);
+	valueStack[0] = fpValue;
+	valueStack[1] = buildList(argList);
+	var stack = [(vm[2][0].length - 2), 1, 0, 0, null, false, null, 0, 0, 1, 0, null, null, null];
+	var executionContext = [newId, stack, 2, 100, valueStack, locals, localsSet, 1, 0, false, null, false, 0, null];
+	vm[0][newId] = executionContext;
+	return runInterpreter(vm, newId);
+};
+
+var runShutdownHandlers = function(vm) {
+	while ((vm[10].length > 0)) {
+		var handler = vm[10][0];
+		vm[10].splice(0, 1);
+		runInterpreterWithFunctionPointer(vm, handler, PST$createNewArray(0));
 	}
 	return 0;
 };
 
-
-var v_sortHelperIsRevOrder = function(v_keyStringList, v_keyNumList, v_isString, v_indexLeft, v_indexRight) {
-	if (v_isString) {
-		return (v_keyStringList[v_indexLeft].localeCompare(v_keyStringList[v_indexRight]) > 0);
-	}
-	return (v_keyNumList[v_indexLeft] > v_keyNumList[v_indexRight]);
+var setItemInList = function(list, i, v) {
+	list[2][i] = v;
 };
 
+var sortHelperIsRevOrder = function(keyStringList, keyNumList, isString, indexLeft, indexRight) {
+	if (isString) {
+		return (keyStringList[indexLeft].localeCompare(keyStringList[indexRight]) > 0);
+	}
+	return (keyNumList[indexLeft] > keyNumList[indexRight]);
+};
 
-var v_sortHelperSwap = function(v_keyStringList, v_keyNumList, v_values, v_isString, v_index1, v_index2) {
-	if ((v_index1 == v_index2)) {
+var sortHelperSwap = function(keyStringList, keyNumList, indices, isString, index1, index2) {
+	if ((index1 == index2)) {
 		return 0;
 	}
-	if ((v_values != null)) {
-		var v_t = v_values[v_index1];
-		v_values[v_index1] = v_values[v_index2];
-		v_values[v_index2] = v_t;
-	}
-	if (v_isString) {
-		var v_s = v_keyStringList[v_index1];
-		v_keyStringList[v_index1] = v_keyStringList[v_index2];
-		v_keyStringList[v_index2] = v_s;
+	var t = indices[index1];
+	indices[index1] = indices[index2];
+	indices[index2] = t;
+	if (isString) {
+		var s = keyStringList[index1];
+		keyStringList[index1] = keyStringList[index2];
+		keyStringList[index2] = s;
 	} else {
-		var v_n = v_keyNumList[v_index1];
-		v_keyNumList[v_index1] = v_keyNumList[v_index2];
-		v_keyNumList[v_index2] = v_n;
+		var n = keyNumList[index1];
+		keyNumList[index1] = keyNumList[index2];
+		keyNumList[index2] = n;
 	}
 	return 0;
 };
 
-
-var v_sortLists = function(v_keyList, v_parallelList, v_intOutParam) {
-	C$common$intBuffer16[0] = 0;
-	var v_length = v_keyList.length;
-	if ((v_length < 2)) {
+var sortLists = function(keyList, parallelList, intOutParam) {
+	PST$intBuffer16[0] = 0;
+	var length = keyList[1];
+	if ((length < 2)) {
 		return 0;
 	}
-	var v_i = 0;
-	var v_item = v_keyList[0];
-	var v_isString = (v_item[0] == 5);
-	var v_stringKeys = null;
-	var v_numKeys = null;
-	if (v_isString) {
-		v_stringKeys = C$common$createNewArray(v_length);
+	var i = 0;
+	var item = null;
+	item = keyList[2][0];
+	var isString = (item[0] == 5);
+	var stringKeys = null;
+	var numKeys = null;
+	if (isString) {
+		stringKeys = PST$createNewArray(length);
 	} else {
-		v_numKeys = C$common$createNewArray(v_length);
+		numKeys = PST$createNewArray(length);
 	}
-	v_i = (v_keyList.length - 1);
-	while ((v_i >= 0)) {
-		v_item = v_keyList[v_i];
-		switch (v_item[0]) {
+	var indices = PST$createNewArray(length);
+	var originalOrder = PST$createNewArray(length);
+	i = 0;
+	while ((i < length)) {
+		indices[i] = i;
+		originalOrder[i] = parallelList[2][i];
+		item = keyList[2][i];
+		switch (item[0]) {
 			case 3:
-				if (v_isString) {
-					C$common$intBuffer16[0] = 1;
+				if (isString) {
+					PST$intBuffer16[0] = 1;
 					return 0;
 				}
-				v_numKeys[v_i] = v_item[1];
+				numKeys[i] = item[1];
 				break;
 			case 4:
-				if (v_isString) {
-					C$common$intBuffer16[0] = 1;
+				if (isString) {
+					PST$intBuffer16[0] = 1;
 					return 0;
 				}
-				v_numKeys[v_i] = v_item[1];
+				numKeys[i] = item[1];
 				break;
 			case 5:
-				if (!v_isString) {
-					C$common$intBuffer16[0] = 1;
+				if (!isString) {
+					PST$intBuffer16[0] = 1;
 					return 0;
 				}
-				v_stringKeys[v_i] = v_item[1];
+				stringKeys[i] = item[1];
 				break;
 			default:
-				C$common$intBuffer16[0] = 1;
+				PST$intBuffer16[0] = 1;
 				return 0;
 		}
-		v_i -= 1;
+		i += 1;
 	}
-	v_qsortHelper(v_stringKeys, v_numKeys, v_parallelList, v_isString, 0, (v_length - 1));
+	qsortHelper(stringKeys, numKeys, indices, isString, 0, (length - 1));
+	i = 0;
+	while ((i < length)) {
+		parallelList[2][i] = originalOrder[indices[i]];
+		i += 1;
+	}
 	return 0;
 };
 
-
-var v_stackItemIsLibrary = function(v_stackInfo) {
-	if ((v_stackInfo.charAt(0) != "[")) {
+var stackItemIsLibrary = function(stackInfo) {
+	if ((stackInfo.charAt(0) != "[")) {
 		return false;
 	}
-	var v_cIndex = v_stackInfo.indexOf(":");
-	return ((v_cIndex > 0) && (v_cIndex < v_stackInfo.indexOf("]")));
+	var cIndex = stackInfo.indexOf(":");
+	return ((cIndex > 0) && (cIndex < stackInfo.indexOf("]")));
 };
 
+var startVm = function(vm) {
+	return runInterpreter(vm, vm[1]);
+};
 
-var v_stringDecode = function(v_encoded) {
-	if (!(v_encoded.indexOf("%") != -1)) {
-		var v_length = v_encoded.length;
-		var v_per = "%";
-		var v_builder = [];
-		var v_i = 0;
-		while ((v_i < v_length)) {
-			var v_c = v_encoded.charAt(v_i);
-			if (((v_c == v_per) && ((v_i + 2) < v_length))) {
-				v_builder.push(v_stringFromHex(["", v_encoded.charAt((v_i + 1)), v_encoded.charAt((v_i + 2))].join('')));
+var stringDecode = function(encoded) {
+	if (!(encoded.indexOf("%") != -1)) {
+		var length = encoded.length;
+		var per = "%";
+		var builder = [];
+		var i = 0;
+		while ((i < length)) {
+			var c = encoded.charAt(i);
+			if (((c == per) && ((i + 2) < length))) {
+				builder.push(stringFromHex(["", encoded.charAt((i + 1)), encoded.charAt((i + 2))].join('')));
 			} else {
-				v_builder.push("" + v_c);
+				builder.push("" + c);
 			}
-			v_i += 1;
+			i += 1;
 		}
-		return v_builder.join("");
+		return builder.join("");
 	}
-	return v_encoded;
+	return encoded;
 };
 
-
-var v_stringFromHex = function(v_encoded) {
-	v_encoded = v_encoded.toUpperCase();
-	var v_hex = "0123456789ABCDEF";
-	var v_output = [];
-	var v_length = v_encoded.length;
-	var v_a = 0;
-	var v_b = 0;
-	var v_c = null;
-	var v_i = 0;
-	while (((v_i + 1) < v_length)) {
-		v_c = "" + v_encoded.charAt(v_i);
-		v_a = v_hex.indexOf(v_c);
-		if ((v_a == -1)) {
+var stringFromHex = function(encoded) {
+	encoded = encoded.toUpperCase();
+	var hex = "0123456789ABCDEF";
+	var output = [];
+	var length = encoded.length;
+	var a = 0;
+	var b = 0;
+	var c = null;
+	var i = 0;
+	while (((i + 1) < length)) {
+		c = "" + encoded.charAt(i);
+		a = hex.indexOf(c);
+		if ((a == -1)) {
 			return null;
 		}
-		v_c = "" + v_encoded.charAt((v_i + 1));
-		v_b = v_hex.indexOf(v_c);
-		if ((v_b == -1)) {
+		c = "" + encoded.charAt((i + 1));
+		b = hex.indexOf(c);
+		if ((b == -1)) {
 			return null;
 		}
-		v_a = ((v_a * 16) + v_b);
-		v_output.push(String.fromCharCode(v_a));
-		v_i += 2;
+		a = ((a * 16) + b);
+		output.push(String.fromCharCode(a));
+		i += 2;
 	}
-	return v_output.join("");
+	return output.join("");
 };
 
-
-var v_suspendInterpreter = function() {
-	return [2, null];
+var suspendInterpreter = function() {
+	return [2, null, 0.0, 0, false, ""];
 };
 
-
-var v_suspendInterpreterWithLock = function() {
-	return [4, null];
-};
-
-
-var v_tokenDataImpl = function(v_row) {
-	var v_p = C$common$programData;
-	var v_tokensByPc = v_p[10];
-	var v_pc = (v_row[0] + v_p[11]);
-	var v_line = v_row[1];
-	var v_col = v_row[2];
-	var v_file = v_row[3];
-	var v_tokens = v_tokensByPc[v_pc];
-	if ((v_tokens == null)) {
-		v_tokens = [];
-		v_tokensByPc[v_pc] = v_tokens;
+var tokenDataImpl = function(vm, row) {
+	var tokensByPc = vm[3][0];
+	var pc = (row[0] + vm[4][16]);
+	var line = row[1];
+	var col = row[2];
+	var file = row[3];
+	var tokens = tokensByPc[pc];
+	if ((tokens == null)) {
+		tokens = [];
+		tokensByPc[pc] = tokens;
 	}
-	v_tokens.push([v_line, v_col, v_file]);
+	tokens.push([line, col, file]);
 	return 0;
 };
 
-
-var v_tokenHelperConvertPcsToStackTraceStrings = function(v_pcs) {
-	var v_p = C$common$programData;
-	var v_tokens = v_generateTokenListFromPcs(v_pcs);
-	var v_files = v_p[12];
-	var v_output = [];
-	var v_i = 0;
-	while ((v_i < v_tokens.length)) {
-		var v_token = v_tokens[v_i];
-		if ((v_token == null)) {
-			v_output.push("[No stack information]");
+var tokenHelperConvertPcsToStackTraceStrings = function(vm, pcs) {
+	var tokens = generateTokenListFromPcs(vm, pcs);
+	var files = vm[3][1];
+	var output = [];
+	var i = 0;
+	while ((i < tokens.length)) {
+		var token = tokens[i];
+		if ((token == null)) {
+			output.push("[No stack information]");
 		} else {
-			var v_line = v_token[0];
-			var v_col = v_token[1];
-			var v_fileData = v_files[v_token[2]];
-			var v_lines = v_fileData.split("\n");
-			var v_filename = v_lines[0];
-			var v_linevalue = v_lines[(v_line + 1)];
-			v_output.push([v_filename, ", Line: ", ('' + (v_line + 1)), ", Col: ", ('' + (v_col + 1))].join(''));
+			var line = token[0];
+			var col = token[1];
+			var fileData = files[token[2]];
+			var lines = fileData.split("\n");
+			var filename = lines[0];
+			var linevalue = lines[(line + 1)];
+			output.push([filename, ", Line: ", ('' + (line + 1)), ", Col: ", ('' + (col + 1))].join(''));
 		}
-		v_i += 1;
+		i += 1;
 	}
-	return v_output;
+	return output;
 };
 
-
-var v_tokenHelperGetFileLine = function(v_fileId, v_lineNum) {
-	var v_p = C$common$programData;
-	var v_sourceCode = v_p[12][v_fileId];
-	if ((v_sourceCode == null)) {
+var tokenHelperGetFileLine = function(vm, fileId, lineNum) {
+	var sourceCode = vm[3][1][fileId];
+	if ((sourceCode == null)) {
 		return null;
 	}
-	return v_sourceCode.split("\n")[v_lineNum];
+	return sourceCode.split("\n")[lineNum];
 };
 
-
-var v_tokenHelperGetFormattedPointerToToken = function(v_token) {
-	var v_line = v_tokenHelperGetFileLine(v_token[2], (v_token[0] + 1));
-	if ((v_line == null)) {
+var tokenHelperGetFormattedPointerToToken = function(vm, token) {
+	var line = tokenHelperGetFileLine(vm, token[2], (token[0] + 1));
+	if ((line == null)) {
 		return null;
 	}
-	var v_columnIndex = v_token[1];
-	var v_lineLength = v_line.length;
-	v_line = C$common$stringTrimOneSide(v_line, true);
-	v_line = v_line.split("\t").join(" ");
-	var v_offset = (v_lineLength - v_line.length);
-	v_columnIndex -= v_offset;
-	var v_line2 = "";
-	while ((v_columnIndex > 0)) {
-		v_columnIndex -= 1;
-		v_line2 = v_line2 + " ";
+	var columnIndex = token[1];
+	var lineLength = line.length;
+	line = PST$stringTrimOneSide(line, true);
+	line = line.split("\t").join(" ");
+	var offset = (lineLength - line.length);
+	columnIndex -= offset;
+	var line2 = "";
+	while ((columnIndex > 0)) {
+		columnIndex -= 1;
+		line2 = line2 + " ";
 	}
-	v_line2 = v_line2 + "^";
-	return [v_line, "\n", v_line2].join('');
+	line2 = line2 + "^";
+	return [line, "\n", line2].join('');
 };
 
-
-var v_tokenHelplerIsFilePathLibrary = function(v_fileId, v_allFiles) {
-	var v_filename = v_tokenHelperGetFileLine(v_fileId, 0);
-	return !C$common$stringEndsWith(v_filename.toLowerCase(), ".cry");
+var tokenHelplerIsFilePathLibrary = function(vm, fileId, allFiles) {
+	var filename = tokenHelperGetFileLine(vm, fileId, 0);
+	return !PST$stringEndsWith(filename.toLowerCase(), ".cry");
 };
 
-
-var v_uncaughtExceptionResult = function(v_exception) {
-	return [3, v_unrollExceptionOutput(v_exception)];
+var typeInfoToString = function(vm, typeInfo, i) {
+	var output = [];
+	typeToStringBuilder(vm, output, typeInfo, i);
+	return output.join("");
 };
 
+var typeToString = function(vm, typeInfo, i) {
+	var sb = [];
+	typeToStringBuilder(vm, sb, typeInfo, i);
+	return sb.join("");
+};
 
-var v_unrollExceptionOutput = function(v_exceptionInstance) {
-	var v_objInstance = v_exceptionInstance[1];
-	var v_p = C$common$programData;
-	var v_classInfo = v_p[20][v_objInstance[0]];
-	var v_pcs = v_objInstance[3][1];
-	var v_codeFormattedPointer = "";
-	var v_exceptionName = v_classInfo[12];
-	var v_message = v_valueToString(v_objInstance[2][1]);
-	var v_trace = v_tokenHelperConvertPcsToStackTraceStrings(v_pcs);
-	v_trace.pop();
-	v_trace.push("Stack Trace:");
-	v_trace.reverse();
-	v_pcs.reverse();
-	if ((!false && !v_stackItemIsLibrary(v_trace[0]))) {
-		while (v_stackItemIsLibrary(v_trace[(v_trace.length - 1)])) {
-			v_trace.pop();
-			v_pcs.pop();
+var typeToStringBuilder = function(vm, sb, typeInfo, i) {
+	switch (typeInfo[i]) {
+		case -1:
+			sb.push("void");
+			return (i + 1);
+		case 0:
+			sb.push("object");
+			return (i + 1);
+		case 1:
+			sb.push("object");
+			return (i + 1);
+		case 3:
+			sb.push("int");
+			return (i + 1);
+		case 4:
+			sb.push("float");
+			return (i + 1);
+		case 2:
+			sb.push("bool");
+			return (i + 1);
+		case 5:
+			sb.push("string");
+			return (i + 1);
+		case 6:
+			sb.push("List<");
+			i = typeToStringBuilder(vm, sb, typeInfo, (i + 1));
+			sb.push(">");
+			return i;
+		case 7:
+			sb.push("Dictionary<");
+			i = typeToStringBuilder(vm, sb, typeInfo, (i + 1));
+			sb.push(", ");
+			i = typeToStringBuilder(vm, sb, typeInfo, i);
+			sb.push(">");
+			return i;
+		case 8:
+			var classId = typeInfo[(i + 1)];
+			if ((classId == 0)) {
+				sb.push("object");
+			} else {
+				var classInfo = vm[4][9][classId];
+				sb.push(classInfo[16]);
+			}
+			return (i + 2);
+		case 10:
+			sb.push("Class");
+			return (i + 1);
+		case 9:
+			var n = typeInfo[(i + 1)];
+			var optCount = typeInfo[(i + 2)];
+			i += 2;
+			sb.push("function(");
+			var ret = [];
+			i = typeToStringBuilder(vm, ret, typeInfo, i);
+			var j = 1;
+			while ((j < n)) {
+				if ((j > 1)) {
+					sb.push(", ");
+				}
+				i = typeToStringBuilder(vm, sb, typeInfo, i);
+				j += 1;
+			}
+			if ((n == 1)) {
+				sb.push("void");
+			}
+			sb.push(" => ");
+			var optStart = (n - optCount - 1);
+			j = 0;
+			while ((j < ret.length)) {
+				if ((j >= optStart)) {
+					sb.push("(opt) ");
+				}
+				sb.push(ret[j]);
+				j += 1;
+			}
+			sb.push(")");
+			return i;
+		default:
+			sb.push("UNKNOWN");
+			return (i + 1);
+	}
+};
+
+var typeToStringFromValue = function(vm, value) {
+	var sb = null;
+	switch (value[0]) {
+		case 1:
+			return "null";
+		case 2:
+			return "bool";
+		case 3:
+			return "int";
+		case 4:
+			return "float";
+		case 5:
+			return "string";
+		case 10:
+			return "class";
+		case 8:
+			var classId = (value[1])[0];
+			var classInfo = vm[4][9][classId];
+			return classInfo[16];
+		case 6:
+			sb = [];
+			sb.push("List<");
+			var list = value[1];
+			if ((list[0] == null)) {
+				sb.push("object");
+			} else {
+				typeToStringBuilder(vm, sb, list[0], 0);
+			}
+			sb.push(">");
+			return sb.join("");
+		case 7:
+			var dict = value[1];
+			sb = [];
+			sb.push("Dictionary<");
+			switch (dict[1]) {
+				case 3:
+					sb.push("int");
+					break;
+				case 5:
+					sb.push("string");
+					break;
+				case 8:
+					sb.push("object");
+					break;
+				default:
+					sb.push("???");
+					break;
+			}
+			sb.push(", ");
+			if ((dict[3] == null)) {
+				sb.push("object");
+			} else {
+				typeToStringBuilder(vm, sb, dict[3], 0);
+			}
+			sb.push(">");
+			return sb.join("");
+		case 9:
+			return "Function";
+		default:
+			return "Unknown";
+	}
+};
+
+var uncaughtExceptionResult = function(vm, exception) {
+	return [3, unrollExceptionOutput(vm, exception), 0.0, 0, false, ""];
+};
+
+var unrollExceptionOutput = function(vm, exceptionInstance) {
+	var objInstance = exceptionInstance[1];
+	var classInfo = vm[4][9][objInstance[0]];
+	var pcs = objInstance[3][1];
+	var codeFormattedPointer = "";
+	var exceptionName = classInfo[16];
+	var message = valueToString(vm, objInstance[2][1]);
+	var trace = tokenHelperConvertPcsToStackTraceStrings(vm, pcs);
+	trace.pop();
+	trace.push("Stack Trace:");
+	trace.reverse();
+	pcs.reverse();
+	var showLibStack = vm[11][1];
+	if ((!showLibStack && !stackItemIsLibrary(trace[0]))) {
+		while (stackItemIsLibrary(trace[(trace.length - 1)])) {
+			trace.pop();
+			pcs.pop();
 		}
 	}
-	var v_tokensAtPc = v_p[10][v_pcs[(v_pcs.length - 1)]];
-	if ((v_tokensAtPc != null)) {
-		v_codeFormattedPointer = "\n\n" + v_tokenHelperGetFormattedPointerToToken(v_tokensAtPc[0]);
+	var tokensAtPc = vm[3][0][pcs[(pcs.length - 1)]];
+	if ((tokensAtPc != null)) {
+		codeFormattedPointer = "\n\n" + tokenHelperGetFormattedPointerToToken(vm, tokensAtPc[0]);
 	}
-	var v_stackTrace = v_trace.join("\n");
-	return [v_stackTrace, v_codeFormattedPointer, "\n", v_exceptionName, ": ", v_message].join('');
+	var stackTrace = trace.join("\n");
+	return [stackTrace, codeFormattedPointer, "\n", exceptionName, ": ", message].join('');
 };
 
+var valueConcatLists = function(a, b) {
+	return [null, (a[1] + b[1]), a[2].concat(b[2])];
+};
 
-var v_valueStackDepthImpl = function(v_row) {
-	var v_p = C$common$programData;
-	var v_totalPcCount = v_p[2].length;
-	var v_valueStackDepthByPc = C$common$createNewArray(v_totalPcCount);
-	var v_rowIndex = 0;
-	var v_rowLength = v_row.length;
-	var v_depth = 0;
-	var v_pc = 0;
-	while ((v_pc < v_totalPcCount)) {
-		if (((v_rowIndex < v_rowLength) && (v_pc == v_row[v_rowIndex]))) {
-			v_depth += v_row[(v_rowIndex + 1)];
-			v_rowIndex += 2;
+var valueMultiplyList = function(a, n) {
+	var _len = (a[1] * n);
+	var output = makeEmptyList(a[0], _len);
+	if ((_len == 0)) {
+		return output;
+	}
+	var aLen = a[1];
+	var i = 0;
+	var value = null;
+	if ((aLen == 1)) {
+		value = a[2][0];
+		i = 0;
+		while ((i < n)) {
+			output[2].push(value);
+			i += 1;
 		}
-		v_valueStackDepthByPc[v_pc] = v_depth;
-		v_pc += 1;
+	} else {
+		var j = 0;
+		i = 0;
+		while ((i < n)) {
+			j = 0;
+			while ((j < aLen)) {
+				output[2].push(a[2][j]);
+				j += 1;
+			}
+			i += 1;
+		}
 	}
-	v_p[31] = v_valueStackDepthByPc;
-	return 0;
+	output[1] = _len;
+	return output;
 };
 
-
-var v_valueStackIncreaseCapacity = function(v_ec) {
-	var v_stack = v_ec[4];
-	var v_oldCapacity = v_stack.length;
-	var v_newCapacity = (v_oldCapacity * 2);
-	var v_newStack = C$common$createNewArray(v_newCapacity);
-	var v_i = (v_oldCapacity - 1);
-	while ((v_i >= 0)) {
-		v_newStack[v_i] = v_stack[v_i];
-		v_i -= 1;
+var valueStackIncreaseCapacity = function(ec) {
+	var stack = ec[4];
+	var oldCapacity = stack.length;
+	var newCapacity = (oldCapacity * 2);
+	var newStack = PST$createNewArray(newCapacity);
+	var i = (oldCapacity - 1);
+	while ((i >= 0)) {
+		newStack[i] = stack[i];
+		i -= 1;
 	}
-	v_ec[4] = v_newStack;
-	return v_newStack;
+	ec[4] = newStack;
+	return newStack;
 };
 
-
-var v_valueToString = function(v_wrappedValue) {
-	var v_type = v_wrappedValue[0];
-	if ((v_type == 1)) {
+var valueToString = function(vm, wrappedValue) {
+	var type = wrappedValue[0];
+	if ((type == 1)) {
 		return "null";
 	}
-	if ((v_type == 2)) {
-		if (v_wrappedValue[1]) {
+	if ((type == 2)) {
+		if (wrappedValue[1]) {
 			return "true";
 		}
 		return "false";
 	}
-	if ((v_type == 4)) {
-		var v_floatStr = '' + v_wrappedValue[1];
-		if (!(v_floatStr.indexOf(".") != -1)) {
-			v_floatStr += ".0";
+	if ((type == 4)) {
+		var floatStr = '' + wrappedValue[1];
+		if (!(floatStr.indexOf(".") != -1)) {
+			floatStr += ".0";
 		}
-		return v_floatStr;
+		return floatStr;
 	}
-	if ((v_type == 3)) {
-		return ('' + v_wrappedValue[1]);
+	if ((type == 3)) {
+		return ('' + wrappedValue[1]);
 	}
-	if ((v_type == 5)) {
-		return v_wrappedValue[1];
+	if ((type == 5)) {
+		return wrappedValue[1];
 	}
-	if ((v_type == 6)) {
-		var v_internalList = v_wrappedValue[1];
-		var v_output = "[";
-		var v_i = 0;
-		while ((v_i < v_internalList.length)) {
-			if ((v_i > 0)) {
-				v_output += ", ";
+	if ((type == 6)) {
+		var internalList = wrappedValue[1];
+		var output = "[";
+		var i = 0;
+		while ((i < internalList[1])) {
+			if ((i > 0)) {
+				output += ", ";
 			}
-			v_output += v_valueToString(v_internalList[v_i]);
-			v_i += 1;
+			output += valueToString(vm, internalList[2][i]);
+			i += 1;
 		}
-		v_output += "]";
-		return v_output;
+		output += "]";
+		return output;
 	}
-	if ((v_type == 8)) {
-		var v_objInstance = v_wrappedValue[1];
-		var v_classId = v_objInstance[0];
-		var v_ptr = v_objInstance[1];
-		var v_pd = C$common$programData;
-		var v_classInfo = v_pd[20][v_classId];
-		var v_nameId = v_classInfo[1];
-		var v_className = v_pd[5][v_nameId];
-		return ["Instance<", v_className, "#", ('' + v_ptr), ">"].join('');
+	if ((type == 8)) {
+		var objInstance = wrappedValue[1];
+		var classId = objInstance[0];
+		var ptr = objInstance[1];
+		var classInfo = vm[4][9][classId];
+		var nameId = classInfo[1];
+		var className = vm[4][0][nameId];
+		return ["Instance<", className, "#", ('' + ptr), ">"].join('');
 	}
-	if ((v_type == 7)) {
-		var v_internalDict = v_wrappedValue[1];
-		var v_size = v_internalDict[4];
-		if ((v_size == 0)) {
+	if ((type == 7)) {
+		var dict = wrappedValue[1];
+		if ((dict[0] == 0)) {
 			return "{}";
 		}
-		var v_output = "{";
-		if ((v_internalDict[5] == 3)) {
-			var v_intKeys = C$common$dictionaryKeys(v_internalDict[0]);
-			var v_intKey = 0;
-			var v_i = 0;
-			while ((v_i < v_size)) {
-				if ((v_i > 0)) {
-					v_output += ", ";
-				} else {
-					v_output += " ";
-				}
-				v_intKey = v_intKeys[v_i];
-				v_output += [('' + v_intKey), ": ", v_valueToString(v_internalDict[1][v_intKey])].join('');
-				v_i += 1;
+		var output = "{";
+		var keyList = dict[6];
+		var valueList = dict[7];
+		var i = 0;
+		while ((i < dict[0])) {
+			if ((i > 0)) {
+				output += ", ";
 			}
-		} else {
-			var v_stringKeys = C$common$dictionaryKeys(v_internalDict[2]);
-			var v_stringKey = "";
-			var v_i = 0;
-			while ((v_i < v_size)) {
-				if ((v_i > 0)) {
-					v_output += ", ";
-				} else {
-					v_output += " ";
-				}
-				v_stringKey = v_stringKeys[v_i];
-				v_output += [v_stringKey, ": ", v_valueToString(v_internalDict[3][v_stringKey])].join('');
-				v_i += 1;
-			}
+			output += [valueToString(vm, dict[6][i]), ": ", valueToString(vm, dict[7][i])].join('');
+			i += 1;
 		}
-		v_output += " }";
-		return v_output;
+		output += " }";
+		return output;
+	}
+	if ((type == 9)) {
+		var fp = wrappedValue[1];
+		switch (fp[0]) {
+			case 1:
+				return "<FunctionPointer>";
+			case 2:
+				return "<ClassMethodPointer>";
+			case 3:
+				return "<ClassStaticMethodPointer>";
+			case 4:
+				return "<PrimitiveMethodPointer>";
+			case 5:
+				return "<Lambda>";
+			default:
+				return "<UnknownFunctionPointer>";
+		}
 	}
 	return "<unknown>";
 };
 
-
-var v_vm_getCurrentExecutionContextId = function() {
-	var v_p = C$common$programData;
-	return v_p[1];
+var vm_getCurrentExecutionContextId = function(vm) {
+	return vm[1];
 };
 
-
-var v_vm_suspend = function() {
-	return v_vm_suspend_for_context(v_getExecutionContext(-1));
+var vm_suspend_context_by_id = function(vm, execId, status) {
+	return vm_suspend_for_context(getExecutionContext(vm, execId), 1);
 };
 
-
-var v_vm_suspend_for_context = function(v_ec) {
-	v_ec[11] = true;
-	v_ec[12] = 1;
+var vm_suspend_for_context = function(ec, status) {
+	ec[11] = true;
+	ec[12] = status;
 	return 0;
 };
 
+var vm_suspend_with_status_by_id = function(vm, execId, status) {
+	return vm_suspend_for_context(getExecutionContext(vm, execId), status);
+};
+
+var vmEnvSetCommandLineArgs = function(vm, args) {
+	vm[11][0] = args;
+};
+
+var vmGetGlobals = function(vm) {
+	return vm[13];
+};

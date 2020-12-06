@@ -1,175 +1,173 @@
-﻿var v_lib_graphics2dtext_manifest = function(v_libRegData) {
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "createNativeFont", 8);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "getNativeFontUniqueKey", 8);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "glGenerateAndLoadTexture", 4);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "glRenderCharTile", 4);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "glRenderTextSurface", 2);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "glSetNativeDataIntArray", 3);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "isDynamicFontLoaded", 0);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "isGlRenderer", 0);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "isResourceAvailable", 1);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "isSystemFontPresent", 1);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "renderText", 11);
-	C$common$registerLibraryFunction('graphics2dtext', v_libRegData, "simpleBlit", 5);
+﻿PST$multiplyList = function(l, n) {
+	var o = [];
+	var s = l.length;
+	var i;
+	while (n-- > 0) {
+		for (i = 0; i < s; ++i) {
+			o.push(l[i]);
+		}
+	}
+	return o;
 };
 
+PST$intBuffer16 = PST$multiplyList([0], 16);
 
-var v_lib_graphics2dtext_function_createNativeFont = function(v_args) {
-	var v_nf = v_args[0][1];
-	var v_nfOut = v_nf[3];
-	var v_fontType = v_args[1][1];
-	var v_fontPath = "";
-	if ((v_fontType == 0)) {
-		v_fontType = v_args[2][1];
+PST$createNewArray = function(s) {
+	var o = [];
+	while (s-- > 0) o.push(null);
+	return o;
+};
+
+var lib_graphics2dtext_createNativeFont = function(vm, args) {
+	var ints = vm[13][9];
+	var nf = args[0][1];
+	var nfOut = nf[3];
+	var fontType = args[1][1];
+	var fontPath = "";
+	if ((fontType == 0)) {
+		fontType = args[2][1];
 	} else {
-		v_fontPath = v_args[2][1];
-		if ((v_fontType == 1)) {
-			var v_res = v_resource_manager_getResourceOfType(v_fontPath, "TTF");
-			if ((v_res[0] == 1)) {
-				return v_buildInteger(2);
+		fontPath = args[2][1];
+		if ((fontType == 1)) {
+			var res = resource_manager_getResourceOfType(vm, fontPath, "TTF");
+			if ((res[0] == 1)) {
+				return ints[2];
 			}
-			var v_resList = v_res[1];
-			if (!v_resList[0][1]) {
-				return v_buildInteger(2);
+			var resList = res[1];
+			if (!getItemFromList(resList, 0)[1]) {
+				return ints[2];
 			}
-			v_fontPath = v_resList[1][1];
+			fontPath = getItemFromList(resList, 1)[1];
 		}
 	}
-	var v_fontClass = 0;
-	var v_fontSize = v_args[3][1];
-	var v_red = v_args[4][1];
-	var v_green = v_args[5][1];
-	var v_blue = v_args[6][1];
-	var v_styleBitmask = v_args[7][1];
-	var v_isBold = (v_styleBitmask & 1);
-	var v_isItalic = (v_styleBitmask & 2);
-	v_nfOut[0] = LIB$graphics2dtext$createNativeFont(v_fontType, v_fontClass, v_fontPath);
-	if ((v_nfOut[0] == null)) {
-		if ((v_fontType == 3)) {
-			return v_buildInteger(1);
+	var fontClass = 0;
+	var fontSize = args[3][1];
+	var red = args[4][1];
+	var green = args[5][1];
+	var blue = args[6][1];
+	var styleBitmask = args[7][1];
+	var isBold = (styleBitmask & 1);
+	var isItalic = (styleBitmask & 2);
+	nfOut[0] = LIB$graphics2dtext$createNativeFont(fontType, fontClass, fontPath);
+	if ((nfOut[0] == null)) {
+		if ((fontType == 3)) {
+			return ints[1];
 		}
-		return v_buildInteger(2);
+		return ints[2];
 	}
-	return v_buildInteger(0);
+	return ints[0];
 };
 
-
-var v_lib_graphics2dtext_function_getNativeFontUniqueKey = function(v_args) {
-	var v_output = v_args[7][1];
-	v_output.splice(0, 0, v_args[0], v_args[1]);
-	return v_VALUE_NULL;
+var lib_graphics2dtext_getNativeFontUniqueKey = function(vm, args) {
+	var list1 = args[7][1];
+	var output = [];
+	output.splice(0, 0, args[0], args[1]);
+	var list2 = buildList(output)[1];
+	list1[2] = list2[2];
+	list1[1] = list2[1];
+	return vm[14];
 };
 
-
-var v_lib_graphics2dtext_function_glGenerateAndLoadTexture = function(v_args) {
-	return v_VALUE_NULL;
+var lib_graphics2dtext_glGenerateAndLoadTexture = function(vm, args) {
+	return vm[14];
 };
 
-
-var v_lib_graphics2dtext_function_glRenderCharTile = function(v_args) {
-	return v_VALUE_TRUE;
+var lib_graphics2dtext_glRenderCharTile = function(vm, args) {
+	return vm[15];
 };
 
-
-var v_lib_graphics2dtext_function_glRenderTextSurface = function(v_args) {
-	return v_VALUE_NULL;
+var lib_graphics2dtext_glRenderTextSurface = function(vm, args) {
+	return vm[14];
 };
 
-
-var v_lib_graphics2dtext_function_glSetNativeDataIntArray = function(v_args) {
-	return v_VALUE_NULL;
+var lib_graphics2dtext_glSetNativeDataIntArray = function(vm, args) {
+	return vm[14];
 };
 
-
-var v_lib_graphics2dtext_function_isDynamicFontLoaded = function(v_args) {
-	return v_buildBoolean(LIB$graphics2dtext$isDynamicFontLoaded());
+var lib_graphics2dtext_isDynamicFontLoaded = function(vm, args) {
+	return buildBoolean(vm[13], LIB$graphics2dtext$isDynamicFontLoaded());
 };
 
-
-var v_lib_graphics2dtext_function_isGlRenderer = function(v_args) {
-	return v_VALUE_FALSE;
+var lib_graphics2dtext_isGlRenderer = function(vm, args) {
+	return vm[16];
 };
 
-
-var v_lib_graphics2dtext_function_isResourceAvailable = function(v_args) {
-	var v_path = v_args[0][1];
-	var v_res = v_resource_manager_getResourceOfType(v_path, "TTF");
-	if ((v_res[0] == 1)) {
-		return v_VALUE_FALSE;
+var lib_graphics2dtext_isResourceAvailable = function(vm, args) {
+	var path = args[0][1];
+	var res = resource_manager_getResourceOfType(vm, path, "TTF");
+	if ((res[0] == 1)) {
+		return vm[16];
 	}
-	var v_resList = v_res[1];
-	if (!v_resList[0][1]) {
-		return v_VALUE_FALSE;
+	var resList = res[1];
+	if (!getItemFromList(resList, 0)[1]) {
+		return vm[16];
 	}
-	return v_VALUE_TRUE;
+	return vm[15];
 };
 
-
-var v_lib_graphics2dtext_function_isSystemFontPresent = function(v_args) {
-	return v_buildBoolean(LIB$graphics2dtext$isSystemFontAvailable(v_args[0][1]));
+var lib_graphics2dtext_isSystemFontPresent = function(vm, args) {
+	return buildBoolean(vm[13], LIB$graphics2dtext$isSystemFontAvailable(args[0][1]));
 };
 
-
-var v_lib_graphics2dtext_function_renderText = function(v_args) {
-	var v_sizeOut = v_args[0][1];
-	var v_textSurface = v_args[1][1];
-	var v_imageOut = v_textSurface[3];
-	var v_nativeFont = (v_args[2][1])[3][0];
-	var v_sourceType = v_args[3][1];
-	var v_fontClass = 0;
-	var v_fontPath = "";
-	if ((v_sourceType == 0)) {
-		v_fontClass = v_args[4][1];
+var lib_graphics2dtext_renderText = function(vm, args) {
+	var sizeOut = args[0][1];
+	var textSurface = args[1][1];
+	var imageOut = textSurface[3];
+	var nativeFont = (args[2][1])[3][0];
+	var sourceType = args[3][1];
+	var fontClass = 0;
+	var fontPath = "";
+	if ((sourceType == 0)) {
+		fontClass = args[4][1];
 	} else {
-		v_fontPath = v_args[4][1];
+		fontPath = args[4][1];
 	}
-	var v_fontSize = v_args[5][1];
-	var v_fontStyle = v_args[6][1];
-	var v_isBold = (v_fontStyle & 1);
-	var v_isItalic = (v_fontStyle & 2);
-	var v_red = v_args[7][1];
-	var v_green = v_args[8][1];
-	var v_blue = v_args[9][1];
-	var v_text = v_args[10][1];
-	var v_bmp = LIB$graphics2dtext$renderText(C$common$intBuffer16, v_nativeFont, v_fontSize, (v_isBold > 0), (v_isItalic > 0), v_red, v_green, v_blue, v_text);
-	var v_spoofedNativeData = C$common$createNewArray(4);
-	v_spoofedNativeData[3] = v_bmp;
-	var v_spoofedNativeData2 = C$common$createNewArray(1);
-	v_spoofedNativeData2[0] = v_spoofedNativeData;
-	v_imageOut[0] = v_spoofedNativeData2;
-	v_sizeOut[0] = v_buildInteger(C$common$intBuffer16[0]);
-	v_sizeOut[1] = v_buildInteger(C$common$intBuffer16[1]);
-	return v_VALUE_NULL;
+	var fontSize = args[5][1];
+	var fontStyle = args[6][1];
+	var isBold = (fontStyle & 1);
+	var isItalic = (fontStyle & 2);
+	var red = args[7][1];
+	var green = args[8][1];
+	var blue = args[9][1];
+	var text = args[10][1];
+	var bmp = LIB$graphics2dtext$renderText(PST$intBuffer16, nativeFont, fontSize, (isBold > 0), (isItalic > 0), red, green, blue, text);
+	var spoofedNativeData = PST$createNewArray(4);
+	spoofedNativeData[3] = bmp;
+	var spoofedNativeData2 = PST$createNewArray(1);
+	spoofedNativeData2[0] = spoofedNativeData;
+	imageOut[0] = spoofedNativeData2;
+	setItemInList(sizeOut, 0, buildInteger(vm[13], PST$intBuffer16[0]));
+	setItemInList(sizeOut, 1, buildInteger(vm[13], PST$intBuffer16[1]));
+	return vm[14];
 };
 
-
-var v_lib_graphics2dtext_function_simpleBlit = function(v_args) {
-	var v_nativeBlittableBitmap = (v_args[0][1])[3][0];
-	var v_drawQueueNativeData = (v_args[1][1])[3];
-	var v_alpha = v_args[4][1];
-	var v_eventQueue = v_drawQueueNativeData[0];
-	var v_index = (v_drawQueueNativeData[1] - 16);
-	var v_imageQueue = v_drawQueueNativeData[2];
-	var v_imageQueueLength = v_drawQueueNativeData[3];
-	v_eventQueue[v_index] = 6;
-	v_eventQueue[(v_index | 1)] = 0;
-	v_eventQueue[(v_index | 8)] = v_args[2][1];
-	v_eventQueue[(v_index | 9)] = v_args[3][1];
-	if ((v_imageQueue.length == v_imageQueueLength)) {
-		var v_oldSize = v_imageQueue.length;
-		var v_newSize = (v_oldSize * 2);
-		var v_newImageQueue = C$common$createNewArray(v_newSize);
-		var v_i = 0;
-		while ((v_i < v_oldSize)) {
-			v_newImageQueue[v_i] = v_imageQueue[v_i];
-			v_imageQueue = v_newImageQueue;
-			v_drawQueueNativeData[2] = v_imageQueue;
-			v_i += 1;
+var lib_graphics2dtext_simpleBlit = function(vm, args) {
+	var nativeBlittableBitmap = (args[0][1])[3][0];
+	var drawQueueNativeData = (args[1][1])[3];
+	var alpha = args[4][1];
+	var eventQueue = drawQueueNativeData[0];
+	var index = (drawQueueNativeData[1] - 16);
+	var imageQueue = drawQueueNativeData[2];
+	var imageQueueLength = drawQueueNativeData[3];
+	eventQueue[index] = 6;
+	eventQueue[(index | 1)] = 0;
+	eventQueue[(index | 8)] = args[2][1];
+	eventQueue[(index | 9)] = args[3][1];
+	if ((imageQueue.length == imageQueueLength)) {
+		var oldSize = imageQueue.length;
+		var newSize = (oldSize * 2);
+		var newImageQueue = PST$createNewArray(newSize);
+		var i = 0;
+		while ((i < oldSize)) {
+			newImageQueue[i] = imageQueue[i];
+			i += 1;
 		}
+		imageQueue = newImageQueue;
+		drawQueueNativeData[2] = imageQueue;
 	}
-	v_imageQueue[v_imageQueueLength] = v_nativeBlittableBitmap;
-	v_drawQueueNativeData[3] = (v_imageQueueLength + 1);
-	return v_VALUE_NULL;
+	imageQueue[imageQueueLength] = nativeBlittableBitmap;
+	drawQueueNativeData[3] = (imageQueueLength + 1);
+	return vm[14];
 };
 
 
@@ -239,6 +237,7 @@ LIB$graphics2dtext$testFont = function(name) {
 };
 
 LIB$graphics2dtext$getFontLoader = function(id) {
+	C$game$getFontLoader();
 	return document.getElementById('crayon_font_loader_' + id);
 }
 
@@ -279,7 +278,7 @@ LIB$graphics2dtext$renderText = function(sizeout, nativeFont, size, isBold, isIt
 	var measure = ctx.measureText(text);
 	var width = Math.ceil(measure.width);
 	var height = effectiveSize;
-	var surface = C$imageresources$generateNativeBitmapOfSize(width, height * 4 / 3);
+	var surface = LIB$imageresources$generateNativeBitmapOfSize(width, height * 4 / 3);
 	ctx = surface.getContext('2d');
 	ctx.font = fontCss;
 	ctx.fillStyle = C$drawing$HEXR[r] + C$drawing$HEX[g] + C$drawing$HEX[b];
@@ -288,5 +287,4 @@ LIB$graphics2dtext$renderText = function(sizeout, nativeFont, size, isBold, isIt
 	sizeout[1] = surface.height;
 	return surface;
 };
-
 
